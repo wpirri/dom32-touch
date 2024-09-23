@@ -1,0 +1,36 @@
+ * Asignacion de pines para PIC32MM0064GPL028 en Dom32Term
+ * 1    MCLR / Vpp                      Programaciïon/Debug/Reset
+ * 2    RA0                             LCD_RD                  J3-1
+ * 3    RA1/AN1                         LCD_WR / TOUCH_YP (An)  J3-2
+ * 4    RB0                             LCD_D0                  J1-8
+ * 5    RB1                             LCD_D1                  J1-7
+ * 6    RB2/AN4                         LCD_D2                  J2-6
+ * 7    RB3/AN11                        LCD_D3                  J2-5
+ * 8    Vss                             Vss
+ * 9    RA2/AN5                         LCD_RS / TOUCH_XM (An)  J3-3
+ * 10   RA3                             LCD_CS                  J3-4
+ * 11   RB4                             LCD_D4                  J2-4
+ * 12   RA4                             LCD_RST                 J3-5
+ * 13   Vdd                             +3v3
+ * 14   RB5                             LCD_D5                  J2-3
+ * 15   RB6                             LCD_D6 / TOUCH_XP       J2-2
+ * 16   RB7                             LCD_D7 / TOUCH_YM       J2-1
+ * 17   RB8/RP7/SCK1                    SD_SCK                  J1-3
+ * 18   RB9/RP8/SDO1                    SD_DI                   J1-5
+ * 19   RC9/RP19                        WiFi_TX
+ * 20   VCap                            Cap 100n + 10uF
+ * 21   RB10/RP17/PGED2                 LED_STATUS
+ * 22   RB11/RP18/PGEC2                 LED_MODO
+ * 23   RB12                            
+ * 24   RB13/RP13                       WiFi_RX
+ * 25   RB14/RP19                       SD_DO                   J1-4
+ * 26   RB15/RP10                       SD_CS                   J1-6
+ * 27   AVss                            Vss
+ * 28   AVdd                            +3v3
+                                            
+
+
+WiFi_RST
+
+
+LCD Driver ILI9341 (240x320) - AFY240320B0-2.4N6NTM-R
