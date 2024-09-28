@@ -96,6 +96,14 @@ void RTCC_Initialize( void )
     /* Set RTCC clock configuration */
     RTCCON2 = 0x3fff0001;
 
+    RTCCON1CLR = _RTCCON1_ON_MASK;   /* Disable clock to RTCC */
+    while((RTCCON1bits.ON) != 0U)  /* Wait for clock to stop */
+    {
+       /* Do Nothing */
+    }
+
+    RTCTIME = 0x00000000;   /* Set RTCC time */
+    RTCDATE = 0x24010100;  /* Set RTCC date */
 
     /* Set alarm to repeat finite number of times */
     RTCCON1CLR = _RTCCON1_CHIME_MASK;

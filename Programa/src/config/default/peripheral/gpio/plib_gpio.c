@@ -61,23 +61,24 @@ void GPIO_Initialize ( void )
 
     /* PORTA Initialization */
     ODCASET = 0x10; /* Open Drain Enable */
-    LATA = 0x12; /* Initial Latch Value */
-    TRISACLR = 0x1e; /* Direction Control */
-    ANSELACLR = 0xf; /* Digital Mode Enable */
+    LATA = 0x0; /* Initial Latch Value */
+    TRISACLR = 0x13; /* Direction Control */
+    ANSELACLR = 0x7; /* Digital Mode Enable */
     /* PORTB Initialization */
+    ODCBSET = 0x2000; /* Open Drain Enable */
     LATB = 0x2000; /* Initial Latch Value */
-    TRISBCLR = 0x2cff; /* Direction Control */
-    ANSELBCLR = 0xe01f; /* Digital Mode Enable */
+    TRISBCLR = 0x20e4; /* Direction Control */
+    ANSELBCLR = 0xe004; /* Digital Mode Enable */
     /* PORTC Initialization */
 
 
     /* PPS Input Remapping */
-    RPINR11bits.SDI2R = 18;
+    RPINR11bits.SDI2R = 19;
 
     /* PPS Output Remapping */
-    RPOR0bits.RP1R = 4;
-    RPOR3bits.RP13R = 9;
-    RPOR3bits.RP14R = 8;
+    RPOR0bits.RP3R = 1;
+    RPOR1bits.RP8R = 3;
+    RPOR1bits.RP7R = 4;
 
 
 }

@@ -89,7 +89,7 @@ typedef enum
 
 typedef enum
 {
-    RTCC_INT_ALARM = 0x1
+    RTCC_INT_ALARM = 0x4000
 
 } RTCC_INT_MASK;
 

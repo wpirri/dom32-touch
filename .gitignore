@@ -1,0 +1,9 @@
+
+*.zip
+/Programa/Dom32-Touch.X/.generated_files
+/Programa/Dom32-Touch.X/build
+/Programa/Dom32-Touch.X/dist
+*.log
+Programa/Dom32-Touch.X/defmplabxtrace.log.inx
+/Programa_old/Dom32-Touch.X/.generated_files
+/Programa_old

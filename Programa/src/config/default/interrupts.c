@@ -66,13 +66,10 @@
 // Section: System Interrupt Vector declarations
 // *****************************************************************************
 // *****************************************************************************
-void CORE_TIMER_Handler (void);
+void TIMER_1_Handler (void);
 void UART1_RX_Handler (void);
 void UART1_TX_Handler (void);
 void UART1_ERR_Handler (void);
-void UART2_RX_Handler (void);
-void UART2_TX_Handler (void);
-void UART2_ERR_Handler (void);
 
 
 // *****************************************************************************
@@ -80,9 +77,9 @@ void UART2_ERR_Handler (void);
 // Section: System Interrupt Vector definitions
 // *****************************************************************************
 // *****************************************************************************
-void __ISR(_CORE_TIMER_VECTOR, ipl1SOFT) CORE_TIMER_Handler (void)
+void __ISR(_TIMER_1_VECTOR, ipl1SOFT) TIMER_1_Handler (void)
 {
-    CORE_TIMER_InterruptHandler();
+    TIMER_1_InterruptHandler();
 }
 
 void __ISR(_UART1_RX_VECTOR, ipl1SOFT) UART1_RX_Handler (void)
@@ -98,21 +95,6 @@ void __ISR(_UART1_TX_VECTOR, ipl1SOFT) UART1_TX_Handler (void)
 void __ISR(_UART1_ERR_VECTOR, ipl1SOFT) UART1_ERR_Handler (void)
 {
     UART1_ERR_InterruptHandler();
-}
-
-void __ISR(_UART2_RX_VECTOR, ipl1SOFT) UART2_RX_Handler (void)
-{
-    UART2_RX_InterruptHandler();
-}
-
-void __ISR(_UART2_TX_VECTOR, ipl1SOFT) UART2_TX_Handler (void)
-{
-    UART2_TX_InterruptHandler();
-}
-
-void __ISR(_UART2_ERR_VECTOR, ipl1SOFT) UART2_ERR_Handler (void)
-{
-    UART2_ERR_InterruptHandler();
 }
 
 

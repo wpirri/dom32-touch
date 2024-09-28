@@ -57,13 +57,10 @@
 // *****************************************************************************
 // *****************************************************************************
 
-void CORE_TIMER_InterruptHandler( void );
+void TIMER_1_InterruptHandler( void );
 void UART1_RX_InterruptHandler( void );
 void UART1_TX_InterruptHandler( void );
 void UART1_ERR_InterruptHandler( void );
-void UART2_RX_InterruptHandler( void );
-void UART2_TX_InterruptHandler( void );
-void UART2_ERR_InterruptHandler( void );
 
 
 

@@ -55,18 +55,6 @@
 // *****************************************************************************
 // *****************************************************************************
 
-void WDT_Enable( void )
-{
-    /* ON = 1 */
-    WDTCONbits.ON = 1;
-}
-
-void WDT_Disable( void )
-{
-    /* ON = 0 */
-    WDTCONbits.ON = 0;
-}
-
 bool WDT_IsEnabled( void )
 {
     return((bool)WDTCONbits.ON);

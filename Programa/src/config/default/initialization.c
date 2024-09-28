@@ -55,14 +55,11 @@
 
 /*** FDEVOPT ***/
 #pragma config SOSCHP =      OFF
-#pragma config ALTI2C =      OFF
-#pragma config FUSBIDIO =   OFF
-#pragma config FVBUSIO =  OFF
 #pragma config USERID =     0xffff
 
 /*** FICD ***/
 #pragma config JTAGEN =     OFF
-#pragma config ICS =     PGx2
+#pragma config ICS =     PGx1
 
 /*** FPOR ***/
 #pragma config BOREN =    BOR3
@@ -71,12 +68,12 @@
 
 
 /*** FWDT ***/
-#pragma config SWDTPS =      PS524288
+#pragma config SWDTPS =      PS1048576
 #pragma config FWDTWINSZ =  PS25_0
 #pragma config WINDIS =     OFF
-#pragma config RWDTPS =      PS1048576
+#pragma config RWDTPS =      PS1024
 #pragma config RCLKSEL =     LPRC
-#pragma config FWDTEN =     OFF
+#pragma config FWDTEN =     ON
 
 /*** FOSCSEL ***/
 #pragma config FNOSC =      FRCDIV
@@ -134,6 +131,25 @@
 // *****************************************************************************
 // *****************************************************************************
 
+/*******************************************************************************
+  Function:
+    void STDIO_BufferModeSet ( void )
+
+  Summary:
+    Sets the buffering mode for stdin and stdout
+
+  Remarks:
+ ********************************************************************************/
+static void STDIO_BufferModeSet(void)
+{
+    /* MISRAC 2012 deviation block start */
+    /* MISRA C-2012 Rule 21.6 deviated 1 times in this file.  Deviation record ID -  H3_MISRAC_2012_R_21_6_DR_3 */
+
+    /* Make stdin unbuffered */
+    setbuf(stdin, NULL);
+}
+
+
 /* MISRAC 2012 deviation block end */
 
 /*******************************************************************************
@@ -155,16 +171,20 @@ void SYS_Initialize ( void* data )
     /* Start out with interrupts disabled before configuring any modules */
     (void)__builtin_disable_interrupts();
 
+    STDIO_BufferModeSet();
+
+
   
     CLK_Initialize();
 
 
 	GPIO_Initialize();
 
-    CORETIMER_Initialize();
 	UART1_Initialize();
 
 	UART2_Initialize();
+
+    TMR1_Initialize();
 
     RTCC_Initialize();
 

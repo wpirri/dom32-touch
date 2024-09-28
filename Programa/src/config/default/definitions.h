@@ -48,13 +48,14 @@
 #include <stdint.h>
 #include <stddef.h>
 #include <stdbool.h>
-#include "peripheral/coretimer/plib_coretimer.h"
+#include <stdio.h>
 #include "peripheral/uart/plib_uart1.h"
 #include "peripheral/uart/plib_uart2.h"
 #include "peripheral/clk/plib_clk.h"
 #include "peripheral/gpio/plib_gpio.h"
 #include "peripheral/evic/plib_evic.h"
 #include "peripheral/wdt/plib_wdt.h"
+#include "peripheral/tmr1/plib_tmr1.h"
 #include "peripheral/rtcc/plib_rtcc.h"
 
 // DOM-IGNORE-BEGIN
@@ -66,9 +67,9 @@ extern "C" {
 // DOM-IGNORE-END
 
 /* Device Information */
-#define DEVICE_NAME			 "PIC32MM0256GPM028"
+#define DEVICE_NAME			 "PIC32MM0064GPL028"
 #define DEVICE_ARCH			 "MIPS"
-#define DEVICE_FAMILY		 "PIC32MM1387"
+#define DEVICE_FAMILY		 "PIC32MM1324"
 #define DEVICE_SERIES		 "PIC32MM"
 
 /* CPU clock frequency */

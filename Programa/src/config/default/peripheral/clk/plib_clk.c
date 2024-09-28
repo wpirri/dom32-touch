@@ -94,8 +94,8 @@ void CLK_Initialize( void )
     * This is done to ensure we don't end-up changing PLL setting when it is ON. */
 
     /* Configure SPLL */
-    /* DIV_1, MUL_3, PLLSRC= FRC */
-    SPLLCON = 0x10080;
+    /* DIV_4, MUL_12, PLLSRC= FRC */
+    SPLLCON = 0x2050080;
 
     /* Now switch to the PLL source */
     OSCCON = OSCCON | 0x00000101U;    //NOSC = SPLL, initiate clock switch (OSWEN = 1)
@@ -112,12 +112,12 @@ void CLK_Initialize( void )
   
     /* Peripheral Module Disable Configuration */
     PMD1 = 0x101001U;
-    PMD2 = 0xf000007U;
-    PMD3 = 0x1ff00U;
-    PMD4 = 0x7U;
-    PMD5 = 0x1070704U;
+    PMD2 = 0x3000003U;
+    PMD3 = 0x700U;
+    PMD4 = 0x0U;
+    PMD5 = 0x300U;
     PMD6 = 0x0U;
-    PMD7 = 0x0U;
+    PMD7 = 0x8U;
 
     /* Lock system since done with clock configuration */
     SYSKEY = 0x33333333U;

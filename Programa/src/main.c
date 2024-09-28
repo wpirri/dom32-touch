@@ -1,5 +1,5 @@
-/***************************************************************************
-    Copyright (C) 2020   Walter Pirri
+/* *****************************************************************************
+    Copyright (C) 2024   Walter Pirri
 
     This library is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public
@@ -14,45 +14,45 @@
     You should have received a copy of the GNU Lesser General Public
     License along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- ***************************************************************************/
+ ******************************************************************************/
 
 /* *****************************************************************************
  * Asignacion de pines para PIC32MM0064GPL028 en Dom32Term
  * 1    MCLR / Vpp                      Programaciïon/Debug/Reset
- * 2    RA0                             DEBUG_TX
- * 3    RA1/AN1                         LCD_WR / TOUCH_YP (An)  J3-2
- * 4    RB0                             LCD_D0                  J1-8
- * 5    RB1                             LCD_D1                  J1-7
- * 6    RB2/AN4                         LCD_D2                  J2-6
- * 7    RB3/AN11                        LCD_D3                  J2-5
+ * 2    RA0                             LED_STATUS
+ * 3    RA1							    LED_MODO
+ * 4    RB0                             PGED1
+ * 5    RB1                             PGEC1
+ * 6    RB2                             LED_INFO
+ * 7    RB3
  * 8    Vss                             Vss
- * 9    RA2/AN5                         LCD_RS / TOUCH_XM (An)  J3-3
- * 10   RA3        COMMAND/DATA         LCD_CS                  J3-4
- * 11   RB4        CHIP SELECT          LCD_D4                  J2-4
- * 12   RA4/OC                          LCD_RST                 J3-5 WiFi_RST
+ * 9    RA2/RP3/U2TX                    DEBUG
+ * 10   RA3
+ * 11   RB4
+ * 12   RA4                             LCD_RST (OC)
  * 13   Vdd                             +3v3
- * 14   RB5                             LCD_D5                  J2-3
- * 15   RB6                             LCD_D6 / TOUCH_XP       J2-2
- * 16   RB7                             LCD_D7 / TOUCH_YM       J2-1
- * 17   RB8/RP7/SCK1                    SD_SCK                  J1-3
- * 18   RB9/RP8/SDO1                    SD_DO                   J1-4
- * 19   RC9/RP19                        SD_DI                   J1-5
+ * 14   RB5								LCD_CD
+ * 15   RB6								LCD_CS
+ * 16   RB7								SD_CS
+ * 17   RB8/RP7/SCK2OUT                 SCK
+ * 18   RB9/RP8/SDO2                    MOSI
+ * 19   RC9/RP19/SDI2                   MISO
  * 20   VCap                            Cap 100n + 10uF
- * 21   RB10/RP17/PGED2                 LED_STATUS
- * 22   RB11/RP18/PGEC2                 LED_MODO
+ * 21   RB10
+ * 22   RB11
  * 23   Vusb                            Vusb                            
- * 24   RB13/RP13                       SD_CS                   J1-6
- * 25   RB14/RP19                       WiFi_TX
- * 26   RB15/RP10                       WiFi_RX
+ * 24   RB13							WiFi_RST (OC)
+ * 25   RB14/RP19/U1TX                  WiFi_TX
+ * 26   RB15/RP10/U1RX                  WiFi_RX
  * 27   AVss                            Vss
  * 28   AVdd                            +3v3
- * 
- * LCD_RD                  J3-1 -> +3v3
- * 
- * 
- * LCD Driver ILI9341 (240x320) - AFY240320B0-2.4N6NTM-R
- * 
- * ****************************************************************************/
+ ******************************************************************************/
+
+// *****************************************************************************
+// *****************************************************************************
+// Section: Included Files
+// *****************************************************************************
+// *****************************************************************************
 
 #include <stddef.h>                     // Defines NULL
 #include <stdbool.h>                    // Defines true
@@ -60,15 +60,53 @@
 #include "definitions.h"                // SYS function prototypes
 
 
+// *****************************************************************************
+// *****************************************************************************
+// Section: Main Entry Point
+// *****************************************************************************
+// *****************************************************************************
+
+volatile bool timer1_flag;
+int  timer1_count;
+
+void TIMER1(uint32_t status, uintptr_t context);
+
 int main ( void )
 {
+    timer1_flag = false;
+    timer1_count = 10;
+    
     /* Initialize all modules */
     SYS_Initialize ( NULL );
 
+    TMR1_CallbackRegister( TIMER1, 0 );
+    TMR1_Start();
+    
+    LED_MODO_Set();
+    
     while ( true )
     {
+        WDT_Clear();
         /* Maintain state machines of all polled MPLAB Harmony modules. */
         SYS_Tasks ( );
+        if(timer1_flag)
+        {
+            LED_STATUS_Toggle();
+            if(timer1_count)
+            {
+                timer1_count--;
+                if(timer1_count == 0)
+                {
+                    printf("Toggle\n");
+                    LED_MODO_Toggle();
+                    LED_INFO_Toggle();
+                    timer1_count = 10;
+                }
+            }
+            
+            
+            timer1_flag = false;
+        }
     }
 
     /* Execution should not come here during normal operation */
@@ -76,6 +114,10 @@ int main ( void )
     return ( EXIT_FAILURE );
 }
 
+void TIMER1(uint32_t status, uintptr_t context)
+{
+    timer1_flag = true;
+}
 
 /*******************************************************************************
  End of File

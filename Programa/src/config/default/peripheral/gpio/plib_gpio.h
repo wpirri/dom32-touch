@@ -62,156 +62,93 @@
 // *****************************************************************************
 
 
-/*** Macros for DEGUG_TX pin ***/
-#define DEGUG_TX_Get()               ((PORTA >> 0) & 0x1)
-#define DEGUG_TX_PIN                  GPIO_PIN_RA0
-
-/*** Macros for LCD_WR pin ***/
-#define LCD_WR_Set()               (LATASET = (1<<1))
-#define LCD_WR_Clear()             (LATACLR = (1<<1))
-#define LCD_WR_Toggle()            (LATAINV= (1<<1))
-#define LCD_WR_OutputEnable()      (TRISACLR = (1<<1))
-#define LCD_WR_InputEnable()       (TRISASET = (1<<1))
-#define LCD_WR_Get()               ((PORTA >> 1) & 0x1)
-#define LCD_WR_PIN                  GPIO_PIN_RA1
-
-/*** Macros for LCD_D0 pin ***/
-#define LCD_D0_Set()               (LATBSET = (1<<0))
-#define LCD_D0_Clear()             (LATBCLR = (1<<0))
-#define LCD_D0_Toggle()            (LATBINV= (1<<0))
-#define LCD_D0_OutputEnable()      (TRISBCLR = (1<<0))
-#define LCD_D0_InputEnable()       (TRISBSET = (1<<0))
-#define LCD_D0_Get()               ((PORTB >> 0) & 0x1)
-#define LCD_D0_PIN                  GPIO_PIN_RB0
-
-/*** Macros for LCD_D1 pin ***/
-#define LCD_D1_Set()               (LATBSET = (1<<1))
-#define LCD_D1_Clear()             (LATBCLR = (1<<1))
-#define LCD_D1_Toggle()            (LATBINV= (1<<1))
-#define LCD_D1_OutputEnable()      (TRISBCLR = (1<<1))
-#define LCD_D1_InputEnable()       (TRISBSET = (1<<1))
-#define LCD_D1_Get()               ((PORTB >> 1) & 0x1)
-#define LCD_D1_PIN                  GPIO_PIN_RB1
-
-/*** Macros for LCD_D2 pin ***/
-#define LCD_D2_Set()               (LATBSET = (1<<2))
-#define LCD_D2_Clear()             (LATBCLR = (1<<2))
-#define LCD_D2_Toggle()            (LATBINV= (1<<2))
-#define LCD_D2_OutputEnable()      (TRISBCLR = (1<<2))
-#define LCD_D2_InputEnable()       (TRISBSET = (1<<2))
-#define LCD_D2_Get()               ((PORTB >> 2) & 0x1)
-#define LCD_D2_PIN                  GPIO_PIN_RB2
-
-/*** Macros for LCD_D3 pin ***/
-#define LCD_D3_Set()               (LATBSET = (1<<3))
-#define LCD_D3_Clear()             (LATBCLR = (1<<3))
-#define LCD_D3_Toggle()            (LATBINV= (1<<3))
-#define LCD_D3_OutputEnable()      (TRISBCLR = (1<<3))
-#define LCD_D3_InputEnable()       (TRISBSET = (1<<3))
-#define LCD_D3_Get()               ((PORTB >> 3) & 0x1)
-#define LCD_D3_PIN                  GPIO_PIN_RB3
-
-/*** Macros for LCD_RS pin ***/
-#define LCD_RS_Set()               (LATASET = (1<<2))
-#define LCD_RS_Clear()             (LATACLR = (1<<2))
-#define LCD_RS_Toggle()            (LATAINV= (1<<2))
-#define LCD_RS_OutputEnable()      (TRISACLR = (1<<2))
-#define LCD_RS_InputEnable()       (TRISASET = (1<<2))
-#define LCD_RS_Get()               ((PORTA >> 2) & 0x1)
-#define LCD_RS_PIN                  GPIO_PIN_RA2
-
-/*** Macros for LCD_CS pin ***/
-#define LCD_CS_Set()               (LATASET = (1<<3))
-#define LCD_CS_Clear()             (LATACLR = (1<<3))
-#define LCD_CS_Toggle()            (LATAINV= (1<<3))
-#define LCD_CS_OutputEnable()      (TRISACLR = (1<<3))
-#define LCD_CS_InputEnable()       (TRISASET = (1<<3))
-#define LCD_CS_Get()               ((PORTA >> 3) & 0x1)
-#define LCD_CS_PIN                  GPIO_PIN_RA3
-
-/*** Macros for LCD_D4 pin ***/
-#define LCD_D4_Set()               (LATBSET = (1<<4))
-#define LCD_D4_Clear()             (LATBCLR = (1<<4))
-#define LCD_D4_Toggle()            (LATBINV= (1<<4))
-#define LCD_D4_OutputEnable()      (TRISBCLR = (1<<4))
-#define LCD_D4_InputEnable()       (TRISBSET = (1<<4))
-#define LCD_D4_Get()               ((PORTB >> 4) & 0x1)
-#define LCD_D4_PIN                  GPIO_PIN_RB4
-
-/*** Macros for RESET pin ***/
-#define RESET_Set()               (LATASET = (1<<4))
-#define RESET_Clear()             (LATACLR = (1<<4))
-#define RESET_Toggle()            (LATAINV= (1<<4))
-#define RESET_OutputEnable()      (TRISACLR = (1<<4))
-#define RESET_InputEnable()       (TRISASET = (1<<4))
-#define RESET_Get()               ((PORTA >> 4) & 0x1)
-#define RESET_PIN                  GPIO_PIN_RA4
-
-/*** Macros for LCD_D5 pin ***/
-#define LCD_D5_Set()               (LATBSET = (1<<5))
-#define LCD_D5_Clear()             (LATBCLR = (1<<5))
-#define LCD_D5_Toggle()            (LATBINV= (1<<5))
-#define LCD_D5_OutputEnable()      (TRISBCLR = (1<<5))
-#define LCD_D5_InputEnable()       (TRISBSET = (1<<5))
-#define LCD_D5_Get()               ((PORTB >> 5) & 0x1)
-#define LCD_D5_PIN                  GPIO_PIN_RB5
-
-/*** Macros for LCD_D6 pin ***/
-#define LCD_D6_Set()               (LATBSET = (1<<6))
-#define LCD_D6_Clear()             (LATBCLR = (1<<6))
-#define LCD_D6_Toggle()            (LATBINV= (1<<6))
-#define LCD_D6_OutputEnable()      (TRISBCLR = (1<<6))
-#define LCD_D6_InputEnable()       (TRISBSET = (1<<6))
-#define LCD_D6_Get()               ((PORTB >> 6) & 0x1)
-#define LCD_D6_PIN                  GPIO_PIN_RB6
-
-/*** Macros for LCD_D7 pin ***/
-#define LCD_D7_Set()               (LATBSET = (1<<7))
-#define LCD_D7_Clear()             (LATBCLR = (1<<7))
-#define LCD_D7_Toggle()            (LATBINV= (1<<7))
-#define LCD_D7_OutputEnable()      (TRISBCLR = (1<<7))
-#define LCD_D7_InputEnable()       (TRISBSET = (1<<7))
-#define LCD_D7_Get()               ((PORTB >> 7) & 0x1)
-#define LCD_D7_PIN                  GPIO_PIN_RB7
-
-/*** Macros for SD_SCK pin ***/
-#define SD_SCK_Get()               ((PORTB >> 8) & 0x1)
-#define SD_SCK_PIN                  GPIO_PIN_RB8
-
-/*** Macros for SD_SDO pin ***/
-#define SD_SDO_Get()               ((PORTB >> 9) & 0x1)
-#define SD_SDO_PIN                  GPIO_PIN_RB9
-
-/*** Macros for SD_SDI pin ***/
-#define SD_SDI_Get()               ((PORTC >> 9) & 0x1)
-#define SD_SDI_PIN                  GPIO_PIN_RC9
-
 /*** Macros for LED_STATUS pin ***/
-#define LED_STATUS_Set()               (LATBSET = (1<<10))
-#define LED_STATUS_Clear()             (LATBCLR = (1<<10))
-#define LED_STATUS_Toggle()            (LATBINV= (1<<10))
-#define LED_STATUS_OutputEnable()      (TRISBCLR = (1<<10))
-#define LED_STATUS_InputEnable()       (TRISBSET = (1<<10))
-#define LED_STATUS_Get()               ((PORTB >> 10) & 0x1)
-#define LED_STATUS_PIN                  GPIO_PIN_RB10
+#define LED_STATUS_Set()               (LATASET = (1<<0))
+#define LED_STATUS_Clear()             (LATACLR = (1<<0))
+#define LED_STATUS_Toggle()            (LATAINV= (1<<0))
+#define LED_STATUS_OutputEnable()      (TRISACLR = (1<<0))
+#define LED_STATUS_InputEnable()       (TRISASET = (1<<0))
+#define LED_STATUS_Get()               ((PORTA >> 0) & 0x1)
+#define LED_STATUS_PIN                  GPIO_PIN_RA0
 
 /*** Macros for LED_MODO pin ***/
-#define LED_MODO_Set()               (LATBSET = (1<<11))
-#define LED_MODO_Clear()             (LATBCLR = (1<<11))
-#define LED_MODO_Toggle()            (LATBINV= (1<<11))
-#define LED_MODO_OutputEnable()      (TRISBCLR = (1<<11))
-#define LED_MODO_InputEnable()       (TRISBSET = (1<<11))
-#define LED_MODO_Get()               ((PORTB >> 11) & 0x1)
-#define LED_MODO_PIN                  GPIO_PIN_RB11
+#define LED_MODO_Set()               (LATASET = (1<<1))
+#define LED_MODO_Clear()             (LATACLR = (1<<1))
+#define LED_MODO_Toggle()            (LATAINV= (1<<1))
+#define LED_MODO_OutputEnable()      (TRISACLR = (1<<1))
+#define LED_MODO_InputEnable()       (TRISASET = (1<<1))
+#define LED_MODO_Get()               ((PORTA >> 1) & 0x1)
+#define LED_MODO_PIN                  GPIO_PIN_RA1
+
+/*** Macros for LED_INFO pin ***/
+#define LED_INFO_Set()               (LATBSET = (1<<2))
+#define LED_INFO_Clear()             (LATBCLR = (1<<2))
+#define LED_INFO_Toggle()            (LATBINV= (1<<2))
+#define LED_INFO_OutputEnable()      (TRISBCLR = (1<<2))
+#define LED_INFO_InputEnable()       (TRISBSET = (1<<2))
+#define LED_INFO_Get()               ((PORTB >> 2) & 0x1)
+#define LED_INFO_PIN                  GPIO_PIN_RB2
+
+/*** Macros for DEBUG pin ***/
+#define DEBUG_Get()               ((PORTA >> 2) & 0x1)
+#define DEBUG_PIN                  GPIO_PIN_RA2
+
+/*** Macros for LCD_RST pin ***/
+#define LCD_RST_Set()               (LATASET = (1<<4))
+#define LCD_RST_Clear()             (LATACLR = (1<<4))
+#define LCD_RST_Toggle()            (LATAINV= (1<<4))
+#define LCD_RST_OutputEnable()      (TRISACLR = (1<<4))
+#define LCD_RST_InputEnable()       (TRISASET = (1<<4))
+#define LCD_RST_Get()               ((PORTA >> 4) & 0x1)
+#define LCD_RST_PIN                  GPIO_PIN_RA4
+
+/*** Macros for LCD_CD pin ***/
+#define LCD_CD_Set()               (LATBSET = (1<<5))
+#define LCD_CD_Clear()             (LATBCLR = (1<<5))
+#define LCD_CD_Toggle()            (LATBINV= (1<<5))
+#define LCD_CD_OutputEnable()      (TRISBCLR = (1<<5))
+#define LCD_CD_InputEnable()       (TRISBSET = (1<<5))
+#define LCD_CD_Get()               ((PORTB >> 5) & 0x1)
+#define LCD_CD_PIN                  GPIO_PIN_RB5
+
+/*** Macros for LCD_CS pin ***/
+#define LCD_CS_Set()               (LATBSET = (1<<6))
+#define LCD_CS_Clear()             (LATBCLR = (1<<6))
+#define LCD_CS_Toggle()            (LATBINV= (1<<6))
+#define LCD_CS_OutputEnable()      (TRISBCLR = (1<<6))
+#define LCD_CS_InputEnable()       (TRISBSET = (1<<6))
+#define LCD_CS_Get()               ((PORTB >> 6) & 0x1)
+#define LCD_CS_PIN                  GPIO_PIN_RB6
 
 /*** Macros for SD_CS pin ***/
-#define SD_CS_Set()               (LATBSET = (1<<13))
-#define SD_CS_Clear()             (LATBCLR = (1<<13))
-#define SD_CS_Toggle()            (LATBINV= (1<<13))
-#define SD_CS_OutputEnable()      (TRISBCLR = (1<<13))
-#define SD_CS_InputEnable()       (TRISBSET = (1<<13))
-#define SD_CS_Get()               ((PORTB >> 13) & 0x1)
-#define SD_CS_PIN                  GPIO_PIN_RB13
+#define SD_CS_Set()               (LATBSET = (1<<7))
+#define SD_CS_Clear()             (LATBCLR = (1<<7))
+#define SD_CS_Toggle()            (LATBINV= (1<<7))
+#define SD_CS_OutputEnable()      (TRISBCLR = (1<<7))
+#define SD_CS_InputEnable()       (TRISBSET = (1<<7))
+#define SD_CS_Get()               ((PORTB >> 7) & 0x1)
+#define SD_CS_PIN                  GPIO_PIN_RB7
+
+/*** Macros for SCK pin ***/
+#define SCK_Get()               ((PORTB >> 8) & 0x1)
+#define SCK_PIN                  GPIO_PIN_RB8
+
+/*** Macros for SDO pin ***/
+#define SDO_Get()               ((PORTB >> 9) & 0x1)
+#define SDO_PIN                  GPIO_PIN_RB9
+
+/*** Macros for SDI pin ***/
+#define SDI_Get()               ((PORTC >> 9) & 0x1)
+#define SDI_PIN                  GPIO_PIN_RC9
+
+/*** Macros for WIFI_RST pin ***/
+#define WIFI_RST_Set()               (LATBSET = (1<<13))
+#define WIFI_RST_Clear()             (LATBCLR = (1<<13))
+#define WIFI_RST_Toggle()            (LATBINV= (1<<13))
+#define WIFI_RST_OutputEnable()      (TRISBCLR = (1<<13))
+#define WIFI_RST_InputEnable()       (TRISBSET = (1<<13))
+#define WIFI_RST_Get()               ((PORTB >> 13) & 0x1)
+#define WIFI_RST_PIN                  GPIO_PIN_RB13
 
 /*** Macros for WIFI_TX pin ***/
 #define WIFI_TX_Get()               ((PORTB >> 14) & 0x1)
@@ -284,6 +221,7 @@ typedef enum
 #define    GPIO_PIN_RB9   (25U)
 #define    GPIO_PIN_RB10   (26U)
 #define    GPIO_PIN_RB11   (27U)
+#define    GPIO_PIN_RB12   (28U)
 #define    GPIO_PIN_RB13   (29U)
 #define    GPIO_PIN_RB14   (30U)
 #define    GPIO_PIN_RB15   (31U)

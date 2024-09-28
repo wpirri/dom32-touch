@@ -72,11 +72,11 @@ void static UART1_ErrorClear( void )
         }
 
         /* Clear error interrupt flag */
-        IFS1CLR = _IFS1_U1EIF_MASK;
+        IFS0CLR = _IFS0_U1EIF_MASK;
 
         /* Clear up the receive interrupt flag so that RX interrupt is not
          * triggered for error bytes */
-        IFS1CLR = _IFS1_U1RXIF_MASK;
+        IFS0CLR = _IFS0_U1RXIF_MASK;
     }
 
     // Ignore the warning
@@ -107,11 +107,11 @@ void UART1_Initialize( void )
     U1BRG = 12;
 
     /* Disable Interrupts */
-    IEC1CLR = _IEC1_U1EIE_MASK;
+    IEC0CLR = _IEC0_U1EIE_MASK;
 
-    IEC1CLR = _IEC1_U1RXIE_MASK;
+    IEC0CLR = _IEC0_U1RXIE_MASK;
 
-    IEC1CLR = _IEC1_U1TXIE_MASK;
+    IEC0CLR = _IEC0_U1TXIE_MASK;
 
     /* Initialize instance object */
     uart1Obj.rxBuffer = NULL;
@@ -232,10 +232,10 @@ bool UART1_Read(void* buffer, const size_t size )
             status = true;
 
             /* Enable UART1_FAULT Interrupt */
-            IEC1SET = _IEC1_U1EIE_MASK;
+            IEC0SET = _IEC0_U1EIE_MASK;
 
             /* Enable UART1_RX Interrupt */
-            IEC1SET = _IEC1_U1RXIE_MASK;
+            IEC0SET = _IEC0_U1RXIE_MASK;
         }
     }
 
@@ -279,7 +279,7 @@ bool UART1_Write( void* buffer, const size_t size )
 
             uart1Obj.txProcessedSize = txProcessedSize;
 
-            IEC1SET = _IEC1_U1TXIE_MASK;
+            IEC0SET = _IEC0_U1TXIE_MASK;
         }
     }
 
@@ -341,10 +341,10 @@ bool UART1_ReadAbort(void)
     if (uart1Obj.rxBusyStatus == true)
     {
         /* Disable the fault interrupt */
-        IEC1CLR = _IEC1_U1EIE_MASK;
+        IEC0CLR = _IEC0_U1EIE_MASK;
 
         /* Disable the receive interrupt */
-        IEC1CLR = _IEC1_U1RXIE_MASK;
+        IEC0CLR = _IEC0_U1RXIE_MASK;
 
         uart1Obj.rxBusyStatus = false;
 
@@ -379,10 +379,10 @@ void __attribute__((used)) UART1_ERR_InterruptHandler (void)
     uart1Obj.errors = (U1STA & (_U1STA_OERR_MASK | _U1STA_FERR_MASK | _U1STA_PERR_MASK));
 
     /* Disable the fault interrupt */
-    IEC1CLR = _IEC1_U1EIE_MASK;
+    IEC0CLR = _IEC0_U1EIE_MASK;
 
     /* Disable the receive interrupt */
-    IEC1CLR = _IEC1_U1RXIE_MASK;
+    IEC0CLR = _IEC0_U1RXIE_MASK;
 
     /* Clear size and rx status */
     uart1Obj.rxBusyStatus = false;
@@ -423,7 +423,7 @@ void __attribute__((used)) UART1_RX_InterruptHandler (void)
         uart1Obj.rxProcessedSize = rxProcessedSize;
 
         /* Clear UART1 RX Interrupt flag */
-        IFS1CLR = _IFS1_U1RXIF_MASK;
+        IFS0CLR = _IFS0_U1RXIF_MASK;
 
         /* Check if the buffer is done */
         if(rxProcessedSize >= uart1Obj.rxSize)
@@ -431,10 +431,10 @@ void __attribute__((used)) UART1_RX_InterruptHandler (void)
             uart1Obj.rxBusyStatus = false;
 
             /* Disable the fault interrupt */
-            IEC1CLR = _IEC1_U1EIE_MASK;
+            IEC0CLR = _IEC0_U1EIE_MASK;
 
             /* Disable the receive interrupt */
-            IEC1CLR = _IEC1_U1RXIE_MASK;
+            IEC0CLR = _IEC0_U1RXIE_MASK;
 
             if(uart1Obj.rxCallback != NULL)
             {
@@ -476,7 +476,7 @@ void __attribute__((used)) UART1_TX_InterruptHandler (void)
         uart1Obj.txProcessedSize = txProcessedSize;
 
         /* Clear UART1TX Interrupt flag */
-        IFS1CLR = _IFS1_U1TXIF_MASK;
+        IFS0CLR = _IFS0_U1TXIF_MASK;
 
         /* Check if the buffer is done */
         if(txProcessedSize >= uart1Obj.txSize)
@@ -484,7 +484,7 @@ void __attribute__((used)) UART1_TX_InterruptHandler (void)
             uart1Obj.txBusyStatus = false;
 
             /* Disable the transmit interrupt, to avoid calling ISR continuously */
-            IEC1CLR = _IEC1_U1TXIE_MASK;
+            IEC0CLR = _IEC0_U1TXIE_MASK;
 
             if(uart1Obj.txCallback != NULL)
             {
