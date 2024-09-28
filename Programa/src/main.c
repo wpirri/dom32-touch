@@ -59,26 +59,30 @@
 #include <stdlib.h>                     // Defines EXIT_FAILURE
 #include "definitions.h"                // SYS function prototypes
 
-
+#include "clog.h"
 // *****************************************************************************
 // *****************************************************************************
 // Section: Main Entry Point
 // *****************************************************************************
 // *****************************************************************************
 
-volatile bool timer1_flag;
-int  timer1_count;
+volatile bool timer1_flag_1x;
+volatile bool timer1_flag_10x;
+volatile unsigned char  timer1_count_10x;
 
 void TIMER1(uint32_t status, uintptr_t context);
 
 int main ( void )
 {
-    timer1_flag = false;
-    timer1_count = 10;
+    timer1_flag_1x = false;
+    timer1_flag_10x = false;
+    timer1_count_10x = 0;
     
     /* Initialize all modules */
     SYS_Initialize ( NULL );
 
+    LogInit();
+    
     TMR1_CallbackRegister( TIMER1, 0 );
     TMR1_Start();
     
@@ -89,24 +93,26 @@ int main ( void )
         WDT_Clear();
         /* Maintain state machines of all polled MPLAB Harmony modules. */
         SYS_Tasks ( );
-        if(timer1_flag)
+
+        if(timer1_flag_1x)
         {
+            timer1_flag_1x = false;
+            
             LED_STATUS_Toggle();
-            if(timer1_count)
-            {
-                timer1_count--;
-                if(timer1_count == 0)
-                {
-                    printf("Toggle\n");
-                    LED_MODO_Toggle();
-                    LED_INFO_Toggle();
-                    timer1_count = 10;
-                }
-            }
-            
-            
-            timer1_flag = false;
         }
+
+        if(timer1_flag_10x)
+        {
+            timer1_flag_10x = false;
+            
+            LogMessage("Toggle");
+            LED_MODO_Toggle();
+            LED_INFO_Toggle();
+        }
+
+
+
+
     }
 
     /* Execution should not come here during normal operation */
@@ -114,9 +120,18 @@ int main ( void )
     return ( EXIT_FAILURE );
 }
 
+
+/* INT Handler */
 void TIMER1(uint32_t status, uintptr_t context)
 {
-    timer1_flag = true;
+    timer1_flag_1x = true;
+    
+    timer1_count_10x++;
+    if(timer1_count_10x >= 10)
+    {
+        timer1_count_10x = 0;
+        timer1_flag_10x = true;
+    }
 }
 
 /*******************************************************************************
