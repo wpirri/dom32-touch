@@ -27,3 +27,7 @@
  * 26   RB15/RP10                       WiFi_RX
  * 27   AVss                            Vss
  * 28   AVdd                            +3v3
+
+
+Resistive Graphic LCD Display Module Transmissive Red, Green, Blue (RGB) TFT - Color MCU, SPI 3.2" (81.28mm) 320 x 240 (QVGA)
+WF32DTLAJDNT0
