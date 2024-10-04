@@ -15,8 +15,8 @@
     License along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  ***************************************************************************/
-#ifndef CONFIG_H
-#define	CONFIG_H
+#ifndef _CONFIG_H_
+#define	_CONFIG_H_
 
 // Clock frequency values
 #define _XTAL_FREQ  24000000UL             // Hz
@@ -24,4 +24,7 @@
 #define GetInstructionClock()	(GetSystemClock()/*/4*/)
 #define GetPeripheralClock()	(GetSystemClock()/*/4*/)
 
-#endif	/* CONFIG_H */
+#define CLRWDT()  (WDTCONbits.WDTCLRKEY = 0x5743)
+void ConfigInit(void);
+
+#endif	/* _CONFIG_H_ */

@@ -28,29 +28,23 @@
 
 void LogInit(void)
 {
-/* ************************************************************************** */
-/*  UART2 */
-/* ************************************************************************** */
-/* Set the PPS */
+    /* ************************************************************************** */
     // System Reg Unlock
     SYSKEY = 0x00000000; 
     SYSKEY = 0xAA996655; //write Key1 to SYSKEY
     SYSKEY = 0x556699AA; //write Key2 to SYSKEY
+    /* ************************************************************************** */
+    /* UART2 */
+    // Config PPS
     // unlock PPS
     RPCONbits.IOLOCK = 0;
     // Mapeo de UART2
-    RPOR0bits.RP4R = 0x0004;    //RA3->UART2:U2TX
-    //RPINR9bits.U2RXR = 0x0003;    //RA2->UART2:U2RX
+    RPOR2bits.RP9R = 0x0004;    // UART2:U2TX -> RP9
+    //RPINR9bits.U2RXR = 3;     // RP3 -> UART2:U2RX
     // lock   PPS
     RPCONbits.IOLOCK = 1; 
-    // System Reg Lock
-    SYSKEY = 0x00000000; 
-/* ************************************************************************** */
-/* PORT Config */
-    // System Reg Unlock
-    SYSKEY = 0x00000000; //write invalid key to force lock
-    SYSKEY = 0xAA996655; //write Key1 to SYSKEY
-    SYSKEY = 0x556699AA; //write Key2 to SYSKEY
+
+    // Config serial port
     // Sin interrupciones para la UART2
     IEC1bits.U2TXIE = 0;
     IEC1bits.U2RXIE = 0;
@@ -64,9 +58,11 @@ void LogInit(void)
     U2STASET = _U2STA_UTXEN_MASK;
     U2MODESET = _U2MODE_ON_MASK;  // enabling UART ON bit
     U2STASET = _U2STA_URXEN_MASK; 
+    /* ************************************************************************** */
     // System Reg Lock
     SYSKEY = 0x00000000; 
-/* ************************************************************************** */
+    /* ************************************************************************** */
+
     Log("[log] Init Ok");
 }
 
@@ -78,7 +74,7 @@ void Log(const char* msg, ...)
     
     va_start(arg, msg);
     vsnprintf(str, 1021, msg, arg);
-    va_end();
+    va_end(arg);
     strcat(str, "\r\n");
     p = &str[0];
     while(*p)

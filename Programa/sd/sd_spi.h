@@ -48,9 +48,9 @@
 // Define the SPI frequency
 #define SPI_FREQUENCY			(20000000)
 // Description: SD-SPI Chip Select Output bit
-#define SD_CS               LATBbits.LATB6
+#define SD_CS               LATBbits.LATB7
 // Description: SD-SPI Chip Select TRIS bit
-#define SD_CS_TRIS          TRISBbits.TRISB6
+#define SD_CS_TRIS          TRISBbits.TRISB7
 // Control de presencia de la tarjeta SD por soft (no por sensor en zócalo)
 //#define MEDIA_SOFT_DETECT
 // Description: SD-SPI Card Detect Input bit
@@ -71,23 +71,21 @@
 #define SPIxCONbits         SPI2CONbits
 // Description: The bitwise define for the SPI status register (i.e. _____bits)
 #define SPIRBF              SPI2STATbits.SPIRBF
+//
+#define SPITBE              SPI2STATbits.SPITBE
+//
+#define __SPIxCONbits_t     __SPI2CONbits_t
 // Description: The enable bit for the SPI module
 #define SPIENABLE           SPI2CONbits.ON
 // Description: The definition for the SPI baud rate generator register (PIC32)
 #define SPIBRG			    SPI2BRG
 // Tris pins for SCK/SDI/SDO lines
 // Description: The TRIS bit for the SCK pin
-#define SPICLOCK            TRISAbits.TRISA2
+#define SPICLOCK            TRISBbits.TRISB8
 // Description: The TRIS bit for the SDI pin
-#define SPIIN               TRISBbits.TRISB1
+#define SPIIN               TRISCbits.TRISC9
 // Description: The TRIS bit for the SDO pin
-#define SPIOUT              TRISBbits.TRISB0
-//
-#define SPITBE              SPI2STATbits.SPITBE
-//
-#define SPIRBF              SPI2STATbits.SPIRBF
-//
-#define __SPIxCONbits_t     __SPI2CONbits_t
+#define SPIOUT              TRISBbits.TRISB9
 
 /*****************************************************************/
 /*                  Strcutures and defines                       */

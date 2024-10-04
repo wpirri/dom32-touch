@@ -517,10 +517,9 @@ void MDD_SDSPI_InitIO (void)
     // unlock PPS
     RPCONbits.IOLOCK = 0;
     // Mapeo de SPI */
-    RPOR1bits.RP6R = 0x0008;        //RB0->SPI2:SDO2
-    RPINR11bits.SDI2R = 0x0007;     //RB1->SPI2:SDI2
-    RPOR0bits.RP3R = 0x0009;        //RA2->SPI2:SCK2OUT
-    RPINR11bits.SCK2INR = 0x0003;   //RA2->SPI2:SCK2OUT
+    RPOR3bits.RP14R = 8;        // RP9 -> SPI2:SDO2
+    RPOR3bits.RP13R = 9;       // RP13 -> SPI2:SCK2OUT
+    RPINR11bits.SDI2R = 18;    // SPI2:SDI2 -> RP18
     // lock   PPS
     RPCONbits.IOLOCK = 1; 
     // System Reg Lock
