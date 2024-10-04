@@ -4,6 +4,9 @@
     <logicalFolder name="HeaderFiles"
                    displayName="Header Files"
                    projectFiles="true">
+      <logicalFolder name="f2" displayName="display" projectFiles="true">
+        <itemPath>../display/di_spi.h</itemPath>
+      </logicalFolder>
       <logicalFolder name="f1" displayName="sd" projectFiles="true">
         <itemPath>../sd/fsconfig.h</itemPath>
         <itemPath>../sd/fsdefs.h</itemPath>
@@ -12,6 +15,7 @@
       </logicalFolder>
       <itemPath>../config.h</itemPath>
       <itemPath>../log.h</itemPath>
+      <itemPath>../delay.h</itemPath>
     </logicalFolder>
     <logicalFolder name="ExternalFiles"
                    displayName="Important Files"
@@ -25,6 +29,9 @@
     <logicalFolder name="SourceFiles"
                    displayName="Source Files"
                    projectFiles="true">
+      <logicalFolder name="f2" displayName="display" projectFiles="true">
+        <itemPath>../display/di_spi.c</itemPath>
+      </logicalFolder>
       <logicalFolder name="f1" displayName="sd" projectFiles="true">
         <itemPath>../sd/fsio.c</itemPath>
         <itemPath>../sd/sd_spi.c</itemPath>
@@ -32,6 +39,7 @@
       <itemPath>../main.c</itemPath>
       <itemPath>../log.c</itemPath>
       <itemPath>../config.c</itemPath>
+      <itemPath>../delay.c</itemPath>
     </logicalFolder>
   </logicalFolder>
   <sourceRootList>
@@ -81,7 +89,7 @@
         <makeCustomizationNormalizeHexFile>true</makeCustomizationNormalizeHexFile>
       </makeCustomizationType>
       <C32>
-        <property key="additional-warnings" value="false"/>
+        <property key="additional-warnings" value="true"/>
         <property key="addresss-attribute-use" value="false"/>
         <property key="enable-app-io" value="false"/>
         <property key="enable-omit-frame-pointer" value="false"/>
@@ -154,7 +162,7 @@
         <property key="generate-16-bit-code" value="false"/>
         <property key="generate-cross-reference-file" value="false"/>
         <property key="generate-micro-compressed-code" value="false"/>
-        <property key="heap-size" value=""/>
+        <property key="heap-size" value="512"/>
         <property key="input-libraries" value=""/>
         <property key="kseg-length" value=""/>
         <property key="kseg-origin" value=""/>
@@ -165,7 +173,7 @@
         <property key="oXC32ld-extra-opts" value=""/>
         <property key="optimization-level" value=""/>
         <property key="preprocessor-macros" value=""/>
-        <property key="remove-unused-sections" value="false"/>
+        <property key="remove-unused-sections" value="true"/>
         <property key="report-memory-usage" value="false"/>
         <property key="serial-length" value=""/>
         <property key="serial-origin" value=""/>
@@ -336,6 +344,7 @@
         <property key="event.recorder.debugger.behavior" value="Running"/>
         <property key="event.recorder.enabled" value="false"/>
         <property key="event.recorder.scvd.files" value=""/>
+        <property key="firmware.download.all" value="false"/>
         <property key="hwtoolclock.frcindebug" value="false"/>
         <property key="lastid" value=""/>
         <property key="memories.aux" value="false"/>

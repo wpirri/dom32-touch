@@ -72,6 +72,64 @@
 #include "fsconfig.h"
 
 #include "../config.h"
+#include "../delay.h"
+
+/******************* Pin and Register Definitions ********************/
+//SPI Configuration
+// Define the SPI frequency
+#define SPI_FREQUENCY			(20000000)
+// Description: SD-SPI Chip Select Output bit
+#define SD_CS               LATBbits.LATB7
+// Description: SD-SPI Chip Select TRIS bit
+#define SD_CS_TRIS          TRISBbits.TRISB7
+// Control de presencia de la tarjeta SD por soft (no por sensor en zócalo)
+//#define MEDIA_SOFT_DETECT
+// Description: SD-SPI Card Detect Input bit
+//#define SD_CD               PORTFbits.RF0
+// Description: SD-SPI Card Detect TRIS bit
+//#define SD_CD_TRIS          TRISFbits.TRISF0
+// Description: SD-SPI Write Protect Check Input bit
+//#define SD_WE               PORTFbits.RF1
+// Description: SD-SPI Write Protect Check TRIS bit
+//#define SD_WE_TRIS          TRISFbits.TRISF1
+// Description: The main SPI control register
+#define SPIxCON              SPI2CON
+// Description: The SPI status register
+#define SPIxSTAT             SPI2STAT
+// Description: The SPI Buffer
+#define SPIxBUF              SPI2BUF
+// Description: The bitwise define for the SPI control register (i.e. _____bits)
+#define SPIxCONbits         SPI2CONbits
+// Description: The bitwise define for the SPI status register (i.e. _____bits)
+#define SPIRBF              SPI2STATbits.SPIRBF
+//
+#define SPITBE              SPI2STATbits.SPITBE
+//
+#define __SPIxCONbits_t     __SPI2CONbits_t
+// Description: The enable bit for the SPI module
+#define SPIENABLE           SPI2CONbits.ON
+// Description: The definition for the SPI baud rate generator register (PIC32)
+#define SPIBRG			    SPI2BRG
+// Tris pins for SCK/SDI/SDO lines
+// Description: The TRIS bit for the SCK pin
+#define SPICLOCK            TRISBbits.TRISB8
+// Description: The TRIS bit for the SDI pin
+#define SPIIN               TRISCbits.TRISC9
+// Description: The TRIS bit for the SDO pin
+#define SPIOUT              TRISBbits.TRISB9
+
+/***************************************************************************/
+/*                               Macros                                    */
+/***************************************************************************/
+
+// Description: A macro to send clock cycles to dummy-read the CRC
+#define mReadCRC()              WriteSPIM(0xFF);WriteSPIM(0xFF);
+
+// Description: A macro to send clock cycles to dummy-write the CRC
+#define mSendCRC()              WriteSPIM(0xFF);WriteSPIM(0xFF);
+
+// Description: A macro to send 8 clock cycles for SD timing requirements
+#define mSend8ClkCycles()       WriteSPIM(0xFF);
 
 /******************************************************************************
  * Global Variables
@@ -115,7 +173,6 @@ const typMMC_CMD sdmmc_cmdtable[] =
 /******************************************************************************
  * Prototypes
  *****************************************************************************/
-extern void Delayms(BYTE milliseconds);
 BYTE MDD_SDSPI_ReadMedia(void);
 MEDIA_INFORMATION * MDD_SDSPI_MediaInitialize(void);
 MMC_RESPONSE SendMMCCmd(BYTE cmd, DWORD address);
@@ -183,8 +240,14 @@ static inline __attribute__((always_inline)) unsigned char SPICalutateBRG(unsign
  ********************************************************************/
 unsigned int getcSPI(void)
 {
-	while(!DataRdySPI());		// wait receive data available
-	return ReadSPI();
+	while( !SPIRBF );		// wait receive data available
+	return (SPIxBUF);
+}
+
+void putcSPI(BYTE data_out)
+{
+    while( !SPITBE );
+    SPIxBUF = data_out;
 }
 
 /*********************************************************************
@@ -223,7 +286,7 @@ unsigned int getsSPI(unsigned int length, unsigned int *rdptr, unsigned int spi_
 	while (length)                     /* stay in loop until length = 0  */
 	{
 		wait = 0;
-		while(!DataRdySPI())
+		while(!(SPIRBF))
 		{
 			if(wait++ > spi_data_wait)
 			{
@@ -272,7 +335,7 @@ void putsSPI(unsigned int length, unsigned int *wrptr)
 
     while (length--)                   /* write byte/word until length is 0 */
     {
-		while(TxBufFullSPI());  /* wait until there's room in the buffer */
+		while((!SPITBE));  /* wait until there's room in the buffer */
 		if(conBits.MODE32)
 		{
 			SPIxBUF=*wrptr++;
@@ -1541,45 +1604,6 @@ BYTE MDD_SDSPI_WriteProtectState(void)
     return FALSE;
 #endif
 }
-
-
-/*******************************************************************************
-  Function:
-    void Delayms (BYTE milliseconds)
-  Summary:
-    Delay.
-  Conditions:
-    None.
-  Input:
-    BYTE milliseconds - Number of ms to delay
-  Return:
-    None.
-  Side Effects:
-    None.
-  Description:
-    The Delayms function will delay a specified number of milliseconds.  Used for SPI
-    timing.
-  Remarks:
-    Depending on compiler revisions, this function may not delay for the exact 
-    time specified.  This shouldn't create a significant problem.
-*******************************************************************************/
-
-void __attribute__((optimize("-O0"))) Delayms(BYTE milliseconds)
-{
-    BYTE    ms;
-    DWORD   count;
-
-    ms = milliseconds;
-    while (ms--)
-    {
-        count = MILLISECDELAY;
-        while (count--);
-    }
-    Nop();
-    return;
-//    SYS_TICK_MsDelay(milliseconds);
-}
-
 
 /*******************************************************************************
   Function:

@@ -23,6 +23,7 @@
 
 #include "config.h"
 #include "log.h"
+#include "delay.h"
 #include "sd/fsio.h"
 
 
@@ -31,6 +32,7 @@ int main(void)
     SearchRec f_record;
 
     ConfigInit();
+    Delayms(100);
     LogInit();
 
     if(FSInit())

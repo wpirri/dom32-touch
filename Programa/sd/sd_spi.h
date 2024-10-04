@@ -40,53 +40,6 @@
 #include "fsconfig.h"
 #include "fsdefs.h"
 
-/* ****************************************************************************
- *   MDDFS
- * ************************************************************************* */
-/******************* Pin and Register Definitions ********************/
-//SPI Configuration
-// Define the SPI frequency
-#define SPI_FREQUENCY			(20000000)
-// Description: SD-SPI Chip Select Output bit
-#define SD_CS               LATBbits.LATB7
-// Description: SD-SPI Chip Select TRIS bit
-#define SD_CS_TRIS          TRISBbits.TRISB7
-// Control de presencia de la tarjeta SD por soft (no por sensor en zócalo)
-//#define MEDIA_SOFT_DETECT
-// Description: SD-SPI Card Detect Input bit
-//#define SD_CD               PORTFbits.RF0
-// Description: SD-SPI Card Detect TRIS bit
-//#define SD_CD_TRIS          TRISFbits.TRISF0
-// Description: SD-SPI Write Protect Check Input bit
-//#define SD_WE               PORTFbits.RF1
-// Description: SD-SPI Write Protect Check TRIS bit
-//#define SD_WE_TRIS          TRISFbits.TRISF1
-// Description: The main SPI control register
-#define SPIxCON              SPI2CON
-// Description: The SPI status register
-#define SPIxSTAT             SPI2STAT
-// Description: The SPI Buffer
-#define SPIxBUF              SPI2BUF
-// Description: The bitwise define for the SPI control register (i.e. _____bits)
-#define SPIxCONbits         SPI2CONbits
-// Description: The bitwise define for the SPI status register (i.e. _____bits)
-#define SPIRBF              SPI2STATbits.SPIRBF
-//
-#define SPITBE              SPI2STATbits.SPITBE
-//
-#define __SPIxCONbits_t     __SPI2CONbits_t
-// Description: The enable bit for the SPI module
-#define SPIENABLE           SPI2CONbits.ON
-// Description: The definition for the SPI baud rate generator register (PIC32)
-#define SPIBRG			    SPI2BRG
-// Tris pins for SCK/SDI/SDO lines
-// Description: The TRIS bit for the SCK pin
-#define SPICLOCK            TRISBbits.TRISB8
-// Description: The TRIS bit for the SDI pin
-#define SPIIN               TRISCbits.TRISC9
-// Description: The TRIS bit for the SDO pin
-#define SPIOUT              TRISBbits.TRISB9
-
 /*****************************************************************/
 /*                  Strcutures and defines                       */
 /*****************************************************************/
@@ -420,17 +373,6 @@ typedef union
 #define INPUT   1
 #define OUTPUT  0
 
-
-// Description: A delay prescaler
-#define DELAY_PRESCALER   (BYTE)      8
-
-// Description: An approximation of the number of cycles per delay loop of overhead
-#define DELAY_OVERHEAD    (BYTE)      5
-
-// Description: An approximate calculation of how many times to loop to delay 1 ms in the Delayms function
-#define MILLISECDELAY   (WORD)      ((GetInstructionClock()/DELAY_PRESCALER/(WORD)1000) - DELAY_OVERHEAD)
-
-
 // Desription: Media Response Delay Timeouts 
 #define NCR_TIMEOUT     (WORD)20        //Byte times before command response is expected (must be at least 8)
 #define NAC_TIMEOUT     (DWORD)0x40000  //SPI byte times we should wait when performing read operations (should be at least 100ms for SD cards)
@@ -514,27 +456,6 @@ typedef struct
 //Constants
 #define MEDIA_BLOCK_SIZE            512u  //Should always be 512 for v1 and v2 devices.
 #define WRITE_RESPONSE_TOKEN_MASK   0x1F  //Bit mask to AND with the write token response byte from the media, to clear the don't care bits.
-
-
-
-/***************************************************************************/
-/*                               Macros                                    */
-/***************************************************************************/
-
-// Description: A macro to send clock cycles to dummy-read the CRC
-#define mReadCRC()              WriteSPIM(0xFF);WriteSPIM(0xFF);
-
-// Description: A macro to send clock cycles to dummy-write the CRC
-#define mSendCRC()              WriteSPIM(0xFF);WriteSPIM(0xFF);
-
-// Description: A macro to send 8 clock cycles for SD timing requirements
-#define mSend8ClkCycles()       WriteSPIM(0xFF);
-
-#define putcSPI(data_out)  do{while(!SPITBE); SPIxBUF=(data_out); }while(0)
-#define WriteSPI(data_out) (SPIxBUF=(data_out))
-#define ReadSPI()  (SPIxBUF)
-#define TxBufFullSPI() (!SPITBE)
-#define DataRdySPI() (SPIRBF)
 
 /*****************************************************************************/
 /*                                 Public Prototypes                         */
