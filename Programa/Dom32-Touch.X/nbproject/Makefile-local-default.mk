@@ -34,4 +34,4 @@ MP_CPPC_DIR="C:\Program Files\Microchip\xc32\v4.35\bin"
 MP_AS_DIR="C:\Program Files\Microchip\xc32\v4.35\bin"
 MP_LD_DIR="C:\Program Files\Microchip\xc32\v4.35\bin"
 MP_AR_DIR="C:\Program Files\Microchip\xc32\v4.35\bin"
-DFP_DIR=C:/Users/walte/.mchp_packs/Microchip/PIC32MM-GPL-0XX_DFP/1.4.168
+DFP_DIR=C:/Users/walte/.mchp_packs/Microchip/PIC32MM-GPM-0XX_DFP/1.4.156

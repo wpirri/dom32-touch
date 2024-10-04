@@ -1,5 +1,5 @@
 /***************************************************************************
-    Copyright (C) 2017   Walter Pirri
+    Copyright (C) 2024   Walter Pirri
 
     This library is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public
@@ -15,30 +15,13 @@
     License along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  ***************************************************************************/
-#include "clog.h"
+#ifndef CONFIG_H
+#define	CONFIG_H
 
-#include <string.h>
-#include <stdlib.h>
-#include <stdarg.h>
-#include <stdio.h>
+// Clock frequency values
+#define _XTAL_FREQ  24000000UL             // Hz
+#define GetSystemClock()		(_XTAL_FREQ)
+#define GetInstructionClock()	(GetSystemClock()/*/4*/)
+#define GetPeripheralClock()	(GetSystemClock()/*/4*/)
 
-#define LOG_BUFFER_LEN 1024
-char _log_buffer[LOG_BUFFER_LEN+1];
-
-void LogInit(void)
-{
-    LogMessage("LOG Init.");
-}
-
-void LogMessage(const char* msg, ...)
-{
-    va_list args;
-
-    va_start (args, msg);
-    vsnprintf(_log_buffer, (LOG_BUFFER_LEN-2), msg, args);
-    va_end(args);
-    strcat(_log_buffer, "\r\n");
-
-    
-    printf(_log_buffer);
-}
+#endif	/* CONFIG_H */

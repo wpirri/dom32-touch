@@ -3,13 +3,13 @@
     <type>com.microchip.mplab.nbide.embedded.makeproject</type>
     <configuration>
         <data xmlns="http://www.netbeans.org/ns/make-project/1">
-            <name>Dom32-Touch</name>
-            <creation-uuid>bbbe6c9c-1869-4026-9927-b3c6ba060bb7</creation-uuid>
+            <name>dom32-touch</name>
+            <creation-uuid>842de5cf-405c-4e03-afc9-196749d3bae6</creation-uuid>
             <make-project-type>0</make-project-type>
             <sourceEncoding>ISO-8859-1</sourceEncoding>
             <make-dep-projects/>
             <sourceRootList>
-                <sourceRootElem>../src</sourceRootElem>
+                <sourceRootElem>..</sourceRootElem>
             </sourceRootList>
             <confList>
                 <confElem>

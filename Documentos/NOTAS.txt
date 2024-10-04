@@ -1,13 +1,13 @@
- * Asignacion de pines para PIC32MM0064GPL028 en Dom32Term
+* Asignacion de pines para PIC32MM0064GPL028 en Dom32Term
  * 1    MCLR / Vpp                      Programaciïon/Debug/Reset
  * 2    RA0                             LED_STATUS
  * 3    RA1							    LED_MODO
  * 4    RB0                             PGED1
  * 5    RB1                             PGEC1
  * 6    RB2                             LED_INFO
- * 7    RB3                             DEBUG
+ * 7    RB3
  * 8    Vss                             Vss
- * 9    RA2
+ * 9    RA2/RP3/U2TX                    DEBUG
  * 10   RA3
  * 11   RB4
  * 12   RA4                             LCD_RST (OC)
@@ -15,15 +15,16 @@
  * 14   RB5								LCD_CD
  * 15   RB6								LCD_CS
  * 16   RB7								SD_CS
- * 17   RB8/RP7/SCK1                    SCK
- * 18   RB9/RP8/SDO1                    MOSI
- * 19   RC9/RP19/SDI                    MISO
+ * 17   RB8/RP7/SCK2OUT                 SCK
+ * 18   RB9/RP8/SDO2                    MOSI
+ * 19   RC9/RP19/SDI2                   MISO
  * 20   VCap                            Cap 100n + 10uF
  * 21   RB10
  * 22   RB11
  * 23   Vusb                            Vusb                            
  * 24   RB13							WiFi_RST (OC)
- * 25   RB14/RP19                       WiFi_TX
- * 26   RB15/RP10                       WiFi_RX
+ * 25   RB14/RP19/U1TX                  WiFi_TX
+ * 26   RB15/RP10/U1RX                  WiFi_RX
  * 27   AVss                            Vss
  * 28   AVdd                            +3v3
+ 

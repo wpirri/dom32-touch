@@ -24,7 +24,7 @@ CLEAN_SUBPROJECTS=${CLEAN_SUBPROJECTS_${SUBPROJECTS}}
 
 
 # Project Name
-PROJECTNAME=Dom32-Touch.X
+PROJECTNAME=dom32-touch.X
 
 # Active Configuration
 DEFAULTCONF=default
