@@ -20,8 +20,9 @@
 
 #include <GenericTypeDefs.h>
 
-int DiInit( void );
+int SPIDisplayInit( void );
 
+void SPIDisplayClear( void );
 
 
 #endif	/* _DI_SPI_H_ */

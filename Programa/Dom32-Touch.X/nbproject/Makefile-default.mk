@@ -51,17 +51,17 @@ OBJECTDIR=build/${CND_CONF}/${IMAGE_TYPE}
 DISTDIR=dist/${CND_CONF}/${IMAGE_TYPE}
 
 # Source Files Quoted if spaced
-SOURCEFILES_QUOTED_IF_SPACED=../sd/fsio.c ../sd/sd_spi.c ../main.c ../log.c ../config.c ../display/di_spi.c ../delay.c
+SOURCEFILES_QUOTED_IF_SPACED=../display/di_spi.c ../sd/fsio.c ../sd/sd_spi.c ../main.c ../log.c ../config.c ../delay.c ../display/dili9341.c
 
 # Object Files Quoted if spaced
-OBJECTFILES_QUOTED_IF_SPACED=${OBJECTDIR}/_ext/43901184/fsio.o ${OBJECTDIR}/_ext/43901184/sd_spi.o ${OBJECTDIR}/_ext/1472/main.o ${OBJECTDIR}/_ext/1472/log.o ${OBJECTDIR}/_ext/1472/config.o ${OBJECTDIR}/_ext/8742029/di_spi.o ${OBJECTDIR}/_ext/1472/delay.o
-POSSIBLE_DEPFILES=${OBJECTDIR}/_ext/43901184/fsio.o.d ${OBJECTDIR}/_ext/43901184/sd_spi.o.d ${OBJECTDIR}/_ext/1472/main.o.d ${OBJECTDIR}/_ext/1472/log.o.d ${OBJECTDIR}/_ext/1472/config.o.d ${OBJECTDIR}/_ext/8742029/di_spi.o.d ${OBJECTDIR}/_ext/1472/delay.o.d
+OBJECTFILES_QUOTED_IF_SPACED=${OBJECTDIR}/_ext/8742029/di_spi.o ${OBJECTDIR}/_ext/43901184/fsio.o ${OBJECTDIR}/_ext/43901184/sd_spi.o ${OBJECTDIR}/_ext/1472/main.o ${OBJECTDIR}/_ext/1472/log.o ${OBJECTDIR}/_ext/1472/config.o ${OBJECTDIR}/_ext/1472/delay.o ${OBJECTDIR}/_ext/8742029/dili9341.o
+POSSIBLE_DEPFILES=${OBJECTDIR}/_ext/8742029/di_spi.o.d ${OBJECTDIR}/_ext/43901184/fsio.o.d ${OBJECTDIR}/_ext/43901184/sd_spi.o.d ${OBJECTDIR}/_ext/1472/main.o.d ${OBJECTDIR}/_ext/1472/log.o.d ${OBJECTDIR}/_ext/1472/config.o.d ${OBJECTDIR}/_ext/1472/delay.o.d ${OBJECTDIR}/_ext/8742029/dili9341.o.d
 
 # Object Files
-OBJECTFILES=${OBJECTDIR}/_ext/43901184/fsio.o ${OBJECTDIR}/_ext/43901184/sd_spi.o ${OBJECTDIR}/_ext/1472/main.o ${OBJECTDIR}/_ext/1472/log.o ${OBJECTDIR}/_ext/1472/config.o ${OBJECTDIR}/_ext/8742029/di_spi.o ${OBJECTDIR}/_ext/1472/delay.o
+OBJECTFILES=${OBJECTDIR}/_ext/8742029/di_spi.o ${OBJECTDIR}/_ext/43901184/fsio.o ${OBJECTDIR}/_ext/43901184/sd_spi.o ${OBJECTDIR}/_ext/1472/main.o ${OBJECTDIR}/_ext/1472/log.o ${OBJECTDIR}/_ext/1472/config.o ${OBJECTDIR}/_ext/1472/delay.o ${OBJECTDIR}/_ext/8742029/dili9341.o
 
 # Source Files
-SOURCEFILES=../sd/fsio.c ../sd/sd_spi.c ../main.c ../log.c ../config.c ../display/di_spi.c ../delay.c
+SOURCEFILES=../display/di_spi.c ../sd/fsio.c ../sd/sd_spi.c ../main.c ../log.c ../config.c ../delay.c ../display/dili9341.c
 
 
 
@@ -101,6 +101,12 @@ endif
 # ------------------------------------------------------------------------------------
 # Rules for buildStep: compile
 ifeq ($(TYPE_IMAGE), DEBUG_RUN)
+${OBJECTDIR}/_ext/8742029/di_spi.o: ../display/di_spi.c  .generated_files/flags/default/8db3e11dbcb0c47c792bfb7f21ff471b2316cbd9 .generated_files/flags/default/da39a3ee5e6b4b0d3255bfef95601890afd80709
+	@${MKDIR} "${OBJECTDIR}/_ext/8742029" 
+	@${RM} ${OBJECTDIR}/_ext/8742029/di_spi.o.d 
+	@${RM} ${OBJECTDIR}/_ext/8742029/di_spi.o 
+	${MP_CC}  $(MP_EXTRA_CC_PRE) -g -D__DEBUG -D__MPLAB_DEBUGGER_PK3=1  -fframe-base-loclist  -x c -c -mprocessor=$(MP_PROCESSOR_OPTION)  -fno-common -Wall -MP -MMD -MF "${OBJECTDIR}/_ext/8742029/di_spi.o.d" -o ${OBJECTDIR}/_ext/8742029/di_spi.o ../display/di_spi.c    -DXPRJ_default=$(CND_CONF)    $(COMPARISON_BUILD)  -mdfp="${DFP_DIR}"  
+	
 ${OBJECTDIR}/_ext/43901184/fsio.o: ../sd/fsio.c  .generated_files/flags/default/824d48f79550d7b41e9356948cfc31847a7b083c .generated_files/flags/default/da39a3ee5e6b4b0d3255bfef95601890afd80709
 	@${MKDIR} "${OBJECTDIR}/_ext/43901184" 
 	@${RM} ${OBJECTDIR}/_ext/43901184/fsio.o.d 
@@ -131,19 +137,25 @@ ${OBJECTDIR}/_ext/1472/config.o: ../config.c  .generated_files/flags/default/c74
 	@${RM} ${OBJECTDIR}/_ext/1472/config.o 
 	${MP_CC}  $(MP_EXTRA_CC_PRE) -g -D__DEBUG -D__MPLAB_DEBUGGER_PK3=1  -fframe-base-loclist  -x c -c -mprocessor=$(MP_PROCESSOR_OPTION)  -fno-common -Wall -MP -MMD -MF "${OBJECTDIR}/_ext/1472/config.o.d" -o ${OBJECTDIR}/_ext/1472/config.o ../config.c    -DXPRJ_default=$(CND_CONF)    $(COMPARISON_BUILD)  -mdfp="${DFP_DIR}"  
 	
-${OBJECTDIR}/_ext/8742029/di_spi.o: ../display/di_spi.c  .generated_files/flags/default/8db3e11dbcb0c47c792bfb7f21ff471b2316cbd9 .generated_files/flags/default/da39a3ee5e6b4b0d3255bfef95601890afd80709
-	@${MKDIR} "${OBJECTDIR}/_ext/8742029" 
-	@${RM} ${OBJECTDIR}/_ext/8742029/di_spi.o.d 
-	@${RM} ${OBJECTDIR}/_ext/8742029/di_spi.o 
-	${MP_CC}  $(MP_EXTRA_CC_PRE) -g -D__DEBUG -D__MPLAB_DEBUGGER_PK3=1  -fframe-base-loclist  -x c -c -mprocessor=$(MP_PROCESSOR_OPTION)  -fno-common -Wall -MP -MMD -MF "${OBJECTDIR}/_ext/8742029/di_spi.o.d" -o ${OBJECTDIR}/_ext/8742029/di_spi.o ../display/di_spi.c    -DXPRJ_default=$(CND_CONF)    $(COMPARISON_BUILD)  -mdfp="${DFP_DIR}"  
-	
 ${OBJECTDIR}/_ext/1472/delay.o: ../delay.c  .generated_files/flags/default/61ef5d8d7468e4d52aa1f08a739955180779b832 .generated_files/flags/default/da39a3ee5e6b4b0d3255bfef95601890afd80709
 	@${MKDIR} "${OBJECTDIR}/_ext/1472" 
 	@${RM} ${OBJECTDIR}/_ext/1472/delay.o.d 
 	@${RM} ${OBJECTDIR}/_ext/1472/delay.o 
 	${MP_CC}  $(MP_EXTRA_CC_PRE) -g -D__DEBUG -D__MPLAB_DEBUGGER_PK3=1  -fframe-base-loclist  -x c -c -mprocessor=$(MP_PROCESSOR_OPTION)  -fno-common -Wall -MP -MMD -MF "${OBJECTDIR}/_ext/1472/delay.o.d" -o ${OBJECTDIR}/_ext/1472/delay.o ../delay.c    -DXPRJ_default=$(CND_CONF)    $(COMPARISON_BUILD)  -mdfp="${DFP_DIR}"  
 	
+${OBJECTDIR}/_ext/8742029/dili9341.o: ../display/dili9341.c  .generated_files/flags/default/8fa2b69c57340dfda083a67f5d0757671c433077 .generated_files/flags/default/da39a3ee5e6b4b0d3255bfef95601890afd80709
+	@${MKDIR} "${OBJECTDIR}/_ext/8742029" 
+	@${RM} ${OBJECTDIR}/_ext/8742029/dili9341.o.d 
+	@${RM} ${OBJECTDIR}/_ext/8742029/dili9341.o 
+	${MP_CC}  $(MP_EXTRA_CC_PRE) -g -D__DEBUG -D__MPLAB_DEBUGGER_PK3=1  -fframe-base-loclist  -x c -c -mprocessor=$(MP_PROCESSOR_OPTION)  -fno-common -Wall -MP -MMD -MF "${OBJECTDIR}/_ext/8742029/dili9341.o.d" -o ${OBJECTDIR}/_ext/8742029/dili9341.o ../display/dili9341.c    -DXPRJ_default=$(CND_CONF)    $(COMPARISON_BUILD)  -mdfp="${DFP_DIR}"  
+	
 else
+${OBJECTDIR}/_ext/8742029/di_spi.o: ../display/di_spi.c  .generated_files/flags/default/ab2b1bd3e3c1e24319896f9beba31ce72546959c .generated_files/flags/default/da39a3ee5e6b4b0d3255bfef95601890afd80709
+	@${MKDIR} "${OBJECTDIR}/_ext/8742029" 
+	@${RM} ${OBJECTDIR}/_ext/8742029/di_spi.o.d 
+	@${RM} ${OBJECTDIR}/_ext/8742029/di_spi.o 
+	${MP_CC}  $(MP_EXTRA_CC_PRE)  -g -x c -c -mprocessor=$(MP_PROCESSOR_OPTION)  -fno-common -Wall -MP -MMD -MF "${OBJECTDIR}/_ext/8742029/di_spi.o.d" -o ${OBJECTDIR}/_ext/8742029/di_spi.o ../display/di_spi.c    -DXPRJ_default=$(CND_CONF)    $(COMPARISON_BUILD)  -mdfp="${DFP_DIR}"  
+	
 ${OBJECTDIR}/_ext/43901184/fsio.o: ../sd/fsio.c  .generated_files/flags/default/446c9a3f04d6fc79d9cb6ce5204e8522d2eeba2 .generated_files/flags/default/da39a3ee5e6b4b0d3255bfef95601890afd80709
 	@${MKDIR} "${OBJECTDIR}/_ext/43901184" 
 	@${RM} ${OBJECTDIR}/_ext/43901184/fsio.o.d 
@@ -174,17 +186,17 @@ ${OBJECTDIR}/_ext/1472/config.o: ../config.c  .generated_files/flags/default/5d8
 	@${RM} ${OBJECTDIR}/_ext/1472/config.o 
 	${MP_CC}  $(MP_EXTRA_CC_PRE)  -g -x c -c -mprocessor=$(MP_PROCESSOR_OPTION)  -fno-common -Wall -MP -MMD -MF "${OBJECTDIR}/_ext/1472/config.o.d" -o ${OBJECTDIR}/_ext/1472/config.o ../config.c    -DXPRJ_default=$(CND_CONF)    $(COMPARISON_BUILD)  -mdfp="${DFP_DIR}"  
 	
-${OBJECTDIR}/_ext/8742029/di_spi.o: ../display/di_spi.c  .generated_files/flags/default/ab2b1bd3e3c1e24319896f9beba31ce72546959c .generated_files/flags/default/da39a3ee5e6b4b0d3255bfef95601890afd80709
-	@${MKDIR} "${OBJECTDIR}/_ext/8742029" 
-	@${RM} ${OBJECTDIR}/_ext/8742029/di_spi.o.d 
-	@${RM} ${OBJECTDIR}/_ext/8742029/di_spi.o 
-	${MP_CC}  $(MP_EXTRA_CC_PRE)  -g -x c -c -mprocessor=$(MP_PROCESSOR_OPTION)  -fno-common -Wall -MP -MMD -MF "${OBJECTDIR}/_ext/8742029/di_spi.o.d" -o ${OBJECTDIR}/_ext/8742029/di_spi.o ../display/di_spi.c    -DXPRJ_default=$(CND_CONF)    $(COMPARISON_BUILD)  -mdfp="${DFP_DIR}"  
-	
 ${OBJECTDIR}/_ext/1472/delay.o: ../delay.c  .generated_files/flags/default/ed865e63cc0d71865204edba13082d60dac374e3 .generated_files/flags/default/da39a3ee5e6b4b0d3255bfef95601890afd80709
 	@${MKDIR} "${OBJECTDIR}/_ext/1472" 
 	@${RM} ${OBJECTDIR}/_ext/1472/delay.o.d 
 	@${RM} ${OBJECTDIR}/_ext/1472/delay.o 
 	${MP_CC}  $(MP_EXTRA_CC_PRE)  -g -x c -c -mprocessor=$(MP_PROCESSOR_OPTION)  -fno-common -Wall -MP -MMD -MF "${OBJECTDIR}/_ext/1472/delay.o.d" -o ${OBJECTDIR}/_ext/1472/delay.o ../delay.c    -DXPRJ_default=$(CND_CONF)    $(COMPARISON_BUILD)  -mdfp="${DFP_DIR}"  
+	
+${OBJECTDIR}/_ext/8742029/dili9341.o: ../display/dili9341.c  .generated_files/flags/default/c65dddcfb4a70be5ce07ac95f89318ad11e6d7f6 .generated_files/flags/default/da39a3ee5e6b4b0d3255bfef95601890afd80709
+	@${MKDIR} "${OBJECTDIR}/_ext/8742029" 
+	@${RM} ${OBJECTDIR}/_ext/8742029/dili9341.o.d 
+	@${RM} ${OBJECTDIR}/_ext/8742029/dili9341.o 
+	${MP_CC}  $(MP_EXTRA_CC_PRE)  -g -x c -c -mprocessor=$(MP_PROCESSOR_OPTION)  -fno-common -Wall -MP -MMD -MF "${OBJECTDIR}/_ext/8742029/dili9341.o.d" -o ${OBJECTDIR}/_ext/8742029/dili9341.o ../display/dili9341.c    -DXPRJ_default=$(CND_CONF)    $(COMPARISON_BUILD)  -mdfp="${DFP_DIR}"  
 	
 endif
 

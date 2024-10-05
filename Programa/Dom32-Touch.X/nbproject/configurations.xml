@@ -6,6 +6,7 @@
                    projectFiles="true">
       <logicalFolder name="f2" displayName="display" projectFiles="true">
         <itemPath>../display/di_spi.h</itemPath>
+        <itemPath>../display/dili9341.h</itemPath>
       </logicalFolder>
       <logicalFolder name="f1" displayName="sd" projectFiles="true">
         <itemPath>../sd/fsconfig.h</itemPath>
@@ -31,6 +32,7 @@
                    projectFiles="true">
       <logicalFolder name="f2" displayName="display" projectFiles="true">
         <itemPath>../display/di_spi.c</itemPath>
+        <itemPath>../display/dili9341.c</itemPath>
       </logicalFolder>
       <logicalFolder name="f1" displayName="sd" projectFiles="true">
         <itemPath>../sd/fsio.c</itemPath>

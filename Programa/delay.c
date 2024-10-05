@@ -26,6 +26,7 @@ void __attribute__((optimize("-O0"))) Delayms(unsigned int ms)
 
     while(ms--)
     {
+        CLRWDT();
         count = ((GetInstructionClock()/8/1000) - 5);
         while (count--);
     }

@@ -29,7 +29,7 @@
 
 // FICD
 #pragma config JTAGEN = OFF             // JTAG Enable bit (JTAG is disabled)
-#pragma config ICS = PGx2               // ICE/ICD Communication Channel Selection bits (Communicate on PGEC3/PGED3)
+#pragma config ICS = PGx1               // ICE/ICD Communication Channel Selection bits (Communicate on PGEC3/PGED3)
 
 // FPOR
 #pragma config BOREN = BOR3             // Brown-out Reset Enable bits (Brown-out Reset enabled in hardware; SBOREN bit disabled)
@@ -57,6 +57,7 @@
 // FSEC
 #pragma config CP = OFF                 // Code Protection Enable bit (Code protection is disabled)
 /* ************************************************************************** */
+
 
 /* * Manejo de excepciones ************************************************** */
 static enum {
@@ -208,6 +209,20 @@ void ConfigInit(void)
     /* ************************************************************************** */
     RCON = 0x00000000;
     /* ************************************************************************** */
+    /* Core Timer */
+    // Set the count value
+    _CP0_SET_COUNT(0x0); 
+    // Set the compare value
+    _CP0_SET_COMPARE(CORE_TIMER_COMPARE_VAL); 
+    // Interrupcion
+    //    Priority: 1
+    IPC0bits.CTIP = 1;
+    //    Sub Priority: 0
+    IPC0bits.CTIS = 0;
+     // Enable the interrupt
+    IEC0bits.CTIE = 1;
+    /* ************************************************************************** */
+
 
     /* Configuro los leds */
     TRISAbits.TRISA0 = 0;
@@ -229,5 +244,5 @@ void ConfigInit(void)
     INTCONbits.MVEC = 1;
     __builtin_enable_interrupts();
     /* ************************************************************************** */
+    
 }
-

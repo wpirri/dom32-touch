@@ -25,6 +25,13 @@
 #define GetPeripheralClock()	(GetSystemClock()/*/4*/)
 
 #define CLRWDT()  (WDTCONbits.WDTCLRKEY = 0x5743)
+
+// 0x1D4C0 = 10ms
+// 0x124F80 = 100ms
+#define CORE_TIMER_COMPARE_VAL 0x1D4C0
+
+
 void ConfigInit(void);
 
-#endif	/* _CONFIG_H_ */
+
+#endif /* _CONFIG_H_ */
