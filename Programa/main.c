@@ -52,10 +52,9 @@ int main(void)
     main_core_timer_count_x1000 = 0;
     sd_ok = false;
     display_ok = false;
-    
+
 
     ConfigInit();
-    Delayms(100);
     LogInit();
 
     /*
@@ -70,8 +69,10 @@ int main(void)
     }
     */
     
-    SPIDisplayInit();
-
+    SPIDisplayInit(true);
+    Delayms(1000);
+    SPIDisplayClear(0);
+    
     LATAbits.LATA4 = 1;
     Log("[main] Init Ok");
     
@@ -101,8 +102,8 @@ int main(void)
         {
             main_core_timer_flag_x1000 = false;
             
-            
-            
+            SPIDisplayClear(RGB(0x00, 0x00, 0xFF));
+
             if(sd_ok)
             {
                 if(FindFirst ("*.*", ATTR_MASK, &f_record) == 0)
@@ -110,14 +111,9 @@ int main(void)
                     Log("[sd] *** Archivos **********");
                     do
                     {
-                        Log(" - %s", f_record.filename);
+                        Log("[sd] - %s", f_record.filename);
                     } while(FindNext(&f_record) == 0);
                 }
-            }
-            else
-            {
-                Log("Diaplay Clear");
-                SPIDisplayClear();
             }
         }
         
