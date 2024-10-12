@@ -39,7 +39,7 @@ void LogInit(void)
     // unlock PPS
     RPCONbits.IOLOCK = 0;
     // Mapeo de UART2
-    RPOR2bits.RP9R = 0x0004;    // UART2:U2TX -> RP9
+    RPOR4bits.RP18R = 0x0004;    // UART2:U2TX -> RP9
     //RPINR9bits.U2RXR = 3;     // RP3 -> UART2:U2RX
     // lock   PPS
     RPCONbits.IOLOCK = 1; 

@@ -26,7 +26,7 @@
 #include "log.h"
 #include "delay.h"
 #include "sd/fsio.h"
-#include "display/di_spi.h"
+#include "display/di_bus.h"
 
 volatile bool main_core_timer_flag;
 volatile bool main_core_timer_flag_x10;
@@ -53,7 +53,6 @@ int main(void)
     sd_ok = false;
     display_ok = false;
 
-
     ConfigInit();
     LogInit();
 
@@ -68,12 +67,25 @@ int main(void)
         Log("[sd] Init Error");
     }
     */
+
+    if(BUSDisplayInit())
+    {
+        Log("[display] Init Ok");
+        display_ok = true;
+        Delayms(1000);
+    }
+    else
+    {
+        Log("[display] Init Error");
+        display_ok = false;
+    }
     
-    SPIDisplayInit(true);
-    Delayms(1000);
-    SPIDisplayClear(0);
+    if(display_ok)
+    {
+        Log("[display] clear");
+        BUSDisplayClear(0);
+    }
     
-    LATAbits.LATA4 = 1;
     Log("[main] Init Ok");
     
     while(1)
@@ -83,26 +95,29 @@ int main(void)
         {
             main_core_timer_flag = false;
             
+
         }
         else if(main_core_timer_flag_x10)
         {
             main_core_timer_flag_x10 = false;
+
             
-            //LATAbits.LATA0 = 1 - PORTAbits.RA0;
-            LATAbits.LATA0 = 0;
         }
         else if(main_core_timer_flag_x100)
         {
             main_core_timer_flag_x100 = false;
 
             
-            LATAbits.LATA0 = 1;
         }
         else if(main_core_timer_flag_x1000)
         {
             main_core_timer_flag_x1000 = false;
             
-            SPIDisplayClear(RGB(0x00, 0x00, 0xFF));
+            if(display_ok)
+            {
+                Log("[display] azul");
+                BUSDisplayClear(RGB(0x00, 0x00, 0xFF));
+            }
 
             if(sd_ok)
             {
@@ -115,6 +130,8 @@ int main(void)
                     } while(FindNext(&f_record) == 0);
                 }
             }
+
+            
         }
         
         
@@ -142,7 +159,7 @@ void __attribute__ ((vector(_CORE_TIMER_VECTOR), interrupt(IPL1SOFT))) _CORE_TIM
     {
         main_core_timer_count_x10 = 0;
         main_core_timer_flag_x10 = true;
-        
+
         main_core_timer_count_x100++;
         if(main_core_timer_count_x100 >= 10)
         {

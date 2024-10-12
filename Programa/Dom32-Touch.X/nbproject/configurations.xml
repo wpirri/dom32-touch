@@ -5,8 +5,8 @@
                    displayName="Header Files"
                    projectFiles="true">
       <logicalFolder name="f2" displayName="display" projectFiles="true">
-        <itemPath>../display/di_spi.h</itemPath>
         <itemPath>../display/dili9341.h</itemPath>
+        <itemPath>../display/di_bus.h</itemPath>
       </logicalFolder>
       <logicalFolder name="f1" displayName="sd" projectFiles="true">
         <itemPath>../sd/fsconfig.h</itemPath>
@@ -31,8 +31,8 @@
                    displayName="Source Files"
                    projectFiles="true">
       <logicalFolder name="f2" displayName="display" projectFiles="true">
-        <itemPath>../display/di_spi.c</itemPath>
         <itemPath>../display/dili9341.c</itemPath>
+        <itemPath>../display/di_bus.c</itemPath>
       </logicalFolder>
       <logicalFolder name="f1" displayName="sd" projectFiles="true">
         <itemPath>../sd/fsio.c</itemPath>
@@ -283,7 +283,7 @@
                   value="${memories.instruction.ram.ranges}"/>
         <property key="memories.programmemory" value="true"/>
         <property key="memories.programmemory.ranges" value="1d000000-1d03ffff"/>
-        <property key="poweroptions.powerenable" value="false"/>
+        <property key="poweroptions.powerenable" value="true"/>
         <property key="programmertogo.imagename" value=""/>
         <property key="programoptions.donoteraseauxmem" value="false"/>
         <property key="programoptions.eraseb4program" value="true"/>
@@ -361,7 +361,7 @@
                   value="${memories.instruction.ram.ranges}"/>
         <property key="memories.programmemory" value="true"/>
         <property key="memories.programmemory.ranges" value="1d000000-1d03ffff"/>
-        <property key="poweroptions.powerenable" value="false"/>
+        <property key="poweroptions.powerenable" value="true"/>
         <property key="programmertogo.imagename" value=""/>
         <property key="programoptions.donoteraseauxmem" value="false"/>
         <property key="programoptions.eraseb4program" value="true"/>

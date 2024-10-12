@@ -223,21 +223,6 @@ void ConfigInit(void)
     IEC0bits.CTIE = 1;
     /* ************************************************************************** */
 
-
-    /* Configuro los leds */
-    TRISAbits.TRISA0 = 0;
-    TRISAbits.TRISA1 = 0;
-    TRISBbits.TRISB2 = 0;
-    
-    /* Configuro los CS del SPI para que no interfieran en el bus */
-    LATBbits.LATB6 = 1;
-    TRISBbits.TRISB6 = 0;
-    LATBbits.LATB7 = 1;
-    TRISBbits.TRISB7 = 0;
-    /* Configuro el reset del display */
-    LATAbits.LATA4 = 0;
-    TRISAbits.TRISA4 = 0;
-
     /* ************************************************************************** */
     /* INTERRUPT Initialize */
     // Enable Multi Vector Configuration
