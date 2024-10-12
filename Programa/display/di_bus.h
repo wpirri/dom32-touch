@@ -44,10 +44,10 @@
 
 int BUSDisplayInit( void );
 
-void BUSDisplayClear( unsigned char color );
+void BUSDisplayClear( unsigned int color );
 
-void DrawRect(unsigned int x, unsigned int y, unsigned int w, unsigned int h, unsigned char color);
-void DrawPixel(unsigned int x, unsigned int y, unsigned char color);
+void DrawRect(unsigned int x, unsigned int y, unsigned int w, unsigned int h, unsigned int color);
+void DrawPixel(unsigned int x, unsigned int y, unsigned int color);
 
 
 #endif	/* _DI_BUS_H_ */

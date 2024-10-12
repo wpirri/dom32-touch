@@ -108,7 +108,7 @@ int BUSDisplayInit( void )
     return 1;
 }
 
-void BUSDisplayClear( unsigned char color )
+void BUSDisplayClear( unsigned int color )
 {
 	long i;
 	
@@ -118,13 +118,14 @@ void BUSDisplayClear( unsigned char color )
     for (i = 0; i < (DISPLAY_X_SIZE*DISPLAY_Y_SIZE); i++)
     {
         CLRWDT();
-        BUSWriteData(color);
+        BUSWriteData(color & 0x00FF);
+        BUSWriteData((color >> 8) & 0x00FF);
     }
     Delayms(1);
     SET_DI_CS;
 }
 
-void DrawRect(unsigned int x, unsigned int y, unsigned int w, unsigned int h, unsigned char color)
+void DrawRect(unsigned int x, unsigned int y, unsigned int w, unsigned int h, unsigned int color)
 {
 	long i;
 	
@@ -139,7 +140,7 @@ void DrawRect(unsigned int x, unsigned int y, unsigned int w, unsigned int h, un
     SET_DI_CS;
 }
 
-void DrawPixel(unsigned int x, unsigned int y, unsigned char color)
+void DrawPixel(unsigned int x, unsigned int y, unsigned int color)
 {
     CLR_DI_CS;
     Delayms(1);
