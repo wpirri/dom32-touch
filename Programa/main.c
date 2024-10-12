@@ -116,7 +116,7 @@ int main(void)
             if(display_ok)
             {
                 Log("[display] azul");
-                BUSDisplayClear(DI_BLUE);
+                BUSDisplayClear(RGB(0,0,255));
             }
 
             if(sd_ok)

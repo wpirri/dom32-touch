@@ -60,17 +60,15 @@
 void BUSWriteData(unsigned char data_out)
 {
     DI_PORT_OUT = ( (DI_PORT_IN & 0xFF00) | (data_out & 0x00FF) );
-    SET_DI_RD;
     CLR_DI_WR;
-    Nop();Nop();Nop();Nop();Nop();
-    Nop();Nop();Nop();Nop();Nop();
-    Nop();Nop();Nop();Nop();Nop();
     SET_DI_WR;
 }
 void BUSWriteCommand(unsigned char data_out)
 {
     CLR_DI_RS;
-    BUSWriteData(data_out);
+    DI_PORT_OUT = ( (DI_PORT_IN & 0xFF00) | (data_out & 0x00FF) );
+    CLR_DI_WR;
+    SET_DI_WR;
     SET_DI_RS;
 }
 
@@ -113,7 +111,6 @@ void BUSDisplayClear( unsigned int color )
 	long i;
 	
     CLR_DI_CS;
-    Delayms(1);
 	DisplayXY( 0, 0, DISPLAY_X_SIZE-1, DISPLAY_Y_SIZE-1);
     for (i = 0; i < (DISPLAY_X_SIZE*DISPLAY_Y_SIZE); i++)
     {
@@ -121,7 +118,6 @@ void BUSDisplayClear( unsigned int color )
         BUSWriteData(color & 0x00FF);
         BUSWriteData((color >> 8) & 0x00FF);
     }
-    Delayms(1);
     SET_DI_CS;
 }
 
@@ -130,22 +126,18 @@ void DrawRect(unsigned int x, unsigned int y, unsigned int w, unsigned int h, un
 	long i;
 	
     CLR_DI_CS;
-    Delayms(1);
 	DisplayXY( x, y, x+w-1, y+h-1 );
     for (i = 0; i < (w * h); i++)
     {
         BUSWriteData(color);
     }
-    Delayms(1);
     SET_DI_CS;
 }
 
 void DrawPixel(unsigned int x, unsigned int y, unsigned int color)
 {
     CLR_DI_CS;
-    Delayms(1);
 	DisplayXY( x, y, x, y );
     BUSWriteData(color);
-    Delayms(1);
     SET_DI_CS;
 }
