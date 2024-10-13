@@ -78,10 +78,18 @@
 //SPI Configuration
 // Define the SPI frequency
 #define SPI_FREQUENCY			(20000000)
+
+// Tris pins for SCK/SDI/SDO lines
+// Description: The TRIS bit for the SCK pin
+#define SPICLOCK_TRIS       TRISBbits.TRISB13
+// Description: The TRIS bit for the SDI pin
+#define SPIIN_TRIS          TRISBbits.TRISB14
+// Description: The TRIS bit for the SDO pin
+#define SPIOUT_TRIS         TRISBbits.TRISB15
 // Description: SD-SPI Chip Select Output bit
-#define SD_CS               LATBbits.LATB7
+#define SD_CS               LATBbits.LATB11
 // Description: SD-SPI Chip Select TRIS bit
-#define SD_CS_TRIS          TRISBbits.TRISB7
+#define SD_CS_TRIS          TRISBbits.TRISB11
 // Control de presencia de la tarjeta SD por soft (no por sensor en zócalo)
 //#define MEDIA_SOFT_DETECT
 // Description: SD-SPI Card Detect Input bit
@@ -92,6 +100,7 @@
 //#define SD_WE               PORTFbits.RF1
 // Description: SD-SPI Write Protect Check TRIS bit
 //#define SD_WE_TRIS          TRISFbits.TRISF1
+
 // Description: The main SPI control register
 #define SPIxCON              SPI2CON
 // Description: The SPI status register
@@ -110,13 +119,6 @@
 #define SPIENABLE           SPI2CONbits.ON
 // Description: The definition for the SPI baud rate generator register (PIC32)
 #define SPIBRG			    SPI2BRG
-// Tris pins for SCK/SDI/SDO lines
-// Description: The TRIS bit for the SCK pin
-#define SPICLOCK            TRISBbits.TRISB8
-// Description: The TRIS bit for the SDI pin
-#define SPIIN               TRISCbits.TRISC9
-// Description: The TRIS bit for the SDO pin
-#define SPIOUT              TRISBbits.TRISB9
 
 /***************************************************************************/
 /*                               Macros                                    */
@@ -579,14 +581,19 @@ void MDD_SDSPI_InitIO (void)
     SYSKEY = 0x556699AA; //write Key2 to SYSKEY
     // unlock PPS
     RPCONbits.IOLOCK = 0;
-    // Mapeo de SPI */
-    RPOR3bits.RP14R = 8;        // RP9 -> SPI2:SDO2
-    RPOR3bits.RP13R = 9;       // RP13 -> SPI2:SCK2OUT
-    RPINR11bits.SDI2R = 18;    // SPI2:SDI2 -> RP18
+    // Mapeo de SPI
+    RPOR4bits.RP17R = 8;        // RP17 -> SPI2:SDO2
+    RPOR3bits.RP15R = 9;        // RP15 -> SPI2:SCK2OUT
+    RPINR11bits.SDI2R = 16;     // SPI2:SDI2 -> RP16
     // lock   PPS
     RPCONbits.IOLOCK = 1; 
     // System Reg Lock
+
+    // I/O de los pines
     SYSKEY = 0x00000000; 
+    SPICLOCK_TRIS = 0;
+    SPIOUT_TRIS = 0;                  // define SDO1 as output (master or slave)
+    SPIIN_TRIS = 1;                  // define SDI1 as input (master or slave)
     // Turn off the card
 #ifdef SD_CD_TRIS
     SD_CD_TRIS = INPUT;            //Card Detect - input
@@ -596,9 +603,7 @@ void MDD_SDSPI_InitIO (void)
 #ifdef SD_WE_TRIS
     SD_WE_TRIS = INPUT;            //Write Protect - input
 #endif /* SD_WE_TRIS */
-    SPICLOCK = 0;
-    SPIOUT = 0;                  // define SDO1 as output (master or slave)
-    SPIIN = 1;                  // define SDI1 as input (master or slave)
+    
 }
 
 /*********************************************************

@@ -42,6 +42,7 @@ bool display_ok;
 int main(void)
 {
     SearchRec f_record;
+    unsigned i_color = 0;
 
     main_core_timer_flag = false;
     main_core_timer_flag_x10 = false;
@@ -56,7 +57,6 @@ int main(void)
     ConfigInit();
     LogInit();
 
-    /*
     if(FSInit())
     {
         Log("[sd] Init Ok");
@@ -66,7 +66,6 @@ int main(void)
     {
         Log("[sd] Init Error");
     }
-    */
 
     if(BUSDisplayInit())
     {
@@ -108,16 +107,32 @@ int main(void)
             main_core_timer_flag_x100 = false;
 
             
+            if(display_ok)
+            {
+                Log("[display] Color: %i", i_color);
+                switch(i_color++)
+                {
+                    case 0:
+                        BUSDisplayClear(RGB(255,0,0));
+                        break;
+                    case 1:
+                        BUSDisplayClear(RGB(0,255,0));
+                        break;
+                    case 2:
+                        BUSDisplayClear(RGB(0,0,255));
+                        break;
+                    default:
+                        BUSDisplayClear(0x0000);
+                        i_color = 0;
+                        break;
+                }
+                        
+            }
         }
         else if(main_core_timer_flag_x1000)
         {
             main_core_timer_flag_x1000 = false;
             
-            if(display_ok)
-            {
-                Log("[display] azul");
-                BUSDisplayClear(RGB(0,0,255));
-            }
 
             if(sd_ok)
             {
