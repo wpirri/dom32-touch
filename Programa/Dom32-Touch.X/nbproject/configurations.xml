@@ -7,6 +7,7 @@
       <logicalFolder name="f2" displayName="display" projectFiles="true">
         <itemPath>../display/dili9341.h</itemPath>
         <itemPath>../display/di_bus.h</itemPath>
+        <itemPath>../display/font.h</itemPath>
       </logicalFolder>
       <logicalFolder name="f1" displayName="sd" projectFiles="true">
         <itemPath>../sd/fsconfig.h</itemPath>
@@ -268,6 +269,7 @@
         <property key="event.recorder.debugger.behavior" value="Running"/>
         <property key="event.recorder.enabled" value="false"/>
         <property key="event.recorder.scvd.files" value=""/>
+        <property key="firmware.download.all" value="false"/>
         <property key="hwtoolclock.frcindebug" value="false"/>
         <property key="lastid" value=""/>
         <property key="memories.aux" value="false"/>

@@ -20,15 +20,41 @@
 
 #include <stdbool.h>
 
-#define RGB(r,g,b) ( ((r& 0xF8) << 8) | ((g & 0xFC) << 3) | ((b & 0xF8) >> 3) )
+#define BLACK   0x0000
+#define BLUE    0xF800
+#define RED     0x07E0
+#define GREEN   0x001F
+#define WHITE   0xFFFF
 
-int BUSDisplayInit( void );
+#define LEFT 0
+#define RIGHT 9999
+#define CENTER 9998
 
-void BUSDisplayClear( unsigned int color );
+//#define RGB(r,g,b) (((r>>3)<<8)|((g>>3)<<3)|(b>>3))
 
-void DrawRect(unsigned int x, unsigned int y, unsigned int w, unsigned int h, unsigned int color);
+int DisplayInit( void );
+
+void Clear( unsigned int color );
 void DrawPixel(unsigned int x, unsigned int y, unsigned int color);
-
-
+void DrawRectFill(unsigned int x, unsigned int y, unsigned int w, unsigned int h, unsigned int color);
+void DrawLineV(unsigned int x, unsigned int y, unsigned int h, unsigned int color);
+void DrawLineH(unsigned int x, unsigned int y, unsigned int w, unsigned int color);
+void DrawRectEmpty(unsigned int x, unsigned int y, unsigned int w, unsigned int h, unsigned int color);
+void DrawLine(unsigned int x1, unsigned int y1, unsigned int x2, unsigned int y2, unsigned int color);
+void DrawCircleFill(unsigned int x, unsigned int y, unsigned int r, unsigned int color);
+void DrawCircleEmpty(unsigned int x, unsigned int y, unsigned int r, unsigned int color);
+void DrawTriangleEmpty( unsigned int x0, unsigned int y0, 
+                        unsigned int x1, unsigned int y1,
+                        unsigned int x2, unsigned int y2, 
+                        unsigned int color);
+void DrawTriangleFill( unsigned int x0, unsigned int y0, 
+                        unsigned int x1, unsigned int y1,
+                        unsigned int x2, unsigned int y2, 
+                        unsigned int color);
+void DrawCornerEmpty(unsigned int x0, unsigned int y0, unsigned int r, unsigned int corner, unsigned int color);
+void DrawRoundRectangleFill(unsigned int x1, unsigned int y1, unsigned int x2,unsigned int y2, unsigned int radius, unsigned int color);
+void DrawRoundRectangleEmpty(unsigned int x1, unsigned int y1, unsigned int x2, unsigned int y2, unsigned int radius, unsigned int color);
+void DrawText(const char* text, unsigned int x, unsigned int y,
+            unsigned int size, unsigned int text_color, unsigned int bg_color);
 #endif	/* _DI_BUS_H_ */
 

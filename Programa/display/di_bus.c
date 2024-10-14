@@ -19,10 +19,15 @@
 
 #include "di_bus.h"
 
+#include <stdlib.h>
+#include <string.h>
+
 #include "../config.h"
 #include "../delay.h"
 
 #include "dili9341.h"
+
+#include "font.h"
 
 /******************* Pin and Register Definitions ********************/
 // Chip Select Output bit
@@ -57,22 +62,15 @@
 #define DI_PORT_TRIS        TRISB
 #define DI_PORT_OC          ODCB
 
-void BUSWriteData(unsigned char data_out)
-{
-    DI_PORT_OUT = ( (DI_PORT_IN & 0xFF00) | (data_out & 0x00FF) );
-    CLR_DI_WR;
-    SET_DI_WR;
-}
-void BUSWriteCommand(unsigned char data_out)
-{
-    CLR_DI_RS;
-    DI_PORT_OUT = ( (DI_PORT_IN & 0xFF00) | (data_out & 0x00FF) );
-    CLR_DI_WR;
-    SET_DI_WR;
-    SET_DI_RS;
-}
+#define swap(a, b) { int t = a; a = b; b = t; }
 
-int BUSDisplayInit( void )
+void DrawChar(  unsigned int x, unsigned int y, unsigned char c, 
+                unsigned int color,unsigned int bg, unsigned int size, bool mode);
+void DisplayWriteData(unsigned char data_out);
+void DisplayWriteCommand(unsigned char data_out);
+
+
+int DisplayInit( void )
 {
     DI_RESET_TRIS = 0;
     DI_RESET_OC = 0;
@@ -99,37 +97,24 @@ int BUSDisplayInit( void )
     Delayms(120);
     CLR_DI_CS;      /* Selecciono display */
     Delayms(1);
-    DisplayInit();
+    Display_Init();
     SET_DI_CS;      /* display no seleccionado */
     Delayms(1);
     
     return 1;
 }
 
-void BUSDisplayClear( unsigned int color )
+void Clear( unsigned int color )
 {
 	long i;
 	
     CLR_DI_CS;
-	DisplayXY( 0, 0, DISPLAY_X_SIZE-1, DISPLAY_Y_SIZE-1);
+	Display_XY( 0, 0, DISPLAY_X_SIZE-1, DISPLAY_Y_SIZE-1);
     for (i = 0; i < (DISPLAY_X_SIZE*DISPLAY_Y_SIZE); i++)
     {
         CLRWDT();
-        BUSWriteData(color & 0x00FF);
-        BUSWriteData((color >> 8) & 0x00FF);
-    }
-    SET_DI_CS;
-}
-
-void DrawRect(unsigned int x, unsigned int y, unsigned int w, unsigned int h, unsigned int color)
-{
-	long i;
-	
-    CLR_DI_CS;
-	DisplayXY( x, y, x+w-1, y+h-1 );
-    for (i = 0; i < (w * h); i++)
-    {
-        BUSWriteData(color);
+        DisplayWriteData(color & 0x00FF);
+        DisplayWriteData((color >> 8) & 0x00FF);
     }
     SET_DI_CS;
 }
@@ -137,7 +122,431 @@ void DrawRect(unsigned int x, unsigned int y, unsigned int w, unsigned int h, un
 void DrawPixel(unsigned int x, unsigned int y, unsigned int color)
 {
     CLR_DI_CS;
-	DisplayXY( x, y, x, y );
-    BUSWriteData(color);
+	Display_XY( x, y, x, y );
+    DisplayWriteData(color & 0x00FF);
+    DisplayWriteData((color >> 8) & 0x00FF);
     SET_DI_CS;
+}
+
+void DrawRectFill(unsigned int x, unsigned int y, unsigned int w, unsigned int h, unsigned int color)
+{
+	unsigned long i;
+	
+    CLR_DI_CS;
+	Display_XY( x, y, x+w-1, y+h-1 );
+    for (i = 0; i < (w * h); i++)
+    {
+        DisplayWriteData(color & 0x00FF);
+        DisplayWriteData((color >> 8) & 0x00FF);
+    }
+    SET_DI_CS;
+}
+
+void DrawLineV(unsigned int x, unsigned int y, unsigned int h, unsigned int color)
+{
+    DrawRectFill(x, y, 1, h, color);
+}
+
+void DrawLineH(unsigned int x, unsigned int y, unsigned int w, unsigned int color)
+{
+    DrawRectFill(x, y, w, 1, color);
+}
+
+void DrawRectEmpty(unsigned int x, unsigned int y, unsigned int w, unsigned int h, unsigned int color)
+{
+    DrawLineH(x, y, w, color);
+    DrawLineV(x, y, h, color);
+    DrawLineH(x, y+h, w, color);
+    DrawLineV(x+w, y, h, color);
+}
+
+void DrawLine(unsigned int x1, unsigned int y1, unsigned int x2, unsigned int y2, unsigned int color)
+{
+	int steep = abs(y2 - y1) > abs(x2 - x1);
+    
+  	if (steep) 
+	{
+    	swap(x1, y1);
+    	swap(x2, y2);
+	}
+	if (x1 > x2) 
+	{
+    	swap(x1, x2);
+    	swap(y1, y2);
+  	}
+	
+  	int dx, dy;
+  	dx = x2 - x1;
+  	dy = abs(y2 - y1);
+
+	int err = dx / 2;
+	int ystep;
+
+	if (y1 < y2) 
+	{
+    	ystep = 1;
+  	} 
+	else 
+	{
+    	ystep = -1;
+	}
+
+	for (; x1<=x2; x1++) 
+	{
+    	if (steep) 
+		{
+      		DrawPixel(y1, x1, color);
+    	} 
+		else 
+		{
+      		DrawPixel(x1, y1, color);
+    	}
+    	err -= dy;
+    	if (err < 0) 
+		{
+			y1 += ystep;
+			err += dx;
+    	}
+  	}
+}
+
+void DrawCircleFill(unsigned int x, unsigned int y, unsigned int r, unsigned int color)
+{
+	int f = 1 - r;
+	int ddF_x = 1;
+	int ddF_y = -2 * r;
+	int x1= 0;
+	int y1= r;
+
+	DrawLine(x, y, x, y+r, color);
+ 	DrawLine(x, y, x, y-r, color);
+	DrawLine(x, y, x+r, y, color);
+	DrawLine(x, y, x-r, y, color);
+
+	while (x1<y1) 
+	{
+    	if (f >= 0) 
+		{
+      		y1--;
+      		ddF_y += 2;
+      		f += ddF_y;
+    	}
+    	x1++;
+    	ddF_x += 2;
+    	f += ddF_x;
+  
+		DrawLine(x, y, x + x1, y + y1, color);
+    	DrawLine(x, y, x - x1, y + y1, color);
+		DrawLine(x, y, x + x1, y - y1, color);
+		DrawLine(x, y, x - x1, y - y1, color);
+		DrawLine(x, y, x + y1, y + x1, color);
+		DrawLine(x, y, x - y1, y + x1, color);
+		DrawLine(x, y, x + y1, y - x1, color);
+		DrawLine(x, y, x - y1, y - x1, color);
+ 	}
+}
+
+void DrawCircleEmpty(unsigned int x, unsigned int y, unsigned int r, unsigned int color)
+{
+    DrawCornerEmpty(x, y, r, 0x0F, color);
+}
+
+
+void DrawTriangleEmpty( unsigned int x0, unsigned int y0, 
+                        unsigned int x1, unsigned int y1,
+                        unsigned int x2, unsigned int y2, 
+                        unsigned int color)
+{
+    DrawLine(x0, y0, x1, y1, color);
+    DrawLine(x1, y1, x2, y2, color);
+    DrawLine(x2, y2, x0, y0, color);
+}
+
+void DrawTriangleFill( unsigned int x0, unsigned int y0, 
+                        unsigned int x1, unsigned int y1,
+                        unsigned int x2, unsigned int y2, 
+                        unsigned int color)
+{
+	int a, b, y, last;
+    
+  	if (y0 > y1) 
+	{
+    	swap(y0, y1); 
+		swap(x0, x1);
+  	}
+  	if (y1 > y2) 
+	{
+    	swap(y2, y1); 
+		swap(x2, x1);
+  	}
+  	if (y0 > y1) 
+	{
+    	swap(y0, y1); 
+		swap(x0, x1);
+  	}
+
+	if(y0 == y2) 
+	{ 
+    	a = b = x0;
+    	if(x1 < a)
+    	{
+			a = x1;
+    	}
+    	else if(x1 > b)
+    	{
+			b = x1;
+    	}
+    	if(x2 < a)
+    	{
+			a = x2;
+    	}
+    	else if(x2 > b)
+    	{
+			b = x2;
+    	}
+    	DrawLineH(a, y0, b-a+1, color);
+    	return;
+	}
+  	int dx01 = x1 - x0, dy01 = y1 - y0, dx02 = x2 - x0, dy02 = y2 - y0, dx12 = x2 - x1, dy12 = y2 - y1;
+	long sa = 0, sb = 0;
+    
+	if(y1 == y2)
+	{
+		last = y1; 
+	}
+  	else
+  	{
+		last = y1-1; 
+  	}
+
+  	for(y=y0; y<=last; y++) 
+	{
+    	a   = x0 + sa / dy01;
+    	b   = x0 + sb / dy02;
+    	sa += dx01;
+    	sb += dx02;
+    	if(a > b)
+    	{
+			swap(a,b);
+    	}
+    	DrawLineH(a, y, b-a+1, color);
+	}
+	sa = dx12 * (y - y1);
+	sb = dx02 * (y - y0);
+	for(; y<=y2; y++) 
+	{
+    	a   = x1 + sa / dy12;
+    	b   = x0 + sb / dy02;
+    	sa += dx12;
+    	sb += dx02;
+    	if(a > b)
+    	{
+			swap(a,b);
+    	}
+		DrawLineH(a, y, b-a+1, color);
+	}
+}
+
+void DrawCornerEmpty(unsigned int x0, unsigned int y0, unsigned int r, unsigned int corner, unsigned int color)
+{
+	int f     = 1 - r;
+	int ddF_x = 1;
+	int ddF_y = -2 * r;
+	int x     = 0;
+	int y     = r;
+    
+	while (x<y) 
+	{
+    	if (f >= 0) 
+		{
+      		y--;
+      		ddF_y += 2;
+      		f += ddF_y;
+    	}
+	    x++;
+	    ddF_x += 2;
+	    f += ddF_x;
+	    if (corner & 0x4) 
+		{
+			DrawPixel(x0 + x, y0 + y, color);
+			DrawPixel(x0 + y, y0 + x, color);
+	    } 
+	    if (corner & 0x2) 
+		{
+			DrawPixel(x0 + x, y0 - y, color);
+			DrawPixel(x0 + y, y0 - x, color);
+	    }
+	    if (corner & 0x8) 
+		{
+			DrawPixel(x0 - y, y0 + x, color);
+			DrawPixel(x0 - x, y0 + y, color);
+	    }
+	    if (corner & 0x1)
+		{
+			DrawPixel(x0 - y, y0 - x, color);
+	 		DrawPixel(x0 - x, y0 - y, color);
+	    }
+  	}
+}
+
+void DrawCornerFill(unsigned int x0, unsigned int y0, unsigned int r, unsigned int corner, unsigned int color)
+{
+    /* TODO: DrawCornerFill */
+    
+}
+
+void DrawRoundRectangleFill(unsigned int x1, unsigned int y1, unsigned int x2,unsigned int y2, unsigned int radius, unsigned int color)
+{
+    /* TODO: DrawRoundRectangleFill */
+
+    
+}
+
+void DrawRoundRectangleEmpty(unsigned int x1, unsigned int y1, unsigned int x2, unsigned int y2, unsigned int radius, unsigned int color)
+{
+	int w = x2 - x1 + 1, h = y2 - y1 + 1;
+	if (w < 0) 
+	{ 
+		x1 = x2; 
+		w = -w; 
+	}
+ 	if (h < 0) 
+	{ 
+		y1 = y2; 
+		h = -h; 
+	}
+	DrawLineH(x1+radius, y1, w-2*radius, color); 
+	DrawLineH(x1+radius, y1+h-1, w-2*radius, color); 
+	DrawLineV(x1, y1+radius, h-2*radius, color); 
+  	DrawLineV(x1+w-1, y1+radius, h-2*radius, color);
+	DrawCornerEmpty(x1+radius, y1+radius, radius, 1, color);
+	DrawCornerEmpty(x1+w-radius-1, y1+radius, radius, 2, color);
+	DrawCornerEmpty(x1+w-radius-1, y1+h-radius-1, radius, 4, color);
+	DrawCornerEmpty(x1+radius, y1+h-radius-1, radius, 8, color);
+}
+
+void DrawText(const char* text, unsigned int x, unsigned int y,
+            unsigned int size, unsigned int text_color, unsigned int bg_color)
+{
+	int pos;
+	unsigned int len;
+    unsigned int text_x, text_y;
+    unsigned char ch;
+	const char *p = (const char *)text;
+
+	if (x == CENTER || x == RIGHT) 
+	{
+		len = strlen(text) * 6 * size;		
+		pos = (DISPLAY_X_SIZE - len); 
+		if (x == CENTER)
+		{
+			x = pos/2;
+		}
+		else
+		{
+			x = pos - 1;
+		}
+	}
+
+    text_x = x;
+    text_y = y;
+	while(1)
+	{
+		ch = *(p++);
+
+		if(ch == 0)
+        {
+            break;
+        }
+        else if (ch == '\n') 
+        {
+            text_y += (size * 8);
+            text_x  = 0;
+        } 
+        else if(ch == '\r')
+        {
+        }
+        else 
+        {
+            DrawChar(text_x, text_y, ch, text_color, bg_color, size, true);
+            text_x += (size * 6);		
+        }	
+	}	
+}
+
+/* ************************************************************************* */
+/* Solo uso interno */
+/* ************************************************************************* */
+void DisplayWriteData(unsigned char data_out)
+{
+    DI_PORT_OUT = ( (DI_PORT_IN & 0xFF00) | (data_out & 0x00FF) );
+    CLR_DI_WR;
+    SET_DI_WR;
+}
+
+void DisplayWriteCommand(unsigned char data_out)
+{
+    CLR_DI_RS;
+    DI_PORT_OUT = ( (DI_PORT_IN & 0xFF00) | (data_out & 0x00FF) );
+    CLR_DI_WR;
+    SET_DI_WR;
+    SET_DI_RS;
+}
+
+void DrawChar(  unsigned int x, unsigned int y, unsigned char c, 
+                unsigned int color,unsigned int bg, unsigned int size, bool mode)
+{
+    unsigned char line;
+    int i, j;
+
+	if((x >= DISPLAY_X_SIZE) || (y >= DISPLAY_Y_SIZE) || ((x + 6 * size - 1) < 0) || ((y + 8 * size - 1) < 0))
+	{
+    	return;
+	}
+    
+  	if(c >= 176)
+  	{
+		c++; 
+  	}
+    
+	for (i = 0; i < 6; i++) 
+	{
+    	if (i == 5)
+    	{
+      		line = 0x0;
+    	}
+    	else
+    	{
+      		line = default_font[(c*5)+i];
+    	}
+    	for (j = 0; j < 8; j++) 
+		{
+      		if (line & 0x1) 
+			{
+        		if (size == 1)
+        		{
+        			DrawPixel(x+i, y+j, color);
+        		}
+        		else 
+				{  
+					DrawRectFill(x+(i*size), y+(j*size), size, size, color);
+        		}
+        	} 
+			else if (bg != color) 				
+			{
+				if(!mode)
+				{
+	        		if (size == 1) 
+	        		{
+	        			DrawPixel(x+i, y+j, bg);
+	        		}
+	        		else 
+					{  
+						DrawRectFill(x+i*size, y+j*size, size, size, bg);
+					}
+				}
+			}
+      		line >>= 1;
+    	}
+    }
 }

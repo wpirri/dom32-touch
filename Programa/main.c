@@ -15,6 +15,50 @@
     License along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  ***************************************************************************/
+
+/* ****************************************************************************
+ * Dom32Touch - Bastidor Tactil para sistema de domótica
+ * 
+ * PIC21MM00256GPM028
+ * ESP-WROOM-02D
+ * MicroSD
+ * Display 2.4'' c/Driver ILI9341
+ * Touch resistivo
+ * 
+ * Asignacion de pines del procesador
+ * 
+ *      Port        Funcionalidad       Conectado a
+ * ----------------------------------------------------------------------------
+ * 01   MCLR        Reset               Tact Switch
+ * 02   RA0         OUT                 Display RD
+ * 03   RA1         OUT                 Display Reset
+ * 04   RB0         OUT                 Display Data0   (Touch XP)
+ * 05   RB1         OUT                 Display Data1   (Touch YM)
+ * 06   RB2         OUT                 Display Data2
+ * 07   RB3         OUT                 Display Data3
+ * 08   Vss
+ * 09   RA2         OUT                 Display CS      (Touch YP)
+ * 10   RA3         OUT                 Display RS/CD   (Touch XM)
+ * 11   RB4         OUT                 Display Data4
+ * 12   RA4         OUT                 Display WR
+ * 13   Vdd
+ * 14   RB5         OUT                 Display Data5
+ * 15   RB6         OUT                 Display Data6
+ * 16   RB7         OUT                 Display Data7
+ * 17   U3TX        U3TX -> RP13        WiFi Rx
+ * 18   U3RX        U3RX -> RP14        WiFi Tx
+ * 19   U2TX        U2TX -> RP18        Debug
+ * 20   VCap
+ * 21   RB10        OUT                 WiFi Reset
+ * 22   RB11        OUT                 MicroSD CS
+ * 23   Vusb
+ * 24   SCK2OUT     SCK2OUT -> RP15     MicroSD SCK
+ * 25   SDI2        SDI2 -> RP16        MicroSD MISO
+ * 26   SDO2        SDO2 -> RP17        MicroSD MOSI
+ * 27   AVss
+ * 28   AVdd
+ * 
+ * ***************************************************************************/
 #include <xc.h>
 
 #include <stdio.h>
@@ -67,7 +111,7 @@ int main(void)
         Log("[sd] Init Error");
     }
 
-    if(BUSDisplayInit())
+    if(DisplayInit())
     {
         Log("[display] Init Ok");
         display_ok = true;
@@ -82,7 +126,7 @@ int main(void)
     if(display_ok)
     {
         Log("[display] clear");
-        BUSDisplayClear(0);
+        Clear(0);
     }
     
     Log("[main] Init Ok");
@@ -113,16 +157,45 @@ int main(void)
                 switch(i_color++)
                 {
                     case 0:
-                        BUSDisplayClear(RGB(255,0,0));
+                        Clear(BLACK);
                         break;
                     case 1:
-                        BUSDisplayClear(RGB(0,255,0));
+                        DrawRectFill(10, 10, 100, 100, WHITE);
                         break;
                     case 2:
-                        BUSDisplayClear(RGB(0,0,255));
+                        DrawLineV(120, 0, 320, RED);
+                        break;
+                    case 3:
+                        DrawLineH(0, 120, 240, RED);
+                        break;
+                    case 4:
+                        DrawRectEmpty(130, 130, 100, 100, GREEN);
+                        break;
+                    case 5:
+                        DrawLine(110, 110, 240, 320, BLUE);
+                        break;
+                    case 6:
+                        DrawCircleEmpty(60, 60, 25, RED);
+                        break;
+                    case 7:
+                        DrawCircleFill(180, 180, 25, GREEN);
+                        break;
+                    case 8:
+                        DrawRoundRectangleEmpty(130, 10, 230, 60, 10, BLUE);
+                        DrawRoundRectangleEmpty(131, 11, 228, 58, 10, BLUE);
+                        DrawRoundRectangleEmpty(132, 12, 226, 56, 10, BLUE);
+                        break;
+                    case 9:
+                        DrawText("Hola mundo", 50, 280, 2, WHITE, BLACK);
+                        break;
+                    case 10:
+                    case 11:
+                    case 12:
+                    case 13:
+                    case 14:
+                    case 15:
                         break;
                     default:
-                        BUSDisplayClear(0x0000);
                         i_color = 0;
                         break;
                 }
