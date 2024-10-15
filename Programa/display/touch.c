@@ -36,12 +36,16 @@
 #define TOUCH_YM        LATBbits.LATB7
 #define TOUCH_YM_TRIS   TRISBbits.TRISB7
 
-#define MUESTREOS_ADC   5
-#define UMBRAL_ADC      950
+#define RESISTENCIA_XP_XM   400
+#define MUESTREOS_ADC       5
 
 #define swap(a, b) { int t = a; a = b; b = t; }
 
 unsigned int ReadADCChannel(unsigned int channel);
+
+unsigned int ReadTouchX();
+unsigned int ReadTouchY();
+unsigned int ReadTouchPressure();
 
 void TouchInit( void )
 {
@@ -59,97 +63,39 @@ void TouchInit( void )
 
 bool TouchIsPressed( unsigned int *x, unsigned int *y, unsigned int *z )
 {
-    bool pressed, xp_tris, xm_tris, yp_tris, ym_tris;
-    unsigned int yp, xm;
-    unsigned int z0, z1, z2;
+    bool xp_tris, xm_tris, yp_tris, ym_tris;
+    unsigned int yp, xm, zz;
 
     xp_tris = TOUCH_XP_TRIS;
     xm_tris = TOUCH_XM_TRIS;
     yp_tris = TOUCH_YP_TRIS;
     ym_tris = TOUCH_YM_TRIS;
-    pressed = false;
-
-    
-    /* ************************** */
-    TOUCH_YP_TRIS = 1;
-    TOUCH_YM_TRIS = 1;
-    TOUCH_XP_TRIS = 0;
-    TOUCH_XM_TRIS = 0;
-
-    TOUCH_YP_ANA = 1;
-    TOUCH_XM_ANA = 0;
-
-    TOUCH_XP = 1;
-    TOUCH_XM = 0;
 
     // Leo analog YP (AN5)
-    yp = ReadADCChannel(5);
-    Log("[TouchIsPressed] yp: %i", yp);
-    /* ************************** */
-    TOUCH_YP_TRIS = 0;
-    TOUCH_YM_TRIS = 0;
-    TOUCH_XP_TRIS = 1;
-    TOUCH_XM_TRIS = 1;
-
-    TOUCH_YP_ANA = 0;
-    TOUCH_XM_ANA = 1;
-
-    TOUCH_YP = 1;
-    TOUCH_YM = 0;
-    
+    yp = ReadTouchY();
     // Leo analog XM (AN6)
-    xm = ReadADCChannel(6);
-    Log("[TouchIsPressed] xm: %i", xm);
-    /* ************************** */
+    xm = ReadTouchX();
+    //
+    zz = ReadTouchPressure();
+
+    Log("[TouchIsPressed] X: %u Y: %u Z: %u", yp, xm, zz);
+
     if(y) *y = yp;
     if(x) *x = xm;
-    /* ************************** */
-    TOUCH_XP_TRIS = 0;
-    TOUCH_XP = 0;
-    TOUCH_YM_TRIS = 0;
-    TOUCH_YM = 1;
+    if(z) *z = zz;   
 
-    TOUCH_XM_TRIS = 1;
-    TOUCH_XM_ANA = 1;
-    TOUCH_YP_TRIS = 1;
-    TOUCH_YP_ANA = 1;
-
-    // Leo analog YP (AN5)
-    z2 = ReadADCChannel(5);
-    // Leo analog XM (AN6)
-    z1 = ReadADCChannel(6);
-    Log("[TouchIsPressed] z1: %i z2: %i", z1, z2);
-    /* ************************** */
-    
-    if(z1 > z2)
-    {
-        z0 = z1 - z2;
-    }
-    else
-    {
-        z0 = z2 - z1;
-    }
-    if(z) *z = z0;   
-    Log("[TouchIsPressed] z: %i", z0);
-
-    if(z0 < UMBRAL_ADC)
-    {
-        pressed = true;
-        Log("[TouchIsPressed] PRESSED X: %i Y: %i", yp, xm);
-    }
-    
     TOUCH_XM_ANA = 0;
     TOUCH_YP_ANA = 0;
     TOUCH_XP_TRIS = xp_tris;
     TOUCH_XM_TRIS = xm_tris;
     TOUCH_YP_TRIS = yp_tris;
     TOUCH_YM_TRIS = ym_tris;
-    return pressed;
+    return (zz < 50);
 }
 
 unsigned int ReadADCChannel(unsigned int channel)
 {
-    unsigned int i, j;
+    int i, j;
     unsigned int muestras[MUESTREOS_ADC];
     
 	// Select input ANx
@@ -190,12 +136,71 @@ unsigned int ReadADCChannel(unsigned int channel)
             }
         }
     }
-    
-    Log("[TouchIsPressed] muestras: %u,%u,%u,%u,%u", 
-            muestras[0],muestras[1],
-            muestras[2],muestras[3],
-            muestras[4]);
-
     /* Devuelvo el del medio */
     return muestras[MUESTREOS_ADC/2];
+}
+
+unsigned int ReadTouchX()
+{
+    TOUCH_YP_TRIS = 0;
+    TOUCH_YM_TRIS = 0;
+    TOUCH_XP_TRIS = 1;
+    TOUCH_XM_TRIS = 1;
+
+    TOUCH_YP_ANA = 0;
+    TOUCH_XM_ANA = 1;
+
+    TOUCH_YP = 1;
+    TOUCH_YM = 0;
+    
+    // Leo analog XM (AN6)
+    return ReadADCChannel(6);
+}
+
+unsigned int ReadTouchY()
+{
+    TOUCH_YP_TRIS = 1;
+    TOUCH_YM_TRIS = 1;
+    TOUCH_XP_TRIS = 0;
+    TOUCH_XM_TRIS = 0;
+
+    TOUCH_YP_ANA = 1;
+    TOUCH_XM_ANA = 0;
+
+    TOUCH_XP = 1;
+    TOUCH_XM = 0;
+
+    // Leo analog YP (AN5)
+    return ReadADCChannel(5);
+}
+
+unsigned int ReadTouchPressure()
+{
+    unsigned long z0;
+    unsigned int z1, z2;
+    
+    TOUCH_XP_TRIS = 0;
+    TOUCH_XP = 0;
+    TOUCH_YM_TRIS = 0;
+    TOUCH_YM = 1;
+
+    TOUCH_XM_TRIS = 1;
+    TOUCH_XM_ANA = 1;
+    TOUCH_YP_TRIS = 1;
+    TOUCH_YP_ANA = 1;
+
+    // Leo analog YP (AN5)
+    z2 = ReadADCChannel(5);
+    // Leo analog XM (AN6)
+    z1 = ReadADCChannel(6);
+    
+    z0 = z2;
+    z0 /= (z1)?z1:1;
+    z0 -= 1;
+    //z0 *= ReadTouchX();
+    z0 *= RESISTENCIA_XP_XM;
+    z0 /= 1024;
+    
+    return (unsigned int)z0;
+    
 }

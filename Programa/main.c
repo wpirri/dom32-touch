@@ -169,8 +169,8 @@ int main(void)
                     DrawText(str, 20, 120, 4, RGB(255,255,255), BLACK);
                     sprintf(str, "Z: %i   ", z);
                     DrawText(str, 20, 160, 4, RGB(255,255,255), BLACK);
-                    sprintf(str, "  %i  ", i_color++);
                 }
+                sprintf(str, "  %i  ", i_color++);
                 DrawText(str, CENTER, 250, 3, RGB(255,0,255), BLACK);
 
 
