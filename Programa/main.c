@@ -156,19 +156,21 @@ int main(void)
         {
             main_core_timer_flag_x100 = false;
 
-            TouchIsPressed(&x, &y, &z);
-            Log("TouchIsPressed x: %i y: %i z: %i", x, y, z);
+            
             
             if(display_ok)
             {
                 DrawText("Hola mundo", CENTER, 30, 2, RGB(255,255,255), BLACK);
-                sprintf(str, "X: %i   ", x);
-                DrawText(str, 20, 80, 4, RGB(255,255,255), BLACK);
-                sprintf(str, "Y: %i   ", y);
-                DrawText(str, 20, 120, 4, RGB(255,255,255), BLACK);
-                sprintf(str, "Z: %i   ", z);
-                DrawText(str, 20, 160, 4, RGB(255,255,255), BLACK);
-                sprintf(str, "  %i  ", i_color++);
+                if(TouchIsPressed(&x, &y, &z))
+                {
+                    sprintf(str, "X: %i   ", x);
+                    DrawText(str, 20, 80, 4, RGB(255,255,255), BLACK);
+                    sprintf(str, "Y: %i   ", y);
+                    DrawText(str, 20, 120, 4, RGB(255,255,255), BLACK);
+                    sprintf(str, "Z: %i   ", z);
+                    DrawText(str, 20, 160, 4, RGB(255,255,255), BLACK);
+                    sprintf(str, "  %i  ", i_color++);
+                }
                 DrawText(str, CENTER, 250, 3, RGB(255,0,255), BLACK);
 
 
