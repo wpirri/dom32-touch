@@ -37,8 +37,8 @@
  * 06   RB2         OUT                 Display Data2
  * 07   RB3         OUT                 Display Data3
  * 08   Vss
- * 09   RA2         OUT                 Display CS      (Touch YP)
- * 10   RA3         OUT                 Display RS/CD   (Touch XM)
+ * 09   RA2/AN5     OUT                 Display CS      (Touch YP)
+ * 10   RA3/AN6     OUT                 Display RS/CD   (Touch XM)
  * 11   RB4         OUT                 Display Data4
  * 12   RA4         OUT                 Display WR
  * 13   Vdd
@@ -71,6 +71,7 @@
 #include "delay.h"
 #include "sd/fsio.h"
 #include "display/di_bus.h"
+#include "display/touch.h"
 
 volatile bool main_core_timer_flag;
 volatile bool main_core_timer_flag_x10;
@@ -97,6 +98,9 @@ int main(void)
     main_core_timer_count_x1000 = 0;
     sd_ok = false;
     display_ok = false;
+    
+    char str[256];
+    unsigned int x, y, z;
 
     ConfigInit();
     LogInit();
@@ -153,52 +157,20 @@ int main(void)
             
             if(display_ok)
             {
-                Log("[display] Color: %i", i_color);
-                switch(i_color++)
-                {
-                    case 0:
-                        Clear(BLACK);
-                        break;
-                    case 1:
-                        DrawRectFill(10, 10, 100, 100, WHITE);
-                        break;
-                    case 2:
-                        DrawLineV(120, 0, 320, RED);
-                        break;
-                    case 3:
-                        DrawLineH(0, 120, 240, RED);
-                        break;
-                    case 4:
-                        DrawRectEmpty(130, 130, 100, 100, GREEN);
-                        break;
-                    case 5:
-                        DrawLine(110, 110, 240, 320, BLUE);
-                        break;
-                    case 6:
-                        DrawCircleEmpty(60, 60, 25, RED);
-                        break;
-                    case 7:
-                        DrawCircleFill(180, 180, 25, GREEN);
-                        break;
-                    case 8:
-                        DrawRoundRectangleEmpty(130, 10, 230, 60, 10, BLUE);
-                        DrawRoundRectangleEmpty(131, 11, 228, 58, 10, BLUE);
-                        DrawRoundRectangleEmpty(132, 12, 226, 56, 10, BLUE);
-                        break;
-                    case 9:
-                        DrawText("Hola mundo", 50, 280, 2, WHITE, BLACK);
-                        break;
-                    case 10:
-                    case 11:
-                    case 12:
-                    case 13:
-                    case 14:
-                    case 15:
-                        break;
-                    default:
-                        i_color = 0;
-                        break;
-                }
+                DrawText("Hola mundo", CENTER, 30, 2, RGB(255,255,255), BLACK);
+                TouchIsPressed(&x, &y, &z);
+                sprintf(str, "X: %i   ", x);
+                DrawText(str, 20, 80, 4, RGB(255,255,255), BLACK);
+                sprintf(str, "Y: %i   ", y);
+                DrawText(str, 20, 120, 4, RGB(255,255,255), BLACK);
+                sprintf(str, "Z: %i   ", z);
+                DrawText(str, 20, 160, 4, RGB(255,255,255), BLACK);
+                sprintf(str, "  %i  ", i_color++);
+                DrawText(str, CENTER, 250, 3, RGB(255,0,255), BLACK);
+
+
+
+
                         
             }
         }

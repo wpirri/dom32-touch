@@ -20,17 +20,34 @@
 
 #include <stdbool.h>
 
-#define BLACK   0x0000
-#define BLUE    0xF800
-#define RED     0x07E0
-#define GREEN   0x001F
-#define WHITE   0xFFFF
+#include "dili9341.h"
+
+                             /*  r     g    b */
+#define BLACK        0x0000  /*   0,   0,   0 */
+#define BLUE         0x001F  /*   0,   0, 255 */
+#define RED          0xF800  /* 255,   0,   0 */
+#define GREEN        0x07E0  /*   0, 255,   0 */
+#define CYAN         0x07FF  /*   0, 255, 255 */
+#define MAGENTA      0xF81F  /* 255,   0, 255 */
+#define YELLOW       0xFFE0  /* 255, 255,   0 */
+#define WHITE        0xFFFF  /* 255, 255, 255 */
+#define NAVY         0x000F  /*   0,   0, 128 */
+#define DARKGREEN    0x03E0  /*   0, 128,   0 */
+#define DARKCYAN     0x03EF  /*   0, 128, 128 */
+#define MAROON       0x7800  /* 128,   0,   0 */
+#define PURPLE       0x780F  /* 128,   0, 128 */
+#define OLIVE        0x7BE0  /* 128, 128,   0 */
+#define LIGHTGREY    0xC618  /* 192, 192, 192 */
+#define DARKGREY     0x7BEF  /* 128, 128, 128 */
+#define ORANGE       0xFD20  /* 255, 165,   0 */
+#define GREENYELLOW  0xAFE5  /* 173, 255,  47 */
+#define PINK         0xF81F  /* 255,   0, 255 */
 
 #define LEFT 0
 #define RIGHT 9999
 #define CENTER 9998
 
-//#define RGB(r,g,b) (((r>>3)<<8)|((g>>3)<<3)|(b>>3))
+#define RGB(r,g,b) (((r & 0xF8) << 8) | ((g & 0xFC) << 3) | ((b & 0xF8) >> 3))
 
 int DisplayInit( void );
 
@@ -56,5 +73,7 @@ void DrawRoundRectangleFill(unsigned int x1, unsigned int y1, unsigned int x2,un
 void DrawRoundRectangleEmpty(unsigned int x1, unsigned int y1, unsigned int x2, unsigned int y2, unsigned int radius, unsigned int color);
 void DrawText(const char* text, unsigned int x, unsigned int y,
             unsigned int size, unsigned int text_color, unsigned int bg_color);
+void VertScroll(unsigned int top, unsigned int scrollines, int offset);
+
 #endif	/* _DI_BUS_H_ */
 

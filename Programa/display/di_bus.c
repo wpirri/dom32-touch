@@ -25,8 +25,6 @@
 #include "../config.h"
 #include "../delay.h"
 
-#include "dili9341.h"
-
 #include "font.h"
 
 /******************* Pin and Register Definitions ********************/
@@ -64,10 +62,11 @@
 
 #define swap(a, b) { int t = a; a = b; b = t; }
 
+void DisplayWriteData(unsigned char data);
+void DisplayWriteCommand(unsigned char cmd);
+void DisplayWriteLongCommand(unsigned int cmd);
 void DrawChar(  unsigned int x, unsigned int y, unsigned char c, 
                 unsigned int color,unsigned int bg, unsigned int size, bool mode);
-void DisplayWriteData(unsigned char data_out);
-void DisplayWriteCommand(unsigned char data_out);
 
 
 int DisplayInit( void )
@@ -113,8 +112,8 @@ void Clear( unsigned int color )
     for (i = 0; i < (DISPLAY_X_SIZE*DISPLAY_Y_SIZE); i++)
     {
         CLRWDT();
-        DisplayWriteData(color & 0x00FF);
         DisplayWriteData((color >> 8) & 0x00FF);
+        DisplayWriteData(color & 0x00FF);
     }
     SET_DI_CS;
 }
@@ -123,8 +122,8 @@ void DrawPixel(unsigned int x, unsigned int y, unsigned int color)
 {
     CLR_DI_CS;
 	Display_XY( x, y, x, y );
-    DisplayWriteData(color & 0x00FF);
     DisplayWriteData((color >> 8) & 0x00FF);
+    DisplayWriteData(color & 0x00FF);
     SET_DI_CS;
 }
 
@@ -136,8 +135,8 @@ void DrawRectFill(unsigned int x, unsigned int y, unsigned int w, unsigned int h
 	Display_XY( x, y, x+w-1, y+h-1 );
     for (i = 0; i < (w * h); i++)
     {
-        DisplayWriteData(color & 0x00FF);
         DisplayWriteData((color >> 8) & 0x00FF);
+        DisplayWriteData(color & 0x00FF);
     }
     SET_DI_CS;
 }
@@ -468,28 +467,79 @@ void DrawText(const char* text, unsigned int x, unsigned int y,
         }
         else 
         {
-            DrawChar(text_x, text_y, ch, text_color, bg_color, size, true);
+            DrawChar(text_x, text_y, ch, text_color, bg_color, size, false);
             text_x += (size * 6);		
         }	
 	}	
 }
 
+/* TODO: Revisar scrol que no funciona */
+void VertScroll(unsigned int top, unsigned int scrollines, int offset)
+{
+    int bfa = DISPLAY_Y_SIZE - top - scrollines; 
+    int vsp;
+    
+    if (offset <= -scrollines || offset >= scrollines)
+    {
+		offset = 0; //valid scroll
+    }
+	vsp = top + offset; // vertical start position
+    if (offset < 0)
+    {
+        vsp += scrollines;          //keep in unsigned range
+    }
+    
+    DisplayWriteLongCommand(0x0033);
+    DisplayWriteData(top >> 8);         //TFA
+    DisplayWriteData(top);
+    DisplayWriteData(scrollines >> 8);  //VSA
+    DisplayWriteData(scrollines);
+    DisplayWriteData(bfa >> 8);         //BFA
+    DisplayWriteData(bfa);
+    
+    DisplayWriteLongCommand(0x0037);
+    DisplayWriteData(vsp >> 8);         //VSP
+    DisplayWriteData(vsp);
+
+    if (offset == 0) 
+    {
+        DisplayWriteLongCommand(0x0013);
+    }
+}
+
 /* ************************************************************************* */
 /* Solo uso interno */
 /* ************************************************************************* */
-void DisplayWriteData(unsigned char data_out)
+void DisplayWriteData(unsigned char data)
 {
-    DI_PORT_OUT = ( (DI_PORT_IN & 0xFF00) | (data_out & 0x00FF) );
+    DI_PORT_OUT = ( (DI_PORT_IN & 0xFF00) | (data & 0x00FF) );
     CLR_DI_WR;
     SET_DI_WR;
 }
 
-void DisplayWriteCommand(unsigned char data_out)
+void DisplayWriteCommand(unsigned char cmd)
 {
     CLR_DI_RS;
-    DI_PORT_OUT = ( (DI_PORT_IN & 0xFF00) | (data_out & 0x00FF) );
+
+    DI_PORT_OUT = ( (DI_PORT_IN & 0xFF00) | (cmd & 0x00FF) );
     CLR_DI_WR;
     SET_DI_WR;
+
+    SET_DI_RS;
+}
+
+void DisplayWriteLongCommand(unsigned int cmd)
+{
+    CLR_DI_RS;
+
+    DI_PORT_OUT = ( (DI_PORT_IN & 0xFF00) | ((cmd>>8) & 0x00FF) );
+    CLR_DI_WR;
+    SET_DI_WR;
+
+    DI_PORT_OUT = ( (DI_PORT_IN & 0xFF00) | (cmd & 0x00FF) );
+    CLR_DI_WR;
+    SET_DI_WR;
+
     SET_DI_RS;
 }
 
