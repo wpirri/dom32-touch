@@ -32,19 +32,19 @@
  * 01   MCLR        Reset               Tact Switch
  * 02   RA0         OUT                 Display RD
  * 03   RA1         OUT                 Display Reset
- * 04   RB0         OUT                 Display Data0   (Touch XP)
- * 05   RB1         OUT                 Display Data1   (Touch YM)
+ * 04   RB0         OUT                 Display Data0   
+ * 05   RB1         OUT                 Display Data1   
  * 06   RB2         OUT                 Display Data2
  * 07   RB3         OUT                 Display Data3
  * 08   Vss
- * 09   RA2/AN5     OUT                 Display CS      (Touch YP)
+ * 09   RA2/AN5     OUT                 Display WR      (Touch YP)
  * 10   RA3/AN6     OUT                 Display RS/CD   (Touch XM)
  * 11   RB4         OUT                 Display Data4
- * 12   RA4         OUT                 Display WR
+ * 12   RA4         OUT                 Display         CS
  * 13   Vdd
  * 14   RB5         OUT                 Display Data5
- * 15   RB6         OUT                 Display Data6
- * 16   RB7         OUT                 Display Data7
+ * 15   RB6         OUT                 Display Data6   (Touch XP)
+ * 16   RB7         OUT                 Display Data7   (Touch YM)
  * 17   U3TX        U3TX -> RP13        WiFi Rx
  * 18   U3RX        U3RX -> RP14        WiFi Tx
  * 19   U2TX        U2TX -> RP18        Debug
@@ -133,6 +133,8 @@ int main(void)
         Clear(0);
     }
     
+    TouchInit();
+    
     Log("[main] Init Ok");
     
     while(1)
@@ -154,11 +156,12 @@ int main(void)
         {
             main_core_timer_flag_x100 = false;
 
+            TouchIsPressed(&x, &y, &z);
+            Log("TouchIsPressed x: %i y: %i z: %i", x, y, z);
             
             if(display_ok)
             {
                 DrawText("Hola mundo", CENTER, 30, 2, RGB(255,255,255), BLACK);
-                TouchIsPressed(&x, &y, &z);
                 sprintf(str, "X: %i   ", x);
                 DrawText(str, 20, 80, 4, RGB(255,255,255), BLACK);
                 sprintf(str, "Y: %i   ", y);

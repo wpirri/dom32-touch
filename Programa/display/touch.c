@@ -21,8 +21,8 @@
 
 #include "../config.h"
 
-#define TOUCH_XP        LATBbits.LATB0
-#define TOUCH_XP_TRIS   TRISBbits.TRISB0
+#define TOUCH_XP        LATBbits.LATB6
+#define TOUCH_XP_TRIS   TRISBbits.TRISB6
 
 #define TOUCH_XM        LATAbits.LATA3
 #define TOUCH_XM_TRIS   TRISAbits.TRISA3
@@ -32,14 +32,18 @@
 #define TOUCH_YP_TRIS   TRISAbits.TRISA2
 #define TOUCH_YP_ANA    ANSELAbits.ANSA2    /* AN5 */
 
-#define TOUCH_YM        LATBbits.LATB1
-#define TOUCH_YM_TRIS   TRISBbits.TRISB1
+#define TOUCH_YM        LATBbits.LATB7
+#define TOUCH_YM_TRIS   TRISBbits.TRISB7
 
 void TouchInit( void )
 {
     AD1CON2bits.VCFG = 0 ;
-    AD1CON3bits.ADCS = 0xFF;
-    AD1CON1bits.SSRC = 0;           // Set software trigger
+	// Clock from peripheral clock TPB
+	AD1CON3bits.ADRC = 0;
+	// ADC clock TAD = 8 peripheral clock TPB
+	AD1CON3bits.ADCS = 8;
+    // Set auto conversion trigger
+    AD1CON1bits.SSRC = 7;
     AD1CON3bits.SAMC = 0b10000;
     AD1CON1bits.FORM = 0b00;
     AD1CON2bits.SMPI = 0;
@@ -52,22 +56,13 @@ bool TouchIsPressed( unsigned int *x, unsigned int *y, unsigned int *z )
     unsigned int z1, z2;
     float rtouch;
 
-    
     xp_tris = TOUCH_XP_TRIS;
     xm_tris = TOUCH_XM_TRIS;
     yp_tris = TOUCH_YP_TRIS;
     ym_tris = TOUCH_YM_TRIS;
     pressed = false;
 
-    // Clock from peripheral clock TPB
-    AD1CON3bits.ADRC = 0;
-    // ADC clock TAD = 8 peripheral clock TPB
-    AD1CON3bits.ADCS = 8;
-    // Set sample time to 5 TAD
-    AD1CON3bits.SAMC = 5;
-    // Set auto conversion trigger
-    AD1CON1bits.SSRC = 7;
-
+    
     /* ************************** */
     TOUCH_YP_TRIS = 1;
     TOUCH_YM_TRIS = 1;
@@ -80,18 +75,27 @@ bool TouchIsPressed( unsigned int *x, unsigned int *y, unsigned int *z )
     TOUCH_XP = 1;
     TOUCH_XM = 0;
 
-    // Leo analog YP (AN5)
+	// Select RA2/AN5 input
     AD1CHSbits.CH0SA = 5;
-    // Turn on the ADC
-    AD1CON1bits.ON = 1;
-    // Reset ADC interrupt flag
-    IFS0CLR = _IFS1_AD1IF_MASK;
-    // Start sampling and after 5 TAD go to conversion
-    AD1CON1bits.SAMP = 1;
-    // Wait for the result
-    while (IFS1bits.AD1IF == 0);
+	// Turn on the ADC
+	AD1CON1bits.ON = 1;
+	// Start sampling...
+	AD1CON1bits.SAMP = 5;
+	// Delay at least 1 TAD
+	Nop(); Nop(); Nop(); Nop();
+	Nop(); Nop(); Nop(); Nop();
+	Nop(); Nop(); Nop(); Nop();
+	Nop(); Nop(); Nop(); Nop();
+	Nop(); Nop(); Nop(); Nop();
+	Nop(); Nop(); Nop(); Nop();
+	// Reset ADC interrupt flag
+    IFS1CLR = _IFS1_AD1IF_MASK;
+	// Start converting ...
+    AD1CON1bits.SAMP = 0;
+	// Wait for the result
+	while (IFS1bits.AD1IF == 0);
     // Get ADC value
-    yp = ADC1BUF0;
+    yp = ((ADC1BUF0+ADC1BUF1+ADC1BUF2+ADC1BUF3+ADC1BUF4)/5);
     // Turn off the ADC
     AD1CON1bits.ON = 0;
     /* ************************** */
@@ -106,18 +110,27 @@ bool TouchIsPressed( unsigned int *x, unsigned int *y, unsigned int *z )
     TOUCH_YP = 1;
     TOUCH_YM = 0;
     
-    // Leo analog XM (AN6)
+	// Select RA3/AN6 input
     AD1CHSbits.CH0SA = 6;
-    // Turn on the ADC
-    AD1CON1bits.ON = 1;
-    // Reset ADC interrupt flag
-    IFS0CLR = _IFS1_AD1IF_MASK;
-    // Start sampling and after 5 TAD go to conversion
-    AD1CON1bits.SAMP = 1;
-    // Wait for the result
-    while (IFS1bits.AD1IF == 0);
+	// Turn on the ADC
+	AD1CON1bits.ON = 1;
+	// Start sampling...
+	AD1CON1bits.SAMP = 5;
+	// Delay at least 1 TAD
+	Nop(); Nop(); Nop(); Nop();
+	Nop(); Nop(); Nop(); Nop();
+	Nop(); Nop(); Nop(); Nop();
+	Nop(); Nop(); Nop(); Nop();
+	Nop(); Nop(); Nop(); Nop();
+	Nop(); Nop(); Nop(); Nop();
+	// Reset ADC interrupt flag
+    IFS1CLR = _IFS1_AD1IF_MASK;
+	// Start converting ...
+    AD1CON1bits.SAMP = 0;
+	// Wait for the result
+	while (IFS1bits.AD1IF == 0);
     // Get ADC value
-    xm = ADC1BUF0;
+    xm = ((ADC1BUF0+ADC1BUF1+ADC1BUF2+ADC1BUF3+ADC1BUF4)/5);
     // Turn off the ADC
     AD1CON1bits.ON = 0;
     /* ************************** */
@@ -135,34 +148,33 @@ bool TouchIsPressed( unsigned int *x, unsigned int *y, unsigned int *z )
     TOUCH_YP_ANA = 1;
 
     // Leo analog YP (AN5)
-    AD1CHSbits.CH0SA = 5;
-    // Turn on the ADC
-    AD1CON1bits.ON = 1;
-    // Reset ADC interrupt flag
-    IFS0CLR = _IFS1_AD1IF_MASK;
-    // Start sampling and after 5 TAD go to conversion
-    AD1CON1bits.SAMP = 1;
-    // Wait for the result
-    while (IFS1bits.AD1IF == 0);
+
+
+
+
+
+
+    
+    
+
+
     // Get ADC value
     z2 = ADC1BUF0;
-    // Turn off the ADC
-    AD1CON1bits.ON = 0;
     /* ************************** */
     // Leo analog XM (AN6)
-    AD1CHSbits.CH0SA = 6;
-    // Turn on the ADC
-    AD1CON1bits.ON = 1;
-    // Reset ADC interrupt flag
-    IFS0CLR = _IFS1_AD1IF_MASK;
-    // Start sampling and after 5 TAD go to conversion
-    AD1CON1bits.SAMP = 1;
-    // Wait for the result
-    while (IFS1bits.AD1IF == 0);
+
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
     // Get ADC value
     z1 = ADC1BUF0;
-    // Turn off the ADC
-    AD1CON1bits.ON = 0;
     /* ************************** */
     
     rtouch = z2;

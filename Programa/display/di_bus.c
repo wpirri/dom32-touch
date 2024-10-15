@@ -30,20 +30,20 @@
 /******************* Pin and Register Definitions ********************/
 // Chip Select Output bit
 
-#define SET_DI_CS           (LATASET=(1<<2))
-#define CLR_DI_CS           (LATACLR=(1<<2))
-#define DI_CS_TRIS          TRISAbits.TRISA2
-#define DI_CS_OC            ODCAbits.ODCA2
+#define SET_DI_CS           (LATASET=(1<<4))
+#define CLR_DI_CS           (LATACLR=(1<<4))
+#define DI_CS_TRIS          TRISAbits.TRISA4
+#define DI_CS_OC            ODCAbits.ODCA4
 
 #define SET_DI_RD           (LATASET=(1<<0))
 #define CLR_DI_RD           (LATACLR=(1<<0))
 #define DI_RD_TRIS          TRISAbits.TRISA0
 #define DI_RD_OC            ODCAbits.ODCA0
 
-#define SET_DI_WR           (LATASET=(1<<4))
-#define CLR_DI_WR           (LATACLR=(1<<4))
-#define DI_WR_TRIS          TRISAbits.TRISA4
-#define DI_WR_OC            ODCAbits.ODCA4
+#define SET_DI_WR           (LATASET=(1<<2))
+#define CLR_DI_WR           (LATACLR=(1<<2))
+#define DI_WR_TRIS          TRISAbits.TRISA2
+#define DI_WR_OC            ODCAbits.ODCA2
 // 
 #define SET_DI_RS           (LATASET=(1<<3))
 #define CLR_DI_RS           (LATACLR=(1<<3))
