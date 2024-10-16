@@ -21,6 +21,7 @@
 
 #include "../config.h"
 #include "../log.h"
+#include "dili9341.h"
 
 #define TOUCH_XP        LATBbits.LATB6
 #define TOUCH_XP_TRIS   TRISBbits.TRISB6
@@ -36,7 +37,6 @@
 #define TOUCH_YM        LATBbits.LATB7
 #define TOUCH_YM_TRIS   TRISBbits.TRISB7
 
-#define RESISTENCIA_XP_XM   400
 #define MUESTREOS_ADC       5
 
 #define swap(a, b) { int t = a; a = b; b = t; }
@@ -46,6 +46,11 @@ unsigned int ReadADCChannel(unsigned int channel);
 unsigned int ReadTouchX();
 unsigned int ReadTouchY();
 unsigned int ReadTouchPressure();
+
+unsigned int touch_max_x;
+unsigned int touch_min_x;
+unsigned int touch_max_y;
+unsigned int touch_min_y;
 
 void TouchInit( void )
 {
@@ -57,8 +62,13 @@ void TouchInit( void )
     // Set auto conversion trigger
     AD1CON1bits.SSRC = 7;
     AD1CON3bits.SAMC = 0b10000;
-    AD1CON1bits.FORM = 0b00;
+    AD1CON1bits.FORM = 0b100;
     AD1CON2bits.SMPI = 0;
+    
+    touch_max_x = TOUCH_MAX_X;
+    touch_min_x = TOUCH_MIN_X;
+    touch_max_y = TOUCH_MAX_Y;
+    touch_min_y = TOUCH_MIN_Y;
 }
 
 bool TouchIsPressed( unsigned int *x, unsigned int *y, unsigned int *z )
@@ -66,6 +76,7 @@ bool TouchIsPressed( unsigned int *x, unsigned int *y, unsigned int *z )
     bool xp_tris, xm_tris, yp_tris, ym_tris;
     unsigned int yp, xm, zz;
 
+    /* Copio los estados de los pines que voy a usar */
     xp_tris = TOUCH_XP_TRIS;
     xm_tris = TOUCH_XM_TRIS;
     yp_tris = TOUCH_YP_TRIS;
@@ -78,19 +89,21 @@ bool TouchIsPressed( unsigned int *x, unsigned int *y, unsigned int *z )
     //
     zz = ReadTouchPressure();
 
-    Log("[TouchIsPressed] X: %u Y: %u Z: %u", yp, xm, zz);
+    Log("[TouchIsPressed] X: %u Y: %u Z: %u", xm, yp, zz);
 
     if(y) *y = yp;
     if(x) *x = xm;
     if(z) *z = zz;   
 
+    /* Devuelvo todo a su estado anterior */
     TOUCH_XM_ANA = 0;
     TOUCH_YP_ANA = 0;
     TOUCH_XP_TRIS = xp_tris;
     TOUCH_XM_TRIS = xm_tris;
     TOUCH_YP_TRIS = yp_tris;
     TOUCH_YM_TRIS = ym_tris;
-    return (zz < 50);
+    
+    return (zz < 1000);
 }
 
 unsigned int ReadADCChannel(unsigned int channel)
@@ -136,6 +149,8 @@ unsigned int ReadADCChannel(unsigned int channel)
             }
         }
     }
+    Log("[ReadADCChannel] muestras: %u %u [%u] %u %u",
+            muestras[0],muestras[1],muestras[2],muestras[3],muestras[4]);
     /* Devuelvo el del medio */
     return muestras[MUESTREOS_ADC/2];
 }
@@ -194,13 +209,46 @@ unsigned int ReadTouchPressure()
     // Leo analog XM (AN6)
     z1 = ReadADCChannel(6);
     
-    z0 = z2;
-    z0 /= (z1)?z1:1;
-    z0 -= 1;
-    //z0 *= ReadTouchX();
-    z0 *= RESISTENCIA_XP_XM;
-    z0 /= 1024;
+    if(z1 > 20 && z2 < 1000)
+    {
+        z1 = 1023 - z1;
+        z0 = (z1+z2)/2;
+    }
+    else
+    {
+        z0 = 1023;
+    }
     
     return (unsigned int)z0;
     
+}
+
+unsigned int Touch2DisplayX(unsigned int xt)
+{
+    if(xt > touch_max_x) 
+    {
+        touch_max_x = xt;
+    }
+
+    if(xt < touch_min_x) 
+    {
+        touch_min_x = xt;
+    }
+
+    return ((xt-touch_min_x)*DISPLAY_X_SIZE/(touch_max_x-touch_min_x));
+}
+
+unsigned int Touch2DisplayY(unsigned int yt)
+{
+    if(yt > touch_max_y) 
+    {
+        touch_max_y = yt;
+    }
+
+    if(yt < touch_min_y) 
+    {
+        touch_min_y = yt;
+    }
+
+    return ((yt-touch_min_y)*DISPLAY_Y_SIZE/(touch_max_y-touch_min_y));
 }

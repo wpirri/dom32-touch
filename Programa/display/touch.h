@@ -20,9 +20,16 @@
 
 #include <stdbool.h>
 
+#define TOUCH_MIN_X     180
+#define TOUCH_MAX_X     880
+#define TOUCH_MIN_Y     130
+#define TOUCH_MAX_Y     960
+
 void TouchInit( void );
 bool TouchIsPressed( unsigned int *x, unsigned int *y, unsigned int *z );
 
+unsigned int Touch2DisplayX(unsigned int xt);
+unsigned int Touch2DisplayY(unsigned int yt);
 
 
 #endif	/* _TOUCH_H_ */

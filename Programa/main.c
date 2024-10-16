@@ -71,7 +71,6 @@
 #include "delay.h"
 #include "sd/fsio.h"
 #include "display/di_bus.h"
-#include "display/touch.h"
 
 volatile bool main_core_timer_flag;
 volatile bool main_core_timer_flag_x10;
@@ -163,12 +162,10 @@ int main(void)
                 DrawText("Hola mundo", CENTER, 30, 2, RGB(255,255,255), BLACK);
                 if(TouchIsPressed(&x, &y, &z))
                 {
-                    sprintf(str, "X: %i   ", x);
+                    sprintf(str, "X: %i   ", Touch2DisplayX(x));
                     DrawText(str, 20, 80, 4, RGB(255,255,255), BLACK);
-                    sprintf(str, "Y: %i   ", y);
+                    sprintf(str, "Y: %i   ", Touch2DisplayY(y));
                     DrawText(str, 20, 120, 4, RGB(255,255,255), BLACK);
-                    sprintf(str, "Z: %i   ", z);
-                    DrawText(str, 20, 160, 4, RGB(255,255,255), BLACK);
                 }
                 sprintf(str, "  %i  ", i_color++);
                 DrawText(str, CENTER, 250, 3, RGB(255,0,255), BLACK);

@@ -21,6 +21,7 @@
 #include <stdbool.h>
 
 #include "dili9341.h"
+#include "touch.h"
 
                              /*  r     g    b */
 #define BLACK        0x0000  /*   0,   0,   0 */
