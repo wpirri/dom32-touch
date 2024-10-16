@@ -67,6 +67,8 @@ void DisplayWriteCommand(unsigned char cmd);
 void DisplayWriteLongCommand(unsigned int cmd);
 void DrawChar(  unsigned int x, unsigned int y, unsigned char c, 
                 unsigned int color,unsigned int bg, unsigned int size, bool mode);
+void DrawCornerEmpty(unsigned int x0, unsigned int y0, unsigned int r, unsigned int corner, unsigned int color);
+void DrawCornerFill(unsigned int x0, unsigned int y0, unsigned int r, unsigned int corner, unsigned int color);
 
 
 int DisplayInit( void )
@@ -211,38 +213,7 @@ void DrawLine(unsigned int x1, unsigned int y1, unsigned int x2, unsigned int y2
 
 void DrawCircleFill(unsigned int x, unsigned int y, unsigned int r, unsigned int color)
 {
-	int f = 1 - r;
-	int ddF_x = 1;
-	int ddF_y = -2 * r;
-	int x1= 0;
-	int y1= r;
-
-	DrawLine(x, y, x, y+r, color);
- 	DrawLine(x, y, x, y-r, color);
-	DrawLine(x, y, x+r, y, color);
-	DrawLine(x, y, x-r, y, color);
-
-	while (x1<y1) 
-	{
-    	if (f >= 0) 
-		{
-      		y1--;
-      		ddF_y += 2;
-      		f += ddF_y;
-    	}
-    	x1++;
-    	ddF_x += 2;
-    	f += ddF_x;
-  
-		DrawLine(x, y, x + x1, y + y1, color);
-    	DrawLine(x, y, x - x1, y + y1, color);
-		DrawLine(x, y, x + x1, y - y1, color);
-		DrawLine(x, y, x - x1, y - y1, color);
-		DrawLine(x, y, x + y1, y + x1, color);
-		DrawLine(x, y, x - y1, y + x1, color);
-		DrawLine(x, y, x + y1, y - x1, color);
-		DrawLine(x, y, x - y1, y - x1, color);
- 	}
+	DrawCornerFill(x, y, r, 0x0F, color);
 }
 
 void DrawCircleEmpty(unsigned int x, unsigned int y, unsigned int r, unsigned int color)
@@ -356,6 +327,7 @@ void DrawCornerEmpty(unsigned int x0, unsigned int y0, unsigned int r, unsigned 
     
 	while (x<y) 
 	{
+        CLRWDT();
     	if (f >= 0) 
 		{
       		y--;
@@ -390,15 +362,79 @@ void DrawCornerEmpty(unsigned int x0, unsigned int y0, unsigned int r, unsigned 
 
 void DrawCornerFill(unsigned int x0, unsigned int y0, unsigned int r, unsigned int corner, unsigned int color)
 {
-    /* TODO: DrawCornerFill */
+	int f     = 1 - r;
+	int ddF_x = 1;
+	int ddF_y = -2 * r;
+	int x     = 0;
+	int y     = r;
     
+	while (x<y) 
+	{
+        CLRWDT();
+    	if (f >= 0) 
+		{
+      		y--;
+      		ddF_y += 2;
+      		f += ddF_y;
+    	}
+	    x++;
+	    ddF_x += 2;
+	    f += ddF_x;
+	    if (corner & 0x4) 
+		{
+			DrawLine(x0, y0, x0 + x, y0 + y, color);
+			DrawLine(x0, y0, x0 + y, y0 + x, color);
+	    } 
+	    if (corner & 0x2) 
+		{
+			DrawLine(x0, y0, x0 + x, y0 - y, color);
+			DrawLine(x0, y0, x0 + y, y0 - x, color);
+	    }
+	    if (corner & 0x8) 
+		{
+			DrawLine(x0, y0, x0 - y, y0 + x, color);
+			DrawLine(x0, y0, x0 - x, y0 + y, color);
+	    }
+	    if (corner & 0x1)
+		{
+			DrawLine(x0, y0, x0 - y, y0 - x, color);
+	 		DrawLine(x0, y0, x0 - x, y0 - y, color);
+	    }
+  	}
 }
 
 void DrawRoundRectangleFill(unsigned int x1, unsigned int y1, unsigned int x2,unsigned int y2, unsigned int radius, unsigned int color)
 {
-    /* TODO: DrawRoundRectangleFill */
+    int i;
+	int w = x2 - x1 + 1, h = y2 - y1 + 1;
+	if (w < 0) 
+	{ 
+		x1 = x2; 
+		w = -w; 
+	}
+ 	if (h < 0) 
+	{ 
+		y1 = y2; 
+		h = -h; 
+	}
 
-    
+
+	DrawCornerFill(x1+radius, y1+radius, radius, 1, color);
+	DrawCornerFill(x1+w-radius-1, y1+radius, radius, 2, color);
+    for(i = y1; i < (y1+radius); i++)
+    {
+        DrawLineH(x1+radius, i, w-2*radius, color); 
+    }
+    for(i = i; i < (y1+h-radius); i++)
+    {
+        DrawLineH(x1, i, w, color); 
+    }
+    for(i = i; i < (y1+h); i++)
+    {
+        DrawLineH(x1+radius, i, w-2*radius, color); 
+    }
+	DrawCornerFill(x1+w-radius-1, y1+h-radius-1, radius, 4, color);
+	DrawCornerFill(x1+radius, y1+h-radius-1, radius, 8, color);
 }
 
 void DrawRoundRectangleEmpty(unsigned int x1, unsigned int y1, unsigned int x2, unsigned int y2, unsigned int radius, unsigned int color)

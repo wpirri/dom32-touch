@@ -20,7 +20,7 @@
 #include "touch.h"
 
 #include "../config.h"
-#include "../log.h"
+//#include "../log.h"
 #include "dili9341.h"
 
 #define TOUCH_XP        LATBbits.LATB6
@@ -89,7 +89,7 @@ bool TouchIsPressed( unsigned int *x, unsigned int *y, unsigned int *z )
     //
     zz = ReadTouchPressure();
 
-    Log("[TouchIsPressed] X: %u Y: %u Z: %u", xm, yp, zz);
+    //Log("[TouchIsPressed] X: %u Y: %u Z: %u", xm, yp, zz);
 
     if(y) *y = yp;
     if(x) *x = xm;
@@ -149,8 +149,8 @@ unsigned int ReadADCChannel(unsigned int channel)
             }
         }
     }
-    Log("[ReadADCChannel] muestras: %u %u [%u] %u %u",
-            muestras[0],muestras[1],muestras[2],muestras[3],muestras[4]);
+    //Log("[ReadADCChannel] muestras: %u %u [%u] %u %u",
+    //        muestras[0],muestras[1],muestras[2],muestras[3],muestras[4]);
     /* Devuelvo el del medio */
     return muestras[MUESTREOS_ADC/2];
 }

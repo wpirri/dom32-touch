@@ -71,6 +71,7 @@
 #include "delay.h"
 #include "sd/fsio.h"
 #include "display/di_bus.h"
+#include "boton.h"
 
 volatile bool main_core_timer_flag;
 volatile bool main_core_timer_flag_x10;
@@ -80,14 +81,15 @@ volatile unsigned char main_core_timer_count_x100;
 volatile bool main_core_timer_flag_x1000;
 volatile unsigned char main_core_timer_count_x1000;
 
+void BotonPressed(const char* name);
+
 bool sd_ok;
 bool display_ok;
+bool touch_pressed;
+unsigned int touch_x, touch_y;
 
 int main(void)
 {
-    SearchRec f_record;
-    unsigned i_color = 0;
-
     main_core_timer_flag = false;
     main_core_timer_flag_x10 = false;
     main_core_timer_count_x10 = 0;
@@ -97,22 +99,11 @@ int main(void)
     main_core_timer_count_x1000 = 0;
     sd_ok = false;
     display_ok = false;
+    touch_pressed = false;
     
-    char str[256];
-    unsigned int x, y, z;
-
     ConfigInit();
     LogInit();
 
-    if(FSInit())
-    {
-        Log("[sd] Init Ok");
-        sd_ok = true;
-    }
-    else
-    {
-        Log("[sd] Init Error");
-    }
 
     if(DisplayInit())
     {
@@ -125,17 +116,65 @@ int main(void)
         Log("[display] Init Error");
         display_ok = false;
     }
+
+    if(display_ok)
+    {
+        Clear(0);
+        Delayms(5000);
+        DrawCircleEmpty(120, 160, 80, WHITE);
+    }
+
+    if(FSInit())
+    {
+        Log("[sd] Init Ok");
+        sd_ok = true;
+    }
+    else
+    {
+        Log("[sd] Init Error");
+    }
     
     if(display_ok)
     {
-        Log("[display] clear");
-        Clear(0);
+        DrawCircleFill(120, 160, 78, RED);
+        Delayms(1000);
     }
     
     TouchInit();
+
+    if(display_ok)
+    {
+        DrawCircleFill(120, 160, 78, BLUE);
+        Delayms(1000);
+    }
+
+    InitBotones(BotonPressed);
+    
+    if(display_ok)
+    {
+        DrawCircleFill(120, 160, 78, GREEN);
+        Delayms(1000);
+    }
+    
+    if(display_ok)
+    {
+        DrawCircleFill(120, 160, 78, BLACK);
+        Delayms(1000);
+    }
+
+    if(display_ok)
+    {
+        Clear(0);
+        DrawText(" Init Ok ", CENTER, 100,
+            4, WHITE, BLUE);
+        Delayms(3000);
+        Clear(0);
+    }
+
+    BotonAdd(  "Boton 1", 20, 20, 200, 75, RGB(150,0,0), RED, WHITE);    
+    BotonDraw();
     
     Log("[main] Init Ok");
-    
     while(1)
     {
         CLRWDT();
@@ -156,47 +195,24 @@ int main(void)
             main_core_timer_flag_x100 = false;
 
             
-            
-            if(display_ok)
-            {
-                DrawText("Hola mundo", CENTER, 30, 2, RGB(255,255,255), BLACK);
-                if(TouchIsPressed(&x, &y, &z))
-                {
-                    sprintf(str, "X: %i   ", Touch2DisplayX(x));
-                    DrawText(str, 20, 80, 4, RGB(255,255,255), BLACK);
-                    sprintf(str, "Y: %i   ", Touch2DisplayY(y));
-                    DrawText(str, 20, 120, 4, RGB(255,255,255), BLACK);
-                }
-                sprintf(str, "  %i  ", i_color++);
-                DrawText(str, CENTER, 250, 3, RGB(255,0,255), BLACK);
-
-
-
-
-                        
-            }
         }
         else if(main_core_timer_flag_x1000)
         {
             main_core_timer_flag_x1000 = false;
             
-
-            if(sd_ok)
-            {
-                if(FindFirst ("*.*", ATTR_MASK, &f_record) == 0)
-                {
-                    Log("[sd] *** Archivos **********");
-                    do
-                    {
-                        Log("[sd] - %s", f_record.filename);
-                    } while(FindNext(&f_record) == 0);
-                }
-            }
-
-            
         }
         
-        
+        if(TouchIsPressed( &touch_x, &touch_y, NULL ))
+        {
+            if( !touch_pressed)
+            {
+                touch_pressed = true;
+                BotonTask( Touch2DisplayX(touch_x), Touch2DisplayY(touch_y) );
+                
+                
+                
+            }
+        }
         
         
         
@@ -236,4 +252,9 @@ void __attribute__ ((vector(_CORE_TIMER_VECTOR), interrupt(IPL1SOFT))) _CORE_TIM
             }
         }
     }
+}
+
+void BotonPressed(const char* name)
+{
+    Log("[BotonPressed] %s", name);
 }

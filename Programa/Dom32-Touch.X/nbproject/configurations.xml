@@ -19,6 +19,7 @@
       <itemPath>../config.h</itemPath>
       <itemPath>../log.h</itemPath>
       <itemPath>../delay.h</itemPath>
+      <itemPath>../boton.h</itemPath>
     </logicalFolder>
     <logicalFolder name="ExternalFiles"
                    displayName="Important Files"
@@ -45,6 +46,7 @@
       <itemPath>../log.c</itemPath>
       <itemPath>../config.c</itemPath>
       <itemPath>../delay.c</itemPath>
+      <itemPath>../boton.c</itemPath>
     </logicalFolder>
   </logicalFolder>
   <sourceRootList>
