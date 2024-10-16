@@ -126,7 +126,7 @@ int main(void)
     {
         Clear(0);
         Delayms(5000);
-        DrawCircleEmpty(120, 160, 80, WHITE);
+        DrawCircleEmpty(220, 300, 10, WHITE);
     }
 
     if(FSInit())
@@ -141,7 +141,7 @@ int main(void)
     
     if(display_ok)
     {
-        DrawCircleFill(120, 160, 78, RED);
+        DrawCircleFill(220, 300, 9, RED);
         Delayms(1000);
     }
     
@@ -149,27 +149,27 @@ int main(void)
 
     if(display_ok)
     {
-        DrawCircleFill(120, 160, 78, BLUE);
+        DrawCircleFill(220, 300, 9, BLUE);
         Delayms(1000);
     }
 
     if(display_ok)
     {
-        DrawCircleFill(120, 160, 78, GREEN);
+        DrawCircleFill(220, 300, 9, GREEN);
         Delayms(1000);
     }
     
     if(display_ok)
     {
-        DrawCircleFill(120, 160, 78, BLACK);
+        DrawCircleFill(220, 300, 9, BLACK);
         Delayms(1000);
     }
 
     if(display_ok)
     {
         Clear(0);
-        DrawText(" Init Ok ", CENTER, 100,
-            4, WHITE, BLUE);
+        DrawText(" Init Ok ", CENTER, 280,
+            3, WHITE, BLUE);
         Delayms(3000);
         Clear(0);
     }
@@ -275,8 +275,10 @@ void Pagina1(void)
     Clear(0);
     InitBotones(BotonPressed);
 
-    BotonAdd(  "Boton 1", "CMD_BOTON1_PRESSED", 20, 20, 200, 75, RGB(150,0,0), RED, WHITE);
-    BotonAdd(  "Boton 2", "CMD_BOTON2_PRESSED", 20, 105, 200, 75, RGB(150,0,0), RED, WHITE);
+    BotonAdd(  "Comedor", "LUZ_COMEDOR", 20,  10, 200, 70, RGB(0,150,0), GREEN, WHITE);
+    BotonAdd(  "Living",  "LUZ_LIVING",  20,  90, 200, 70, RGB(0,150,0), GREEN, WHITE);
+    BotonAdd(  "Porche",  "LUZ_PORCHE",  20, 170, 200, 70, RGB(0,150,0), GREEN, WHITE);
+    BotonAdd(  "Menu",    "MENU_1",      20, 250, 200, 70, RGB(0,0,150), BLUE, WHITE);
     
     BotonDraw();
 }

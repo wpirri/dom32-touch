@@ -23,6 +23,9 @@
 #include "log.h"
 
 #define MAX_BOTONES 10
+#define BOTON_TEXT_SIZE 3
+#define BOTON_FONT_H 6
+#define BOTON_FONT_W 6
 
 typedef struct _BOTON
 {
@@ -107,9 +110,11 @@ void BotonDraw( void )
                 array_botones[i].h/5,
                 array_botones[i].b_color);
         DrawText(array_botones[i].name,
-                array_botones[i].x+10,
-                array_botones[i].y+10,
-                2,
+                /* Posisión X del texto */
+                (array_botones[i].x + (array_botones[i].w/2) - (strlen(array_botones[i].name) * BOTON_FONT_W * BOTON_TEXT_SIZE / 2)),
+                /* Posisión Y del texto */
+                (array_botones[i].y + (array_botones[i].h / 2) - (BOTON_TEXT_SIZE * BOTON_FONT_H / 2)),
+                BOTON_TEXT_SIZE,
                 array_botones[i].n_color,
                 array_botones[i].f_color);
     }
@@ -118,6 +123,7 @@ void BotonDraw( void )
 int BotonTask( unsigned int x, unsigned int y )
 {
     int i;
+    
     
     for(i = 0; i < MAX_BOTONES; i++)
     {
