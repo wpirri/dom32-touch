@@ -20,12 +20,13 @@
 
 void InitBotones( void* handler );
 
-void BotonAdd(  const char *name, unsigned int x, unsigned int y,
+void BotonAdd(  const char *name, const char *cmd,
+                unsigned int x, unsigned int y,
                 unsigned int w, unsigned int h,
                 unsigned int f_color, unsigned int b_color, unsigned int n_color);
 
 void BotonDraw( void );
-void BotonTask( unsigned int x, unsigned int y );
+int BotonTask( unsigned int x, unsigned int y );
 
 #endif	/* _BOTON_H_ */
 

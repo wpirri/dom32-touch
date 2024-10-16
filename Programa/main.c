@@ -83,9 +83,14 @@ volatile unsigned char main_core_timer_count_x1000;
 
 void BotonPressed(const char* name);
 
+void Pagina1(void);
+void Pagina2(void);
+void Pagina3(void);
+void Pagina4(void);
+
 bool sd_ok;
 bool display_ok;
-bool touch_pressed;
+unsigned int touch_pressed;
 unsigned int touch_x, touch_y;
 
 int main(void)
@@ -99,7 +104,7 @@ int main(void)
     main_core_timer_count_x1000 = 0;
     sd_ok = false;
     display_ok = false;
-    touch_pressed = false;
+    touch_pressed = 0;
     
     ConfigInit();
     LogInit();
@@ -148,8 +153,6 @@ int main(void)
         Delayms(1000);
     }
 
-    InitBotones(BotonPressed);
-    
     if(display_ok)
     {
         DrawCircleFill(120, 160, 78, GREEN);
@@ -170,11 +173,10 @@ int main(void)
         Delayms(3000);
         Clear(0);
     }
-
-    BotonAdd(  "Boton 1", 20, 20, 200, 75, RGB(150,0,0), RED, WHITE);    
-    BotonDraw();
     
     Log("[main] Init Ok");
+    Pagina1();
+    
     while(1)
     {
         CLRWDT();
@@ -206,12 +208,21 @@ int main(void)
         {
             if( !touch_pressed)
             {
-                touch_pressed = true;
-                BotonTask( Touch2DisplayX(touch_x), Touch2DisplayY(touch_y) );
+                touch_pressed = 1;
+
+                Log("[TOUCH] X: %u y: %u", Touch2DisplayX(touch_x), Touch2DisplayY(touch_y));
+                if(BotonTask( Touch2DisplayX(touch_x), Touch2DisplayY(touch_y) ))
+                {
+                    touch_pressed = 1000;
+                }
                 
                 
                 
             }
+        }
+        else
+        {
+            if(touch_pressed) touch_pressed--;
         }
         
         
@@ -254,7 +265,34 @@ void __attribute__ ((vector(_CORE_TIMER_VECTOR), interrupt(IPL1SOFT))) _CORE_TIM
     }
 }
 
-void BotonPressed(const char* name)
+void BotonPressed(const char* cmd)
 {
-    Log("[BotonPressed] %s", name);
+    Log("[BotonPressed] CMD: %s", cmd);
 }
+
+void Pagina1(void)
+{
+    Clear(0);
+    InitBotones(BotonPressed);
+
+    BotonAdd(  "Boton 1", "CMD_BOTON1_PRESSED", 20, 20, 200, 75, RGB(150,0,0), RED, WHITE);
+    BotonAdd(  "Boton 2", "CMD_BOTON2_PRESSED", 20, 105, 200, 75, RGB(150,0,0), RED, WHITE);
+    
+    BotonDraw();
+}
+
+void Pagina2(void)
+{
+    
+}
+
+void Pagina3(void)
+{
+    
+}
+
+void Pagina4(void)
+{
+    
+}
+

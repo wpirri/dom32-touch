@@ -20,12 +20,14 @@
 #include <string.h>
 
 #include "display/di_bus.h"
+#include "log.h"
 
 #define MAX_BOTONES 10
 
 typedef struct _BOTON
 {
     char name[32];
+    char cmd[32];
     unsigned int x;
     unsigned int y;
     unsigned int w;
@@ -37,9 +39,9 @@ typedef struct _BOTON
 
 BOTON array_botones[MAX_BOTONES];
 
-void (*BotonHandler)(const char* name);
+void (*BotonHandler)(const char* cmd);
 
-void BotonDefaultHandler(const char* name){}
+void BotonDefaultHandler(const char* cmd){}
 
 
 
@@ -58,7 +60,8 @@ void InitBotones( void* handler )
     
 }
 
-void BotonAdd(  const char *name, unsigned int x, unsigned int y,
+void BotonAdd(  const char *name, const char *cmd,
+                unsigned int x, unsigned int y,
                 unsigned int w, unsigned int h,
                 unsigned int f_color, unsigned int b_color, unsigned int n_color)
 {
@@ -69,6 +72,7 @@ void BotonAdd(  const char *name, unsigned int x, unsigned int y,
         if( !array_botones[i].name[0])
         {
             strcpy(array_botones[i].name, name);
+            strcpy(array_botones[i].cmd, cmd);
             array_botones[i].x = x;
             array_botones[i].y = y;
             array_botones[i].w = w;
@@ -111,7 +115,21 @@ void BotonDraw( void )
     }
 }
 
-void BotonTask( unsigned int x, unsigned int y )
+int BotonTask( unsigned int x, unsigned int y )
 {
+    int i;
     
+    for(i = 0; i < MAX_BOTONES; i++)
+    {
+        if( !array_botones[i].name[0]) break;
+        if( x > array_botones[i].x &&
+            x < (array_botones[i].x + array_botones[i].w) &&
+            y > array_botones[i].y &&
+            y < (array_botones[i].y + array_botones[i].h) )
+        {
+            (*BotonHandler)(array_botones[i].cmd);
+            return 1;
+        }
+    }
+    return 0;
 }
