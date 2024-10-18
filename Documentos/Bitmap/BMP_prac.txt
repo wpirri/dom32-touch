@@ -1,0 +1,92 @@
+FORMATO BMP
+
+El archivo BMP está formado por 4 estructuras:
+
+	BITMAPFILEHEADER bmfh;
+	BITMAPINFOHEADER bmih;
+	RGBQUAD          aColors[];
+	BYTE             aBitmapBits[];
+
+- La cabecera del archivo bitmap (BITMAPFILEHEADER) tiene la siguiente estructura:
+
+	UINT    bfType;		(2 byte)	Tipo de archivo, vale 'BM'
+	DWORD   bfSize;		(4 byte)	Tamaño del archivo en bytes.
+	UINT    bfReserved1;	(2 byte)	Reservado. Todo ceros.
+	UINT    bfReserved2;	(2 byte)	Reservado. Todo ceros.
+	DWORD   bfOffBits;	(4 byte)	Distancia en bytes entre BITMAPINFOHEADER y 
+						 el mapa de bits (aBitmapBits[])
+						Si vale cero, significa que la estructura
+						 RGBQUAD no está presente. No hay paleta
+						 de colores.
+
+- La cabecera con información del bitmap (BITMAPINFOHEADER) contiene la siguiente informacion:
+
+	DWORD   biSize;		(4 byte)	Numero de bytes que ocupa esta estructura.
+    	LONG    biWidth;	(4 byte)	Anchura del bitmap
+    	LONG    biHeight;	(4 byte)	Altura del bitmap
+    	WORD    biPlanes;	(2 byte)	Numero de planos de color (siempre 1)
+    	WORD    biBitCount;	(2 byte)	Bits por pixel (1,4,8,24)
+    	DWORD   biCompression;	(4 byte)	Compresion utilizada
+							(=0) Sin compresión
+							(=1) Compresión RLE4
+							(=2) Compresión RLE8
+    	DWORD   biSizeImage;	(4 byte)	Tamaño en bytes de la imagen
+    	LONG    biXPelsPerMeter;(4 byte)	Pixels por metro. Resolución horizontal
+    	LONG    biYPelsPerMeter;(4 byte)	Pixels por metro. Resolución vertical
+    	DWORD   biClrUsed;	(4 byte)	Número de índides de color utilizados. 
+						 Si biBitCount=24 no importa
+    	DWORD   biClrImportant;	(4 byte)	Colores importantes (=0 todos)
+
+- La tabla de colores (RGBQUAD) indica la paleta de colores utilizada. Si trabajamos con 
+   24 bpp no aparece esta estructura.
+
+- Los datos (BYTE) vienen a continuación. Se almacenan ls filas de pixel en el formato 
+   B,G,R,B,G,R,.., pero comenzando por la última fila y terminando por la primera 
+   (de abajo hacia arriba)
+
+Bitmap Example
+
+The following example is a text dump of a 16-color bitmap (4 bits per pixel):
+
+Win3DIBFile
+	      BitmapFileHeader
+		  Type       19778
+		  Size       3118
+		  Reserved1  0
+		  Reserved2  0
+		  OffsetBits 118
+	      BitmapInfoHeader
+		  Size            40
+		  Width           80
+		  Height          75
+		  Planes          1
+		  BitCount        4
+		  Compression     0
+		  SizeImage       3000
+
+		  XPelsPerMeter   0
+		  YPelsPerMeter   0
+		  ColorsUsed      16
+		  ColorsImportant 16
+	      Win3ColorTable
+		  Blue  Green  Red  Unused
+[00000000] 84    252    84   0
+[00000001] 252   252    84   0
+[00000002] 84    84     252  0
+[00000003] 252   84     252  0
+[00000004] 84    252    252  0
+[00000005] 252   252    252  0
+[00000006] 0     0      0    0
+[00000007] 168   0      0    0
+[00000008] 0     168    0    0
+[00000009] 168   168    0    0
+[0000000A] 0     0      168  0
+[0000000B] 168   0      168  0
+[0000000C] 0     168    168  0
+[0000000D] 168   168    168  0
+[0000000E] 84    84     84   0
+[0000000F] 252   84     84   0
+	      Image
+    .
+    .                                           Bitmap data
+    .

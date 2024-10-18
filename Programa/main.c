@@ -70,7 +70,7 @@
 #include "log.h"
 #include "delay.h"
 #include "sd/fsio.h"
-#include "display/di_bus.h"
+#include "display/display.h"
 #include "boton.h"
 
 volatile bool main_core_timer_flag;
@@ -275,10 +275,10 @@ void Pagina1(void)
     Clear(0);
     InitBotones(BotonPressed);
 
-    BotonAdd(  "Comedor", "LUZ_COMEDOR", 20,  10, 200, 70, RGB(0,150,0), GREEN, WHITE);
-    BotonAdd(  "Living",  "LUZ_LIVING",  20,  90, 200, 70, RGB(0,150,0), GREEN, WHITE);
-    BotonAdd(  "Porche",  "LUZ_PORCHE",  20, 170, 200, 70, RGB(0,150,0), GREEN, WHITE);
-    BotonAdd(  "Menu",    "MENU_1",      20, 250, 200, 70, RGB(0,0,150), BLUE, WHITE);
+    BotonAdd(  "Comedor", "LUZ_COMEDOR", 20,  10, 200, 70, RGB(0,150,0), GREEN, WHITE, "lamp1.bmp");
+    BotonAdd(  "Living",  "LUZ_LIVING",  20,  90, 200, 70, RGB(0,150,0), GREEN, WHITE, "lamp1.bmp");
+    BotonAdd(  "Porche",  "LUZ_PORCHE",  20, 170, 200, 70, RGB(0,150,0), GREEN, WHITE, "lamp1.bmp");
+    BotonAdd(  "Menu",    "MENU_1",      20, 250, 200, 70, RGB(0,0,150), BLUE, WHITE, NULL);
     
     BotonDraw();
 }

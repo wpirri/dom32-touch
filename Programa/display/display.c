@@ -17,7 +17,7 @@
  ***************************************************************************/
 #include <xc.h>
 
-#include "di_bus.h"
+#include "display.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -122,6 +122,7 @@ void Clear( unsigned int color )
 
 void DrawPixel(unsigned int x, unsigned int y, unsigned int color)
 {
+    //Log("[DrawPixel] X: %u Y: %u Color: %0x%04X", x, y, color);
     CLR_DI_CS;
 	Display_XY( x, y, x, y );
     DisplayWriteData((color >> 8) & 0x00FF);
