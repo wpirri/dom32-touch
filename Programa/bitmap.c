@@ -98,22 +98,22 @@ int DrawBitmap(const char *filename, unsigned int x0, unsigned int y0)
             return (-10);
         }
 
-        Log("[DrawBitmap] *******************************");
-        Log("[DrawBitmap] Archivo:          %s", filename);
-        Log("[DrawBitmap] bfType:           0x%04x", bmp.bmfh.bfType);
-        Log("[DrawBitmap] bfSize:           0x%08x", bmp.bmfh.bfSize);
-        Log("[DrawBitmap] bfOffBits:        0x%08x", bmp.bmfh.bfOffBits);
-        Log("[DrawBitmap] biSize:           0x%08x", bmp.bmih.biSize);
-        Log("[DrawBitmap] biWidth:          0x%08x", bmp.bmih.biWidth);
-        Log("[DrawBitmap] biHeight:         0x%08x", bmp.bmih.biHeight);
-        Log("[DrawBitmap] biPlanes:         0x%04x", bmp.bmih.biPlanes);
-        Log("[DrawBitmap] biBitCount:       0x%02x", bmp.bmih.biBitCount);
-        Log("[DrawBitmap] biCompression:    0x%08x", bmp.bmih.biCompression);
-        Log("[DrawBitmap] biSizeImage:      0x%08x", bmp.bmih.biSizeImage);
-        Log("[DrawBitmap] biXPelsPerMeter:  0x%08x", bmp.bmih.biXPelsPerMeter);
-        Log("[DrawBitmap] biYPelsPerMeter:  0x%08x", bmp.bmih.biYPelsPerMeter);
-        Log("[DrawBitmap] biClrUsed:        0x%08x", bmp.bmih.biClrUsed);
-        Log("[DrawBitmap] biClrImportant:   0x%08x", bmp.bmih.biClrImportant);
+//        Log("[DrawBitmap] *******************************");
+//        Log("[DrawBitmap] Archivo:          %s", filename);
+//        Log("[DrawBitmap] bfType:           0x%04x", bmp.bmfh.bfType);
+//        Log("[DrawBitmap] bfSize:           0x%08x", bmp.bmfh.bfSize);
+//        Log("[DrawBitmap] bfOffBits:        0x%08x", bmp.bmfh.bfOffBits);
+//        Log("[DrawBitmap] biSize:           0x%08x", bmp.bmih.biSize);
+//        Log("[DrawBitmap] biWidth:          0x%08x", bmp.bmih.biWidth);
+//        Log("[DrawBitmap] biHeight:         0x%08x", bmp.bmih.biHeight);
+//        Log("[DrawBitmap] biPlanes:         0x%04x", bmp.bmih.biPlanes);
+//        Log("[DrawBitmap] biBitCount:       0x%02x", bmp.bmih.biBitCount);
+//        Log("[DrawBitmap] biCompression:    0x%08x", bmp.bmih.biCompression);
+//        Log("[DrawBitmap] biSizeImage:      0x%08x", bmp.bmih.biSizeImage);
+//        Log("[DrawBitmap] biXPelsPerMeter:  0x%08x", bmp.bmih.biXPelsPerMeter);
+//        Log("[DrawBitmap] biYPelsPerMeter:  0x%08x", bmp.bmih.biYPelsPerMeter);
+//        Log("[DrawBitmap] biClrUsed:        0x%08x", bmp.bmih.biClrUsed);
+//        Log("[DrawBitmap] biClrImportant:   0x%08x", bmp.bmih.biClrImportant);
 
         /* mime-type */
         if(bmp.bmfh.bfType != 0x4d42)

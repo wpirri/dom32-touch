@@ -73,6 +73,8 @@
 #include "display/display.h"
 #include "boton.h"
 
+#define SLEEP_TIMER 30
+
 volatile bool main_core_timer_flag;
 volatile bool main_core_timer_flag_x10;
 volatile unsigned char main_core_timer_count_x10;
@@ -92,9 +94,12 @@ bool sd_ok;
 bool display_ok;
 unsigned int touch_pressed;
 unsigned int touch_x, touch_y;
+unsigned int sleep_count;
 
 int main(void)
 {
+    int i;
+    
     main_core_timer_flag = false;
     main_core_timer_flag_x10 = false;
     main_core_timer_count_x10 = 0;
@@ -103,31 +108,14 @@ int main(void)
     main_core_timer_flag_x1000 = false;
     main_core_timer_count_x1000 = 0;
     sd_ok = false;
-    display_ok = false;
     touch_pressed = 0;
+    sleep_count = 0;
     
     ConfigInit();
     LogInit();
-
-
-    if(DisplayInit())
-    {
-        Log("[display] Init Ok");
-        display_ok = true;
-        Delayms(1000);
-    }
-    else
-    {
-        Log("[display] Init Error");
-        display_ok = false;
-    }
-
-    if(display_ok)
-    {
-        Clear(0);
-        Delayms(5000);
-        DrawCircleEmpty(220, 300, 10, WHITE);
-    }
+    DisplayInit();
+    Clear(0);
+    TouchInit();
 
     if(FSInit())
     {
@@ -138,41 +126,13 @@ int main(void)
     {
         Log("[sd] Init Error");
     }
-    
-    if(display_ok)
-    {
-        DrawCircleFill(220, 300, 9, RED);
-        Delayms(1000);
-    }
-    
-    TouchInit();
 
-    if(display_ok)
+    for(i = 0; i < DISPLAY_X_SIZE; i++)
     {
-        DrawCircleFill(220, 300, 9, BLUE);
-        Delayms(1000);
+        DrawLineV(i, DISPLAY_Y_SIZE-5, 5, ORANGE);
+        Delayms(10);
     }
-
-    if(display_ok)
-    {
-        DrawCircleFill(220, 300, 9, GREEN);
-        Delayms(1000);
-    }
-    
-    if(display_ok)
-    {
-        DrawCircleFill(220, 300, 9, BLACK);
-        Delayms(1000);
-    }
-
-    if(display_ok)
-    {
-        Clear(0);
-        DrawText(" Init Ok ", CENTER, 280,
-            3, WHITE, BLUE);
-        Delayms(3000);
-        Clear(0);
-    }
+    Delayms(1000);
     
     Log("[main] Init Ok");
     Pagina1();
@@ -192,10 +152,18 @@ int main(void)
 
             
         }
-        else if(main_core_timer_flag_x100)
+        else if(main_core_timer_flag_x100)  /* cada 1 segundo */
         {
             main_core_timer_flag_x100 = false;
-
+            if(sleep_count < SLEEP_TIMER)
+            {
+                sleep_count++;
+                if(sleep_count == SLEEP_TIMER)
+                {
+                    //DisplaySleep(1);
+                    Clear(BLACK);
+                }
+            }
             
         }
         else if(main_core_timer_flag_x1000)
@@ -209,16 +177,23 @@ int main(void)
             if( !touch_pressed)
             {
                 touch_pressed = 1;
-
-                Log("[TOUCH] X: %u y: %u", Touch2DisplayX(touch_x), Touch2DisplayY(touch_y));
-                if(BotonTask( Touch2DisplayX(touch_x), Touch2DisplayY(touch_y) ))
+                
+                if(sleep_count < SLEEP_TIMER)
                 {
+                    Log("[TOUCH] X: %u y: %u", Touch2DisplayX(touch_x), Touch2DisplayY(touch_y));
+                    if(BotonTask( Touch2DisplayX(touch_x), Touch2DisplayY(touch_y) ))
+                    {
+                        touch_pressed = 1000;
+                    }
+                }
+                else
+                {
+                    //DisplaySleep(0);
+                    Pagina1();
                     touch_pressed = 1000;
                 }
-                
-                
-                
             }
+            sleep_count = 0;
         }
         else
         {

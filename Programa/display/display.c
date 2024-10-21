@@ -24,6 +24,7 @@
 
 #include "../config.h"
 #include "../delay.h"
+#include "../log.h"
 
 #include "font.h"
 
@@ -103,6 +104,20 @@ int DisplayInit( void )
     Delayms(1);
     
     return 1;
+}
+
+void DisplaySleep( unsigned int on_off)
+{
+    if(on_off)
+    {
+        Log("[Display] Sleep ON");
+
+    }
+    else
+    {
+        Log("[Display] Sleep OFF");
+
+    }
 }
 
 void Clear( unsigned int color )
