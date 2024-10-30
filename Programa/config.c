@@ -17,8 +17,15 @@
  ***************************************************************************/
 #include <xc.h>
 
+#define _IN_CONFIG_C_
 #include "config.h"
+#undef _IN_CONFIG_C_
+
+#include <string.h>
+
 #include "log.h"
+#include "sd/fsio.h"
+#include "control.h"
 
 /* ************************************************************************** */
 // FDEVOPT
@@ -29,7 +36,7 @@
 
 // FICD
 #pragma config JTAGEN = OFF             // JTAG Enable bit (JTAG is disabled)
-#pragma config ICS = PGx1               // ICE/ICD Communication Channel Selection bits (Communicate on PGEC3/PGED3)
+#pragma config ICS = PGx2               // ICE/ICD Communication Channel Selection bits (Communicate on PGEC3/PGED3)
 
 // FPOR
 #pragma config BOREN = BOR3             // Brown-out Reset Enable bits (Brown-out Reset enabled in hardware; SBOREN bit disabled)
@@ -112,6 +119,25 @@ void __attribute__((weak, nomips16)) _general_exception_handler (void)
     while(1);
 }
 
+void DumpConfig( void );
+
+
+void ConfigLoadDefault( void)
+{
+    memset(&g_wifi_info.f.config, 0, sizeof(config_in_file));
+    g_wifi_info.f.config.io_config = 0xFF;
+    g_wifi_info.f.config.an_config = 0x00;
+    g_wifi_info.f.config.wifi_host1_port = 80;
+    g_wifi_info.f.config.wifi_host2_port = 80;
+    strcpy(g_wifi_info.f.config.rqst_path, "/cgi-bin");
+    g_wifi_info.f.config.report = 600;
+    g_wifi_info.f.config.enable_https = 0;
+    g_wifi_info.f.config.enable_wiegand = 0;
+    g_wifi_info.f.config.io_config_default = 1;
+    g_wifi_info.f.config.rtcc_clk_div_adj = 480000;
+
+    g_wifi_info.status.save_config = 10;
+}
 
 /*****************************************************************************/
 void ConfigInit(void)
@@ -185,28 +211,7 @@ void ConfigInit(void)
     CLKSTAT = 0x0;
     // System Reg Lock
     SYSKEY = 0x00000000; 
-    /* ************************************************************************** */
-    /* Init RTCC */
-    // System Reg Unlock
-    SYSKEY = 0x00000000; //write invalid key to force lock
-    SYSKEY = 0xAA996655; //write Key1 to SYSKEY
-    SYSKEY = 0x556699AA; //write Key2 to SYSKEY
 
-    RTCCON1CLR = (1 << _RTCCON1_WRLOCK_POSITION);
-    RTCCON1CLR = (1 << _RTCCON1_ON_POSITION);
-    // set 2024-01-01 00-00-00
-    RTCDATE = 0x24010101; // Year/Month/Date/Wday
-    RTCTIME = 0x000000; //  hours/minutes/seconds
-    // ON enabled; OUTSEL Alarm Event; WRLOCK disabled; AMASK Every Half Second; ALMRPT 0; RTCOE disabled; CHIME disabled; ALRMEN disabled; 
-    RTCCON1 = 0x8000;
-    // DIV 15999; CLKSEL LPRC; FDIV 0; 
-    RTCCON2 = 0x3E7F0001;
-    // Enable RTCC 
-    RTCCON1SET = (1 << _RTCCON1_ON_POSITION);
-    RTCCON1SET = (1 << _RTCCON1_WRLOCK_POSITION);
-    // System Reg Lock
-    SYSKEY = 0x00000000; //write invalid key to force lock
-    /* ************************************************************************** */
     RCON = 0x00000000;
     /* ************************************************************************** */
     /* Core Timer */
@@ -222,7 +227,25 @@ void ConfigInit(void)
      // Enable the interrupt
     IEC0bits.CTIE = 1;
     /* ************************************************************************** */
+    /* TIMER1 */
+    IPC4bits.T1IP = 0x0001 ;
+    IFS0CLR = _IFS0_T1IF_MASK; //Clear T1IF
+    TMR1 = 0 ;
+    T1CON = 0x00000000;
+    T1CONbits.TCKPS0 = 0;
+    T1CONbits.TCKPS1 = 0;
+    T1CONbits.ON = 1;
+    PR1 = 3427;
+    // Enable TIMER1 Int
+    IEC0bits.T1IE = 1 ;
+    /* ************************************************************************** */
 
+#ifndef DEBUG_ON
+    /* Salida del buzzer */
+    TRISCbits.TRISC9 = 0;
+#endif /* DEBUG_ON */
+    
+    
     /* ************************************************************************** */
     /* INTERRUPT Initialize */
     // Enable Multi Vector Configuration
@@ -230,4 +253,96 @@ void ConfigInit(void)
     __builtin_enable_interrupts();
     /* ************************************************************************** */
     
+    memset(&g_wifi_info, 0, sizeof(wifi_info));
+}
+
+void ConfigLoad( void )
+{
+    FSFILE* f;
+    int rc;
+
+    Log("[ConfigLoad] Leyendo configuracion de %s.", CONFIG_FILENAME);
+    /* Lectura de configuración em tarjeta SD */
+    f = FSfopen(CONFIG_FILENAME, FS_READ);
+    if(f)
+    {
+        rc = FSfread(&g_wifi_info.f.config, sizeof(config_in_file), 1, f);
+        FSfclose(f);
+        if(rc == 1)
+        {
+            Log("[ConfigLoad] Lectura de %s Ok.", CONFIG_FILENAME);
+            DumpConfig();
+            return;
+        }
+        Log("[ConfigLoad] Error de lectura de %s.", CONFIG_FILENAME);
+    }
+    
+    Log("[ConfigLoad] Load Defaults.");
+    ConfigLoadDefault();
+    ConfigSave();
+}
+
+void ConfigSave(void)
+{
+    FSFILE* f;
+    int rc;
+
+    g_wifi_info.status.save_config = 0;
+    
+    if(g_wifi_info.status.flag_sd_ok)
+    {
+        Log("[ConfigSave] Guardando configuracion en %s.", CONFIG_FILENAME);
+        f = FSfopen(CONFIG_FILENAME, FS_WRITE);
+        if(f)
+        {
+            rc = FSfwrite(&g_wifi_info.f.config, sizeof(config_in_file), 1, f);
+            FSfclose(f);
+            if(rc == 1)
+            {
+                Log("[ConfigSave] Guardado en %s Ok.", CONFIG_FILENAME);
+                DumpConfig();
+            }
+            else
+            {
+                Log("[ConfigSave] Error de escritura en %s.", CONFIG_FILENAME);
+            }
+        }
+        else
+        {
+            Log("[ConfigSave] Error al abrir/crear el archivo "CONFIG_FILENAME" en SD.");
+        }
+    }
+}
+
+void ConfigTimer(void)
+{
+    if(g_wifi_info.status.save_config)
+    {
+        g_wifi_info.status.save_config--;
+        if(g_wifi_info.status.save_config == 0)
+        {
+            ConfigSave();
+            CTRLInit();
+        }
+    }
+    
+}
+
+void DumpConfig( void )
+{
+    Log("[DumpConfig] wifi_ap1:         %s", g_wifi_info.f.config.wifi_ap1);
+    Log("[DumpConfig] wifi_ap1_pass:    %s", g_wifi_info.f.config.wifi_ap1_pass);
+    Log("[DumpConfig] wifi_ap2:         %s", g_wifi_info.f.config.wifi_ap2);
+    Log("[DumpConfig] wifi_ap2_pass:    %s", g_wifi_info.f.config.wifi_ap2_pass);
+    Log("[DumpConfig] wifi_host1:       %s", g_wifi_info.f.config.wifi_host1);
+    Log("[DumpConfig] wifi_host1_port:  %d", g_wifi_info.f.config.wifi_host1_port);
+    Log("[DumpConfig] wifi_host2:       %s", g_wifi_info.f.config.wifi_host2);
+    Log("[DumpConfig] wifi_host2_port:  %d", g_wifi_info.f.config.wifi_host2_port);
+    Log("[DumpConfig] rqst_path:        %s", g_wifi_info.f.config.rqst_path);
+    Log("[DumpConfig] io_config:        0x%02X", g_wifi_info.f.config.io_config);
+    Log("[DumpConfig] an_config:        0x%02X", g_wifi_info.f.config.an_config);
+    Log("[DumpConfig] report:           %d", g_wifi_info.f.config.report);
+    Log("[DumpConfig] enable_https:     %s", (g_wifi_info.f.config.enable_https)?"si":"no");
+    Log("[DumpConfig] enable_wiegand:   %s", (g_wifi_info.f.config.enable_wiegand)?"si":"no");
+    Log("[DumpConfig] rtcc_clk_div_adj: %li", g_wifi_info.f.config.rtcc_clk_div_adj);
 }

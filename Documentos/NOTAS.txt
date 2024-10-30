@@ -29,6 +29,62 @@
  * 28   AVdd                            +3v3
  
 
+GRAPHIC DISPLAY TFT RGB 2.4"
+AFY240320B0-2.4N6NTM-R
+Orient Display
 
-Resistive Graphic LCD Display Module Transmissive Red, Green, Blue (RGB) TFT - Color MCU, SPI 3.2" (81.28mm) 320 x 240 (QVGA)
-WF32DTLAJDNT0
+Quantity
+Unit Price	Ext Price
+1
+$18.08000	$18.08
+25
+$16.51000	$412.75
+50
+$14.93000	$746.50
+
+
+FPC LINKER: FPC connector: CF4240FH0R0-05-NH (Cvilux USA)
+
+Display 2.44LCD-344B (SDW-96-36PW)
+ 1    NC
+ 2    NC
+ 3    NC
+ 4    NC
+ 5    NC
+ 6    RST
+ 7    NC
+ 8    NC
+ 9    Vcc
+10    NC
+11    D7
+12    D6
+13    D5
+14    D4
+15    D3
+16    D2
+17    D1
+18    D0
+19    NC
+20    D15
+21    D14
+22    D13
+23    D12
+24    D11
+25    D10
+26    D9
+27    D8
+28    NC
+29    RD
+30    WR
+31    RS
+32    CS
+33    Gnd
+34    Vcc
+35    Gnd
+36    Vcc
+
+ 1    X-
+ 2    Y+
+ 3    X+
+ 4    y-
+ 

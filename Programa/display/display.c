@@ -36,10 +36,10 @@
 #define DI_CS_TRIS          TRISAbits.TRISA4
 #define DI_CS_OC            ODCAbits.ODCA4
 
-#define SET_DI_RD           (LATASET=(1<<0))
-#define CLR_DI_RD           (LATACLR=(1<<0))
-#define DI_RD_TRIS          TRISAbits.TRISA0
-#define DI_RD_OC            ODCAbits.ODCA0
+//#define SET_DI_RD           (LATASET=(1<<0))
+//#define CLR_DI_RD           (LATACLR=(1<<0))
+//#define DI_RD_TRIS          TRISAbits.TRISA0
+//#define DI_RD_OC            ODCAbits.ODCA0
 
 #define SET_DI_WR           (LATASET=(1<<2))
 #define CLR_DI_WR           (LATACLR=(1<<2))
@@ -60,6 +60,13 @@
 #define DI_PORT_OUT         LATB
 #define DI_PORT_TRIS        TRISB
 #define DI_PORT_OC          ODCB
+// Back Ligth
+#define SET_DI_BKL          (LATASET=(1<<0))
+#define CLR_DI_BKL          (LATACLR=(1<<0))
+#define DI_BKL_TRIS         TRISAbits.TRISA0
+#define DI_BKL_OC           ODCAbits.ODCA0
+
+
 
 #define swap(a, b) { int t = a; a = b; b = t; }
 
@@ -78,19 +85,23 @@ int DisplayInit( void )
     DI_RESET_OC = 0;
     DI_CS_TRIS = 0;
     DI_CS_OC = 0;
-    DI_RD_TRIS = 0;
-    DI_RD_OC = 0;
+    //DI_RD_TRIS = 0;
+    //DI_RD_OC = 0;
     DI_WR_TRIS = 0;
     DI_WR_OC = 0;
     DI_RS_TRIS = 0;
     DI_RS_OC = 0;
+#ifdef DI_BKL_TRIS
+    DI_BKL_TRIS = 0;
+    DI_BKL_OC = 0;
+#endif
     DI_PORT_TRIS &= 0xFF00;
     DI_PORT_OC &= 0xFF00;
 
     Delayms(100);
     CLR_DI_RESET;   /* reset activado */
     SET_DI_CS;      /* display no seleccionado */
-    SET_DI_RD;      /* modo lectura desactivado */
+    //SET_DI_RD;      /* modo lectura desactivado */
     SET_DI_WR;      /* modo escritura desactivado */
     SET_DI_RS;      /* modo comando desactivado */
     DI_PORT_OUT = (DI_PORT_IN & 0x00FF);
@@ -102,7 +113,10 @@ int DisplayInit( void )
     Display_Init();
     SET_DI_CS;      /* display no seleccionado */
     Delayms(1);
-    
+
+#ifdef SET_DI_BKL
+    SET_DI_BKL;
+#endif
     return 1;
 }
 
@@ -111,12 +125,16 @@ void DisplaySleep( unsigned int on_off)
     if(on_off)
     {
         Log("[Display] Sleep ON");
-
+#ifdef CLR_DI_BKL
+        CLR_DI_BKL;
+#endif
     }
     else
     {
         Log("[Display] Sleep OFF");
-
+#ifdef CLR_DI_BKL
+        SET_DI_BKL;
+#endif
     }
 }
 

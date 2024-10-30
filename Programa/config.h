@@ -18,6 +18,12 @@
 #ifndef _CONFIG_H_
 #define	_CONFIG_H_
 
+#include <xc.h>
+#include <stdbool.h>
+
+#define DEBUG_ON
+//#define DEBUG_WIFI
+
 // Clock frequency values
 #define _XTAL_FREQ  24000000UL             // Hz
 #define GetSystemClock()		(_XTAL_FREQ)
@@ -30,8 +36,68 @@
 // 0x124F80 = 100ms
 #define CORE_TIMER_COMPARE_VAL 0x1D4C0
 
+#define DOWNLOAD_PATH           "/download"
+#define FIRMWARE_FILENAME       "d32touch.hex"
+#define BOOT_FILENAME           "FIRMWARE.HEX"
+#define CONFIG_FILENAME         "D32TOUCH.CFG"
+
+typedef struct _config_in_file_ /*  */
+{
+    char wifi_ap1[33];
+    char wifi_ap1_pass[33];
+    char wifi_ap2[33];
+    char wifi_ap2_pass[33];
+    char wifi_host1[33];
+    char wifi_host2[33];
+    char rqst_path[33];
+    unsigned int wifi_host1_port;
+    unsigned int wifi_host2_port;
+    unsigned int report;
+    unsigned char io_config;
+    unsigned char an_config;
+    unsigned char enable_https;
+    unsigned char enable_wiegand;
+    unsigned char io_config_default;
+    unsigned long rtcc_clk_div_adj;
+} config_in_file;
+
+typedef struct
+{
+    union
+    {
+        config_in_file config;
+    } f;
+    struct
+    {
+        bool wifi_ok;
+        bool wifi_start_ap;
+        bool wifi_ssl_capable;
+        bool flag_sd_ok;
+        unsigned char wifi_ap_select;
+        unsigned char wifi_conectado;
+        unsigned char host_conectado;
+        unsigned char wifi_mode;
+        unsigned char save_config;
+        unsigned int wifi_port_select;
+        unsigned int count_inactividad;
+        char hw_mac[13];
+        char wifi_at[65];
+        char wifi_sdk[65];
+        char up_fw[65];
+    } status;
+} wifi_info;
+
+#ifdef _IN_CONFIG_C_
+wifi_info g_wifi_info;
+#else
+extern wifi_info g_wifi_info;
+#endif /* _IN_CONFIG_C_ */
+
 
 void ConfigInit(void);
 
+void ConfigLoad( void );
+void ConfigSave(void);
+void ConfigTimer(void);
 
 #endif /* _CONFIG_H_ */

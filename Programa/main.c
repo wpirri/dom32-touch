@@ -30,7 +30,7 @@
  *      Port        Funcionalidad       Conectado a
  * ----------------------------------------------------------------------------
  * 01   MCLR        Reset               Tact Switch
- * 02   RA0         OUT                 Display RD
+ * 02   RA0         OUT                 Display Back Ligth
  * 03   RA1         OUT                 Display Reset
  * 04   RB0         OUT                 Display Data0   
  * 05   RB1         OUT                 Display Data1   
@@ -40,14 +40,14 @@
  * 09   RA2/AN5     OUT                 Display WR      (Touch YP)
  * 10   RA3/AN6     OUT                 Display RS/CD   (Touch XM)
  * 11   RB4         OUT                 Display Data4
- * 12   RA4         OUT                 Display         CS
+ * 12   RA4         OUT                 Display CS
  * 13   Vdd
  * 14   RB5         OUT                 Display Data5
  * 15   RB6         OUT                 Display Data6   (Touch XP)
  * 16   RB7         OUT                 Display Data7   (Touch YM)
  * 17   U3TX        U3TX -> RP13        WiFi Rx
  * 18   U3RX        U3RX -> RP14        WiFi Tx
- * 19   U2TX        U2TX -> RP18        Debug
+ * 19   U2TX/RC9    U2TX -> RP18        Debug / Beep
  * 20   VCap
  * 21   RB10        OUT                 WiFi Reset
  * 22   RB11        OUT                 MicroSD CS
@@ -72,6 +72,10 @@
 #include "sd/fsio.h"
 #include "display/display.h"
 #include "boton.h"
+#include "wifi.h"
+#include "http.h"
+#include "control.h"
+#include "rtcc.h"
 
 #define SLEEP_TIMER 30
 
@@ -83,6 +87,7 @@ volatile unsigned char main_core_timer_count_x100;
 volatile bool main_core_timer_flag_x1000;
 volatile unsigned char main_core_timer_count_x1000;
 
+void TouchTask( void );
 void BotonPressed(const char* name);
 
 void Pagina1(void);
@@ -92,9 +97,8 @@ void Pagina4(void);
 
 bool sd_ok;
 bool display_ok;
-unsigned int touch_pressed;
-unsigned int touch_x, touch_y;
 unsigned int sleep_count;
+unsigned int beep_flag;
 
 int main(void)
 {
@@ -108,14 +112,18 @@ int main(void)
     main_core_timer_flag_x1000 = false;
     main_core_timer_count_x1000 = 0;
     sd_ok = false;
-    touch_pressed = 0;
     sleep_count = 0;
+    beep_flag = 0;
     
     ConfigInit();
     LogInit();
+    RTCC_Initialize();
     DisplayInit();
     Clear(0);
     TouchInit();
+    WiFiInit();
+    HTTPInit();
+    CTRLInit();
 
     if(FSInit())
     {
@@ -140,28 +148,39 @@ int main(void)
     while(1)
     {
         CLRWDT();
+        
+        TouchTask();
+        WiFiTask();
+        HTTPTask();
+        CTRLTask();
+
+        /* ***** Divisiones del TIMER ************************************** */
         if(main_core_timer_flag)
         {
             main_core_timer_flag = false;
+            /* 10ms / 100/s */
             
 
         }
         else if(main_core_timer_flag_x10)
         {
             main_core_timer_flag_x10 = false;
+            /* 100ms / 10/s */
 
-            
+            WiFiTimer();
+            CTRLTimer();
         }
-        else if(main_core_timer_flag_x100)  /* cada 1 segundo */
+        else if(main_core_timer_flag_x100)
         {
             main_core_timer_flag_x100 = false;
+            /* 1000ms / 1/s */
+            
             if(sleep_count < SLEEP_TIMER)
             {
                 sleep_count++;
                 if(sleep_count == SLEEP_TIMER)
                 {
-                    //DisplaySleep(1);
-                    Clear(BLACK);
+                    DisplaySleep(1);
                 }
             }
             
@@ -169,40 +188,10 @@ int main(void)
         else if(main_core_timer_flag_x1000)
         {
             main_core_timer_flag_x1000 = false;
+            /* 10000ms / c/10s */
             
         }
-        
-        if(TouchIsPressed( &touch_x, &touch_y, NULL ))
-        {
-            if( !touch_pressed)
-            {
-                touch_pressed = 1;
-                
-                if(sleep_count < SLEEP_TIMER)
-                {
-                    Log("[TOUCH] X: %u y: %u", Touch2DisplayX(touch_x), Touch2DisplayY(touch_y));
-                    if(BotonTask( Touch2DisplayX(touch_x), Touch2DisplayY(touch_y) ))
-                    {
-                        touch_pressed = 1000;
-                    }
-                }
-                else
-                {
-                    //DisplaySleep(0);
-                    Pagina1();
-                    touch_pressed = 1000;
-                }
-            }
-            sleep_count = 0;
-        }
-        else
-        {
-            if(touch_pressed) touch_pressed--;
-        }
-        
-        
-        
-        
+        /* ***************************************************************** */
     }
     return 0;
 }
@@ -217,7 +206,6 @@ void __attribute__ ((vector(_CORE_TIMER_VECTOR), interrupt(IPL1SOFT))) _CORE_TIM
     IFS0CLR= 1 << _IFS0_CTIF_POSITION;
 
     main_core_timer_flag = true;
-    
     main_core_timer_count_x10++;
     if(main_core_timer_count_x10 >= 10)
     {
@@ -240,9 +228,57 @@ void __attribute__ ((vector(_CORE_TIMER_VECTOR), interrupt(IPL1SOFT))) _CORE_TIM
     }
 }
 
+void __attribute__ ( ( vector(_TIMER_1_VECTOR) , interrupt(IPL7SOFT) ) ) _TIMER1_IRS ( void )
+{
+    IFS0CLR = _IFS0_T1IF_MASK; //Clear T1IF
+
+#ifndef DEBUG_ON
+    if(beep_flag)
+    {
+        LATCINV = (1 << 9);
+    }
+#endif /* DEBUG_ON */
+}
+
+
 void BotonPressed(const char* cmd)
 {
     Log("[BotonPressed] CMD: %s", cmd);
+}
+
+void TouchTask( void )
+{
+    static unsigned int touch_pressed = 0;
+    unsigned int touch_x, touch_y;
+
+    if(TouchIsPressed( &touch_x, &touch_y, NULL ))
+    {
+        if( !touch_pressed)
+        {
+            touch_pressed = 1;
+
+            if(sleep_count < SLEEP_TIMER)
+            {
+                Log("[TOUCH] X: %u y: %u", Touch2DisplayX(touch_x), Touch2DisplayY(touch_y));
+                if(BotonTask( Touch2DisplayX(touch_x), Touch2DisplayY(touch_y) ))
+                {
+                    touch_pressed = 1000;
+                }
+            }
+            else
+            {
+                DisplaySleep(0);
+                touch_pressed = 1000;
+            }
+        }
+        sleep_count = 0;
+        beep_flag = 1;
+    }
+    else
+    {
+        if(touch_pressed) touch_pressed--;
+        beep_flag = 0;
+    }
 }
 
 void Pagina1(void)
@@ -252,7 +288,7 @@ void Pagina1(void)
 
     BotonAdd(  "Comedor", "LUZ_COMEDOR", 20,  10, 200, 70, RGB(0,150,0), GREEN, WHITE, "lamp1.bmp");
     BotonAdd(  "Living",  "LUZ_LIVING",  20,  90, 200, 70, RGB(0,150,0), GREEN, WHITE, "lamp1.bmp");
-    BotonAdd(  "Porche",  "LUZ_PORCHE",  20, 170, 200, 70, RGB(0,150,0), GREEN, WHITE, "lamp1.bmp");
+    BotonAdd(  "Pasillo",  "LUZ_PORCHE",  20, 170, 200, 70, RGB(0,150,0), GREEN, WHITE, "lamp1.bmp");
     BotonAdd(  "Menu",    "MENU_1",      20, 250, 200, 70, RGB(0,0,150), BLUE, WHITE, NULL);
     
     BotonDraw();

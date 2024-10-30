@@ -28,6 +28,7 @@
 
 void LogInit(void)
 {
+#ifdef DEBUG_ON
     /* ************************************************************************** */
     // System Reg Unlock
     SYSKEY = 0x00000000; 
@@ -62,12 +63,13 @@ void LogInit(void)
     // System Reg Lock
     SYSKEY = 0x00000000; 
     /* ************************************************************************** */
-
+#endif /*  DEBUG_ON */
     Log("[log] Init Ok");
 }
 
 void Log(const char* msg, ...)
 {
+#ifdef  DEBUG_ON
     va_list arg;
     char str[1024];
     char *p;
@@ -82,4 +84,5 @@ void Log(const char* msg, ...)
         while(U2STAbits.UTXBF);
         U2TXREG = *p++;
     }
+#endif /*  DEBUG_ON */
 }
