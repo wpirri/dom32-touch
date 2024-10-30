@@ -17,10 +17,13 @@
  ***************************************************************************/
 #include <xc.h>
 
+#define _ON_BEEP_C_
 #include "beep.h"
+#undef _ON_BEEP_C_
 
 void InitBeep( void )
 {
+    g_beep_flag = 0;
     
 }
 

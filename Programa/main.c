@@ -67,6 +67,7 @@
 #include <stdbool.h>
 
 #include "config.h"
+#include "beep.h"
 #include "log.h"
 #include "delay.h"
 #include "sd/fsio.h"
@@ -84,10 +85,6 @@ volatile unsigned char main_core_timer_count_x100;
 volatile bool main_core_timer_flag_x1000;
 volatile unsigned char main_core_timer_count_x1000;
 
-bool sd_ok;
-bool display_ok;
-unsigned int beep_flag;
-
 int main(void)
 {
     main_core_timer_flag = false;
@@ -97,28 +94,28 @@ int main(void)
     main_core_timer_count_x100 = 0;
     main_core_timer_flag_x1000 = false;
     main_core_timer_count_x1000 = 0;
-    sd_ok = false;
-    beep_flag = 0;
     
     ConfigInit();
     LogInit();
     RTCC_Initialize();
     DisplayInit();
     Clear(0);
-    TouchInit();
-    WiFiInit();
-    HTTPInit();
-    CTRLInit();
 
     if(FSInit())
     {
         Log("[sd] Init Ok");
-        sd_ok = true;
+        g_wifi_info.status.flag_sd_ok = true;
     }
     else
     {
         Log("[sd] Init Error");
     }
+
+    ConfigLoad();    
+    TouchInit();
+    WiFiInit();
+    HTTPInit();
+    CTRLInit();
 
     Log("[main] Init Ok");
     while(1)
@@ -143,7 +140,9 @@ int main(void)
             /* 100ms / 10/s */
 
             WiFiTimer();
+            HTTPTimer();
             CTRLTimer();
+            ConfigTimer();
         }
         else if(main_core_timer_flag_x100)
         {
@@ -200,7 +199,7 @@ void __attribute__ ( ( vector(_TIMER_1_VECTOR) , interrupt(IPL7SOFT) ) ) _TIMER1
     IFS0CLR = _IFS0_T1IF_MASK; //Clear T1IF
 
 #ifndef DEBUG_ON
-    if(beep_flag)
+    if(g_beep_flag)
     {
         LATCINV = (1 << 9);
     }

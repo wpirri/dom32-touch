@@ -866,9 +866,9 @@ int HTTPNotificarStatus()
     char tmp_data[MAX_HTTP_DATA+1];
     char tmp_rqst[MAX_HTTP_DATA+1];
     
-
-
-
+    /* Parte fija con la MAC y las entradas y salidas */
+    snprintf(tmp_data, MAX_HTTP_DATA,
+        "ID=%s&TYP=TOUCH", g_wifi_info.status.hw_mac);
     
     /* Version del stack AT del ESP-02 */
     if((MAX_HTTP_DATA - strlen(tmp_data) > sizeof(g_wifi_info.status.wifi_at)))

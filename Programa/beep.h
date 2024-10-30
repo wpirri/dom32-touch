@@ -18,6 +18,12 @@
 #ifndef _BEEP_H_
 #define	_BEEP_H_
 
+#ifdef _ON_BEEP_C_
+    unsigned int g_beep_flag;
+#else
+    extern unsigned int g_beep_flag;
+#endif
+
 void InitBeep( void );
 
 void Beep(int count);
