@@ -71,13 +71,10 @@
 #include "delay.h"
 #include "sd/fsio.h"
 #include "display/display.h"
-#include "boton.h"
 #include "wifi.h"
 #include "http.h"
 #include "control.h"
 #include "rtcc.h"
-
-#define SLEEP_TIMER 30
 
 volatile bool main_core_timer_flag;
 volatile bool main_core_timer_flag_x10;
@@ -87,23 +84,12 @@ volatile unsigned char main_core_timer_count_x100;
 volatile bool main_core_timer_flag_x1000;
 volatile unsigned char main_core_timer_count_x1000;
 
-void TouchTask( void );
-void BotonPressed(const char* name);
-
-void Pagina1(void);
-void Pagina2(void);
-void Pagina3(void);
-void Pagina4(void);
-
 bool sd_ok;
 bool display_ok;
-unsigned int sleep_count;
 unsigned int beep_flag;
 
 int main(void)
 {
-    int i;
-    
     main_core_timer_flag = false;
     main_core_timer_flag_x10 = false;
     main_core_timer_count_x10 = 0;
@@ -112,7 +98,6 @@ int main(void)
     main_core_timer_flag_x1000 = false;
     main_core_timer_count_x1000 = 0;
     sd_ok = false;
-    sleep_count = 0;
     beep_flag = 0;
     
     ConfigInit();
@@ -135,21 +120,11 @@ int main(void)
         Log("[sd] Init Error");
     }
 
-    for(i = 0; i < DISPLAY_X_SIZE; i++)
-    {
-        DrawLineV(i, DISPLAY_Y_SIZE-5, 5, ORANGE);
-        Delayms(10);
-    }
-    Delayms(1000);
-    
     Log("[main] Init Ok");
-    Pagina1();
-    
     while(1)
     {
         CLRWDT();
         
-        TouchTask();
         WiFiTask();
         HTTPTask();
         CTRLTask();
@@ -175,14 +150,6 @@ int main(void)
             main_core_timer_flag_x100 = false;
             /* 1000ms / 1/s */
             
-            if(sleep_count < SLEEP_TIMER)
-            {
-                sleep_count++;
-                if(sleep_count == SLEEP_TIMER)
-                {
-                    DisplaySleep(1);
-                }
-            }
             
         }
         else if(main_core_timer_flag_x1000)
@@ -238,74 +205,5 @@ void __attribute__ ( ( vector(_TIMER_1_VECTOR) , interrupt(IPL7SOFT) ) ) _TIMER1
         LATCINV = (1 << 9);
     }
 #endif /* DEBUG_ON */
-}
-
-
-void BotonPressed(const char* cmd)
-{
-    Log("[BotonPressed] CMD: %s", cmd);
-}
-
-void TouchTask( void )
-{
-    static unsigned int touch_pressed = 0;
-    unsigned int touch_x, touch_y;
-
-    if(TouchIsPressed( &touch_x, &touch_y, NULL ))
-    {
-        if( !touch_pressed)
-        {
-            touch_pressed = 1;
-
-            if(sleep_count < SLEEP_TIMER)
-            {
-                Log("[TOUCH] X: %u y: %u", Touch2DisplayX(touch_x), Touch2DisplayY(touch_y));
-                if(BotonTask( Touch2DisplayX(touch_x), Touch2DisplayY(touch_y) ))
-                {
-                    touch_pressed = 1000;
-                }
-            }
-            else
-            {
-                DisplaySleep(0);
-                touch_pressed = 1000;
-            }
-        }
-        sleep_count = 0;
-        beep_flag = 1;
-    }
-    else
-    {
-        if(touch_pressed) touch_pressed--;
-        beep_flag = 0;
-    }
-}
-
-void Pagina1(void)
-{
-    Clear(0);
-    InitBotones(BotonPressed);
-
-    BotonAdd(  "Comedor", "LUZ_COMEDOR", 20,  10, 200, 70, RGB(0,150,0), GREEN, WHITE, "lamp1.bmp");
-    BotonAdd(  "Living",  "LUZ_LIVING",  20,  90, 200, 70, RGB(0,150,0), GREEN, WHITE, "lamp1.bmp");
-    BotonAdd(  "Pasillo",  "LUZ_PORCHE",  20, 170, 200, 70, RGB(0,150,0), GREEN, WHITE, "lamp1.bmp");
-    BotonAdd(  "Menu",    "MENU_1",      20, 250, 200, 70, RGB(0,0,150), BLUE, WHITE, NULL);
-    
-    BotonDraw();
-}
-
-void Pagina2(void)
-{
-    
-}
-
-void Pagina3(void)
-{
-    
-}
-
-void Pagina4(void)
-{
-    
 }
 

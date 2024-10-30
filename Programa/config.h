@@ -23,6 +23,7 @@
 
 #define DEBUG_ON
 //#define DEBUG_WIFI
+#define SLEEP_TIMER 30
 
 // Clock frequency values
 #define _XTAL_FREQ  24000000UL             // Hz

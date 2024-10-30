@@ -29,11 +29,36 @@
 #include "http.h"
 #include "log.h"
 #include "rtcc.h"
+#include "display/display.h"
+#include "boton.h"
+
+typedef enum
+{
+    INVALID = 0,
+    ON_LOAD,
+    WAIT_CONFIG,
+    CONFIG,
+    SHOW_PAGE,
+    SCREEN_SAVER,
+    LOOP,
+    ON_TOUCH,
+    ERROR
+} control_stm;
 
 unsigned int g_control_notificar;
 unsigned int g_control_init_complete;
 unsigned int g_control_update_firmware;
 unsigned int g_ctrl_count_reset;
+control_stm g_ctrl_stm;
+unsigned int g_ctrl_stm_delay;
+
+void TouchTask( void );
+void BotonPressed(const char* name);
+
+void Pagina1(void);
+void Pagina2(void);
+void Pagina3(void);
+void Pagina4(void);
 
 void CTRLNotificarStatus( int time )
 {
@@ -52,6 +77,8 @@ void CTRLInit( void )
     g_control_init_complete = 0;
     g_control_update_firmware = 0;
     g_ctrl_count_reset = 0;
+    g_ctrl_stm = INVALID;
+    g_ctrl_stm_delay = 0;
     
 /* Primer notificacion */
     CTRLNotificarStatus(100);
@@ -59,7 +86,76 @@ void CTRLInit( void )
 
 void CTRLTask( void )
 {
+    static int x = 0;
     
+    if(g_ctrl_stm_delay) return;
+    switch(g_ctrl_stm)
+    {
+        case INVALID:
+            x = 0;
+            if(g_wifi_info.status.wifi_ok)
+            {
+                g_ctrl_stm++;
+            }
+            break;
+        case ON_LOAD:
+            if(x < DISPLAY_X_SIZE)
+            {
+                DrawLineV(x, DISPLAY_Y_SIZE-5, 5, ORANGE);
+                x++;
+                g_ctrl_stm_delay = 1;
+            }
+            else
+            {
+                g_ctrl_stm_delay = 10;
+                g_ctrl_stm++;
+            }
+            break;
+        case WAIT_CONFIG:
+            if(g_wifi_info.status.wifi_mode == 1)
+            {
+                g_ctrl_stm = SHOW_PAGE;
+            }
+            else if(g_wifi_info.status.wifi_mode == 3)
+            {
+                g_ctrl_stm = CONFIG;
+            }
+            else
+            {
+                Clear( BLACK );
+                DrawText("Iniciando", CENTER, DISPLAY_Y_SIZE/2, 1, WHITE, BLACK);
+                g_ctrl_stm_delay = 10;
+            }
+            break;
+        case CONFIG:
+            if(g_wifi_info.status.wifi_mode == 1)
+            {
+                g_ctrl_stm = SHOW_PAGE;
+            }
+            else
+            {
+                Clear( BLACK );
+                DrawText("Configurando", CENTER, DISPLAY_Y_SIZE/2, 1, WHITE, BLACK);
+                g_ctrl_stm_delay = 10;
+            }
+            break;
+        case SHOW_PAGE:
+            Pagina1();
+            g_ctrl_stm++;
+            break;
+        case LOOP:
+            TouchTask();
+            break;
+        case SCREEN_SAVER:
+
+            break;
+        case ON_TOUCH:
+
+            break;
+        case ERROR:
+        default:
+            break;
+    }
 }
 
 /* Se llama 10 veces por segundo - 100ms */
@@ -128,6 +224,7 @@ void CTRLTimer( void )
         }
     }
     
+    if(g_ctrl_stm_delay) g_ctrl_stm_delay--;
 }
 
 void CTRLConfSys(char* in)
@@ -212,3 +309,65 @@ void CTRLReset( void )
     Log("[CTRL] RESET solicitado.");
     g_ctrl_count_reset = 100;
 }
+
+
+
+
+
+void BotonPressed(const char* cmd)
+{
+    Log("[BotonPressed] CMD: %s", cmd);
+}
+
+void TouchTask( void )
+{
+    static unsigned int touch_pressed = 0;
+    unsigned int touch_x, touch_y;
+
+    if(TouchIsPressed( &touch_x, &touch_y, NULL ))
+    {
+        if( !touch_pressed)
+        {
+            touch_pressed = 1;
+
+            Log("[TOUCH] X: %u y: %u", Touch2DisplayX(touch_x), Touch2DisplayY(touch_y));
+            if(BotonTask( Touch2DisplayX(touch_x), Touch2DisplayY(touch_y) ))
+            {
+                touch_pressed = 1000;
+            }
+        }
+    }
+    else
+    {
+        if(touch_pressed) touch_pressed--;
+    }
+}
+
+void Pagina1(void)
+{
+    Clear(0);
+    InitBotones(BotonPressed);
+
+    BotonAdd(  "Comedor", "LUZ_COMEDOR", 20,  10, 200, 70, RGB(0,150,0), GREEN, WHITE, "lamp1.bmp");
+    BotonAdd(  "Living",  "LUZ_LIVING",  20,  90, 200, 70, RGB(0,150,0), GREEN, WHITE, "lamp1.bmp");
+    BotonAdd(  "Pasillo",  "LUZ_PORCHE",  20, 170, 200, 70, RGB(0,150,0), GREEN, WHITE, "lamp1.bmp");
+    BotonAdd(  "Menu",    "MENU_1",      20, 250, 200, 70, RGB(0,0,150), BLUE, WHITE, NULL);
+    
+    BotonDraw();
+}
+
+void Pagina2(void)
+{
+    
+}
+
+void Pagina3(void)
+{
+    
+}
+
+void Pagina4(void)
+{
+    
+}
+
