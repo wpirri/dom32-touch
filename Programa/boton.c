@@ -20,6 +20,7 @@
 #include <string.h>
 
 #include "display/display.h"
+#include "sd/fsio.h"
 #include "bitmap.h"
 #include "log.h"
 
@@ -31,7 +32,7 @@
 typedef struct _BOTON
 {
     char name[32];
-    char cmd[32];
+    char cmd[64];
     unsigned int x;
     unsigned int y;
     unsigned int w;
@@ -39,7 +40,7 @@ typedef struct _BOTON
     unsigned int f_color;
     unsigned int b_color;
     unsigned int n_color;
-    char icon[13];
+    char icon[FILE_NAME_SIZE+1];
 } BOTON;
 
 BOTON array_botones[MAX_BOTONES];
@@ -87,7 +88,14 @@ void BotonAdd(  const char *name, const char *cmd,
             array_botones[i].f_color = f_color;
             array_botones[i].b_color = b_color;
             array_botones[i].n_color = n_color;
-            if(icon_file) strcpy(array_botones[i].icon, icon_file);
+            if(icon_file)
+            {
+                if(*icon_file)
+                {
+                    strcpy(array_botones[i].icon, icon_file);
+                }
+                else array_botones[i].icon[0] = 0;
+            }
             else array_botones[i].icon[0] = 0;
             break;
         }

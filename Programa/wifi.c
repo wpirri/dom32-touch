@@ -853,6 +853,7 @@ int WifiTaskSTMode( void )
                 g_wifi_task_stm_step++;
                 g_wifi_task_stm_delay = 0;
                 g_wifi_task_stm_timeout = 0;
+                g_wifi_info.status.wifi_ok = true;
             }
             else if(g_wifi_task_stm_timeout == 0)
             {
@@ -1448,7 +1449,7 @@ void WiFiInit( void )
     g_wifi_need_upgrade = false;
     g_wifi_send_error_count = 0;
     g_wifi_recv_error_count = 0;
-    g_wifi_fast_start = false;
+    g_wifi_fast_start = true/*false*/;
 
     /* ********************************************************************* */
     /* Configuración de los pines */

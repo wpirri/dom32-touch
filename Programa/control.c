@@ -30,14 +30,14 @@
 #include "log.h"
 #include "rtcc.h"
 #include "display/display.h"
+#include "sd/fsio.h"
 #include "boton.h"
+#include "strfunc.h"
 
 typedef enum
 {
     INVALID = 0,
     ON_LOAD,
-    WAIT_CONFIG,
-    CONFIG,
     SHOW_PAGE,
     SCREEN_SAVER,
     LOOP,
@@ -51,14 +51,11 @@ unsigned int g_control_update_firmware;
 unsigned int g_ctrl_count_reset;
 control_stm g_ctrl_stm;
 unsigned int g_ctrl_stm_delay;
+char g_show_filename[FILE_NAME_SIZE+1];
 
+void ShowScreen(const char* filename);
 void TouchTask( void );
 void BotonPressed(const char* name);
-
-void Pagina1(void);
-void Pagina2(void);
-void Pagina3(void);
-void Pagina4(void);
 
 void CTRLNotificarStatus( int time )
 {
@@ -79,6 +76,7 @@ void CTRLInit( void )
     g_ctrl_count_reset = 0;
     g_ctrl_stm = INVALID;
     g_ctrl_stm_delay = 0;
+    strcpy(g_show_filename, "home.csv");
     
 /* Primer notificacion */
     CTRLNotificarStatus(100);
@@ -111,36 +109,8 @@ void CTRLTask( void )
                 g_ctrl_stm++;
             }
             break;
-        case WAIT_CONFIG:
-            if(g_wifi_info.status.wifi_mode == 1)
-            {
-                g_ctrl_stm = SHOW_PAGE;
-            }
-            else if(g_wifi_info.status.wifi_mode == 3)
-            {
-                g_ctrl_stm = CONFIG;
-            }
-            else
-            {
-                Clear( BLACK );
-                DrawText("Iniciando", CENTER, DISPLAY_Y_SIZE/2, 1, WHITE, BLACK);
-                g_ctrl_stm_delay = 10;
-            }
-            break;
-        case CONFIG:
-            if(g_wifi_info.status.wifi_mode == 1)
-            {
-                g_ctrl_stm = SHOW_PAGE;
-            }
-            else
-            {
-                Clear( BLACK );
-                DrawText("Configurando", CENTER, DISPLAY_Y_SIZE/2, 1, WHITE, BLACK);
-                g_ctrl_stm_delay = 10;
-            }
-            break;
         case SHOW_PAGE:
-            Pagina1();
+            ShowScreen(g_show_filename);
             g_ctrl_stm++;
             break;
         case LOOP:
@@ -343,31 +313,79 @@ void TouchTask( void )
     }
 }
 
-void Pagina1(void)
+#define MAX_LINE_LEN 255
+
+void ShowScreen(const char* filename)
 {
+    FSFILE* f;
+    int rc;
+    char line[MAX_LINE_LEN+1];
+    unsigned int line_len;
+    char str_tmp[256];
+    
+    char btn_name[32];
+    char btn_cmd[64];
+    int btn_x;
+    int btn_y;
+    int btn_w;
+    int btn_h;
+    int btn_color_f;
+    int btn_color_b;
+    int btn_color_n;
+    char btn_icono[FILE_NAME_SIZE+1];
+
     Clear(0);
     InitBotones(BotonPressed);
 
-    BotonAdd(  "Comedor", "LUZ_COMEDOR", 20,  10, 200, 70, RGB(0,150,0), GREEN, WHITE, "lamp1.bmp");
-    BotonAdd(  "Living",  "LUZ_LIVING",  20,  90, 200, 70, RGB(0,150,0), GREEN, WHITE, "lamp1.bmp");
-    BotonAdd(  "Pasillo",  "LUZ_PORCHE",  20, 170, 200, 70, RGB(0,150,0), GREEN, WHITE, "lamp1.bmp");
-    BotonAdd(  "Menu",    "MENU_1",      20, 250, 200, 70, RGB(0,0,150), BLUE, WHITE, NULL);
-    
+    Log("[ShowScreen] Cargando: %s", filename);
+    f = FSfopen(filename, FS_READ);
+    if(f)
+    {
+        do {
+            /* Leo una línea */
+            line_len = 0;
+            do {
+                rc = FSfread(&line[line_len++], 1, 1, f);
+            } while(line[line_len-1] != 0x0d && line[line_len-1] != 0x0a && line_len < MAX_LINE_LEN && rc == 1);
+            line[--line_len] = 0;
+            Log("[ShowScreen] len: %u", line_len);
+            Log("[ShowScreen] line: %.80s", line);
+            if(line_len > 0 && line[0] != '#')
+            {
+                /* Analizo la línea */
+                if( !memcmp(line, "BOTON1", 6) )
+                {
+                    /* Boton con texto y con o sin icono */
+                    if(str_section(line, ',', 1, btn_name) == 0) break;
+                    if(str_section(line, ',', 2, btn_cmd) == 0) break;
+                    if(str_section(line, ',', 3, str_tmp) == 0) break;
+                    btn_x = atoi(str_tmp);
+                    if(str_section(line, ',', 4, str_tmp) == 0) break;
+                    btn_y = atoi(str_tmp);
+                    if(str_section(line, ',', 5, str_tmp) == 0) break;
+                    btn_w = atoi(str_tmp);
+                    if(str_section(line, ',', 6, str_tmp) == 0) break;
+                    btn_h = atoi(str_tmp);
+                    if(str_section(line, ',', 7, str_tmp) == 0) break;
+                    btn_color_f = atoi(str_tmp);
+                    if(str_section(line, ',', 8, str_tmp) == 0) break;
+                    btn_color_b = atoi(str_tmp);
+                    if(str_section(line, ',', 9, str_tmp) == 0) break;
+                    btn_color_n = atoi(str_tmp);
+                    if(str_section(line, ',', 10, btn_icono) == 0)
+                    {
+                        btn_icono[0] = 0;
+                    }
+                    BotonAdd(btn_name,
+                            btn_cmd,
+                            btn_x,btn_y,btn_w,btn_h, 
+                            btn_color_f, btn_color_b, btn_color_n,
+                            ((strlen(btn_icono))?btn_icono: NULL) );
+                }
+            }
+        } while(rc == 1);
+        FSfclose(f);
+    }
     BotonDraw();
-}
-
-void Pagina2(void)
-{
     
 }
-
-void Pagina3(void)
-{
-    
-}
-
-void Pagina4(void)
-{
-    
-}
-

@@ -37,9 +37,7 @@ int str_section(char *in, char sep, unsigned int count, char *out)
     }
     if(*p == 0 || count) return 0;
     /* p apunta al inicio del campo, copio hasta el final */
-    while(*p && ( (*p >= '0' && *p <= '9') || 
-                  (*p >= 'a' && *p <= 'z') || 
-                  (*p >= 'A' && *p <= 'Z')  ) && *p != sep )
+    while(*p && (*p >= 32 && *p <= 126) && *p != sep )
     {
         *out = *p;
         p++;
