@@ -38,6 +38,8 @@
 #include "boton.h"
 #include "bitmap.h"
 
+#define TOUCH_DELAY 100
+
 typedef enum
 {
     INIT = 0,
@@ -308,25 +310,34 @@ void BotonPressed(const char* cmd)
 
 void TouchTask( void )
 {
-    static unsigned int touch_pressed = 0;
+    static bool touch_pressed = false;
+    static unsigned int touch_counter = 0;
     unsigned int touch_x, touch_y;
 
     if(TouchIsPressed( &touch_x, &touch_y, NULL ))
     {
-        if( !touch_pressed)
+        if(touch_counter < TOUCH_DELAY)
         {
-            touch_pressed = 1;
-
-            Log("[TOUCH] X: %u y: %u", Touch2DisplayX(touch_x), Touch2DisplayY(touch_y));
-            if(BotonTask( Touch2DisplayX(touch_x), Touch2DisplayY(touch_y) ))
+            touch_counter++;
+            
+            if(touch_counter == TOUCH_DELAY && !touch_pressed)
             {
-                touch_pressed = 1000;
+                touch_pressed = true;
+                Log("[TOUCH] X: %u y: %u", touch_x, touch_y);
+                BotonTask(touch_x, touch_y);
             }
         }
     }
     else
     {
-        if(touch_pressed) touch_pressed--;
+        if(touch_counter)
+        {
+            touch_counter--;
+            if(touch_counter == 0)
+            {
+                touch_pressed = false;
+            }
+        }
     }
 }
 

@@ -37,7 +37,16 @@
 #define TOUCH_YM        LATBbits.LATB7
 #define TOUCH_YM_TRIS   TRISBbits.TRISB7
 
-#define MUESTREOS_ADC       5
+#define TOUCH_MIN_X     200
+#define TOUCH_MAX_X     880
+#define TOUCH_MIN_Y     130
+#define TOUCH_MAX_Y     920
+
+#define R_XP_XM         250
+#define MUESTREOS_ADC   5
+#define MIN_Z           10
+#define MAX_Z           1024
+
 
 #define swap(a, b) { int t = a; a = b; b = t; }
 
@@ -45,12 +54,42 @@ unsigned int ReadADCChannel(unsigned int channel);
 
 unsigned int ReadTouchX();
 unsigned int ReadTouchY();
-unsigned int ReadTouchPressure();
+unsigned int ReadTouchPressure(unsigned int x);
 
 unsigned int touch_max_x;
 unsigned int touch_min_x;
 unsigned int touch_max_y;
 unsigned int touch_min_y;
+
+unsigned int Touch2DisplayX(unsigned int xt)
+{
+    if(xt > touch_max_x) 
+    {
+        touch_max_x = xt;
+    }
+
+    if(xt < touch_min_x) 
+    {
+        touch_min_x = xt;
+    }
+
+    return ((xt-touch_min_x)*DISPLAY_X_SIZE/(touch_max_x-touch_min_x));
+}
+
+unsigned int Touch2DisplayY(unsigned int yt)
+{
+    if(yt > touch_max_y) 
+    {
+        touch_max_y = yt;
+    }
+
+    if(yt < touch_min_y) 
+    {
+        touch_min_y = yt;
+    }
+
+    return DISPLAY_Y_SIZE - ((yt-touch_min_y)*DISPLAY_Y_SIZE/(touch_max_y-touch_min_y));
+}
 
 void TouchInit( void )
 {
@@ -82,17 +121,17 @@ bool TouchIsPressed( unsigned int *x, unsigned int *y, unsigned int *z )
     yp_tris = TOUCH_YP_TRIS;
     ym_tris = TOUCH_YM_TRIS;
 
-    // Leo analog YP (AN5)
-    yp = ReadTouchY();
     // Leo analog XM (AN6)
     xm = ReadTouchX();
+    // Leo analog YP (AN5)
+    yp = ReadTouchY();
     //
-    zz = ReadTouchPressure();
+    zz = ReadTouchPressure(xm);
 
     //Log("[TouchIsPressed] X: %u Y: %u Z: %u", xm, yp, zz);
 
-    if(y) *y = yp;
-    if(x) *x = xm;
+    if(y) *y = Touch2DisplayY(yp);
+    if(x) *x = Touch2DisplayX(xm);
     if(z) *z = zz;   
 
     /* Devuelvo todo a su estado anterior */
@@ -103,7 +142,7 @@ bool TouchIsPressed( unsigned int *x, unsigned int *y, unsigned int *z )
     TOUCH_YP_TRIS = yp_tris;
     TOUCH_YM_TRIS = ym_tris;
     
-    return (zz < 1000);
+    return (zz > MIN_Z && zz < MAX_Z);
 }
 
 unsigned int ReadADCChannel(unsigned int channel)
@@ -138,6 +177,7 @@ unsigned int ReadADCChannel(unsigned int channel)
     // Turn off the ADC
     AD1CON1bits.ON = 0;
     
+#if (MUESTREOS_ADC > 2)
     /* Ordeno */
     for(i = 0; i < (MUESTREOS_ADC-1); i++)
     {
@@ -153,26 +193,19 @@ unsigned int ReadADCChannel(unsigned int channel)
     //        muestras[0],muestras[1],muestras[2],muestras[3],muestras[4]);
     /* Devuelvo el del medio */
     return muestras[MUESTREOS_ADC/2];
+#else
+    if(muestras[0] == muestras[0])
+    {
+        return muestras[0];
+    }
+    else
+    {
+        return 0;
+    }
+#endif
 }
 
 unsigned int ReadTouchX()
-{
-    TOUCH_YP_TRIS = 0;
-    TOUCH_YM_TRIS = 0;
-    TOUCH_XP_TRIS = 1;
-    TOUCH_XM_TRIS = 1;
-
-    TOUCH_YP_ANA = 0;
-    TOUCH_XM_ANA = 1;
-
-    TOUCH_YP = 1;
-    TOUCH_YM = 0;
-    
-    // Leo analog XM (AN6)
-    return ReadADCChannel(6);
-}
-
-unsigned int ReadTouchY()
 {
     TOUCH_YP_TRIS = 1;
     TOUCH_YM_TRIS = 1;
@@ -184,71 +217,52 @@ unsigned int ReadTouchY()
 
     TOUCH_XP = 1;
     TOUCH_XM = 0;
-
+    
     // Leo analog YP (AN5)
-    return ReadADCChannel(5);
+    return (1023 - ReadADCChannel(5));
 }
 
-unsigned int ReadTouchPressure()
+unsigned int ReadTouchY()
+{
+    TOUCH_YP_TRIS = 0;
+    TOUCH_YM_TRIS = 0;
+    TOUCH_XP_TRIS = 1;
+    TOUCH_XM_TRIS = 1;
+
+    TOUCH_YP_ANA = 1;
+    TOUCH_XM_ANA = 0;
+
+    TOUCH_YP = 1;
+    TOUCH_YM = 0;
+
+    // Leo analog XM (AN6)
+    return (1023 - ReadADCChannel(6));
+}
+
+unsigned int ReadTouchPressure(unsigned int x)
 {
     unsigned long z0;
     unsigned int z1, z2;
-    
-    TOUCH_XP_TRIS = 0;
-    TOUCH_XP = 0;
+
+    TOUCH_YP_TRIS = 1;
     TOUCH_YM_TRIS = 0;
+    TOUCH_XP_TRIS = 0;
+    TOUCH_XM_TRIS = 1;
+
+    TOUCH_XM_ANA = 1;
+    TOUCH_YP_ANA = 1;
+    
+    TOUCH_XP = 0;
     TOUCH_YM = 1;
 
-    TOUCH_XM_TRIS = 1;
-    TOUCH_XM_ANA = 1;
-    TOUCH_YP_TRIS = 1;
-    TOUCH_YP_ANA = 1;
-
-    // Leo analog YP (AN5)
-    z2 = ReadADCChannel(5);
     // Leo analog XM (AN6)
     z1 = ReadADCChannel(6);
+    if(z1 == 0) return 0;
+    // Leo analog YP (AN5)
+    z2 = ReadADCChannel(5);
     
-    if(z1 > 20 && z2 < 1000)
-    {
-        z1 = 1023 - z1;
-        z0 = (z1+z2)/2;
-    }
-    else
-    {
-        z0 = 1023;
-    }
+    z0 = ((z2/z1) - 1) * x * R_XP_XM / 1024;
     
     return (unsigned int)z0;
     
-}
-
-unsigned int Touch2DisplayX(unsigned int xt)
-{
-    if(xt > touch_max_x) 
-    {
-        touch_max_x = xt;
-    }
-
-    if(xt < touch_min_x) 
-    {
-        touch_min_x = xt;
-    }
-
-    return ((xt-touch_min_x)*DISPLAY_X_SIZE/(touch_max_x-touch_min_x));
-}
-
-unsigned int Touch2DisplayY(unsigned int yt)
-{
-    if(yt > touch_max_y) 
-    {
-        touch_max_y = yt;
-    }
-
-    if(yt < touch_min_y) 
-    {
-        touch_min_y = yt;
-    }
-
-    return ((yt-touch_min_y)*DISPLAY_Y_SIZE/(touch_max_y-touch_min_y));
 }
