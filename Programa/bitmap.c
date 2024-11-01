@@ -147,7 +147,8 @@ int DrawBitmapTransparent(const char *filename, unsigned int x0, unsigned int y0
                 {
                     if(bmp.bmih.biBitCount == 24)
                     {
-                        if(b[0] != 0xFF || b[1] != 0xFF || b[2] != 0xFF)
+                        //if(b[0] != 0xFF || b[1] != 0xFF || b[2] != 0xFF)
+                        if(b[0] != 0x00 || b[1] != 0x00 || b[2] != 0x00)
                         {
                             DrawPixel(x0+x, y0+bmp.bmih.biHeight-y, RGB(b[2],b[1],b[0]));
                         }
@@ -159,7 +160,8 @@ int DrawBitmapTransparent(const char *filename, unsigned int x0, unsigned int y0
                 {
                     if(bmp.bmih.biBitCount == 24)
                     {
-                        if(b[0] != 0xFF || b[1] != 0xFF || b[2] != 0xFF)
+                        //if(b[0] != 0xFF || b[1] != 0xFF || b[2] != 0xFF)
+                        if(b[0] != 0x00 || b[1] != 0x00 || b[2] != 0x00)
                         {
                             DrawPixel(x0+x, y0+bmp.bmih.biHeight-y, RGB(b[2],b[1],b[0]));
                         }
