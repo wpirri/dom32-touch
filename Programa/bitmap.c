@@ -78,7 +78,7 @@ typedef struct _color_table
 } color_table;
 #pragma pack(pop)
 
-int DrawBitmap(const char *filename, unsigned int x0, unsigned int y0)
+int DrawBitmapTransparent(const char *filename, unsigned int x0, unsigned int y0)
 {
     FSFILE *f;
     bitmap_header bmp;
@@ -97,23 +97,6 @@ int DrawBitmap(const char *filename, unsigned int x0, unsigned int y0)
             FSfclose(f);
             return (-10);
         }
-
-//        Log("[DrawBitmap] *******************************");
-//        Log("[DrawBitmap] Archivo:          %s", filename);
-//        Log("[DrawBitmap] bfType:           0x%04x", bmp.bmfh.bfType);
-//        Log("[DrawBitmap] bfSize:           0x%08x", bmp.bmfh.bfSize);
-//        Log("[DrawBitmap] bfOffBits:        0x%08x", bmp.bmfh.bfOffBits);
-//        Log("[DrawBitmap] biSize:           0x%08x", bmp.bmih.biSize);
-//        Log("[DrawBitmap] biWidth:          0x%08x", bmp.bmih.biWidth);
-//        Log("[DrawBitmap] biHeight:         0x%08x", bmp.bmih.biHeight);
-//        Log("[DrawBitmap] biPlanes:         0x%04x", bmp.bmih.biPlanes);
-//        Log("[DrawBitmap] biBitCount:       0x%02x", bmp.bmih.biBitCount);
-//        Log("[DrawBitmap] biCompression:    0x%08x", bmp.bmih.biCompression);
-//        Log("[DrawBitmap] biSizeImage:      0x%08x", bmp.bmih.biSizeImage);
-//        Log("[DrawBitmap] biXPelsPerMeter:  0x%08x", bmp.bmih.biXPelsPerMeter);
-//        Log("[DrawBitmap] biYPelsPerMeter:  0x%08x", bmp.bmih.biYPelsPerMeter);
-//        Log("[DrawBitmap] biClrUsed:        0x%08x", bmp.bmih.biClrUsed);
-//        Log("[DrawBitmap] biClrImportant:   0x%08x", bmp.bmih.biClrImportant);
 
         /* mime-type */
         if(bmp.bmfh.bfType != 0x4d42)
@@ -180,6 +163,99 @@ int DrawBitmap(const char *filename, unsigned int x0, unsigned int y0)
                         {
                             DrawPixel(x0+x, y0+bmp.bmih.biHeight-y, RGB(b[2],b[1],b[0]));
                         }
+                    }
+                    /* TODO: bits por pixel <> de 24 */
+                }
+            }
+        }
+        FSfclose(f);
+    }
+    else
+    {
+        Log("[DrawBitmap] Error al abrir %s", filename);
+    }
+    return 0;
+}
+
+int DrawBitmap(const char *filename, unsigned int x0, unsigned int y0)
+{
+    FSFILE *f;
+    bitmap_header bmp;
+    long x, y;
+    unsigned char b[3];
+    
+    Log("[DrawBitmap] X: %u Y: %u file: %s", x0, y0, filename);
+    
+    f = FSfopen(filename, FS_READ);
+    if(f)
+    {
+        /* Leo las dos partes de la cabecera */
+        if(FSfread(&bmp, sizeof(bitmap_header), 1, f) != 1)
+        {
+            Log("[DrawBitmap] Error al leer HEADER de %s", filename);
+            FSfclose(f);
+            return (-10);
+        }
+
+        /* mime-type */
+        if(bmp.bmfh.bfType != 0x4d42)
+        {
+            Log("[DrawBitmap] Archivo %s con formato invalido", filename);
+            FSfclose(f);
+            return (-11);
+        }            
+        /* No soporto compresion */
+        if(bmp.bmih.biCompression != 0)
+        {
+            Log("[DrawBitmap] Compresion %lu no soportada para %s", bmp.bmih.biCompression, filename);
+            FSfclose(f);
+            return (-12);
+        }            
+        /* Soporto solamente 8 y 24 bits por pixel */
+        if(bmp.bmih.biBitCount < 24)
+        {
+            Log("[DrawBitmap] %lu bits por pixel no soportado en %s", bmp.bmih.biBitCount, filename);
+            FSfclose(f);
+            return (-13);
+        }            
+        /* Si está especificado un offset lo uso */
+        if(bmp.bmfh.bfOffBits)
+        {
+            if(FSfseek(f, bmp.bmfh.bfOffBits, SEEK_SET) != 0)
+            {
+                Log("[DrawBitmap] Error al posicionarse en el mapa de bits de %s", filename);
+                FSfclose(f);
+                return (-14);
+            }
+            
+        }
+        /* Leo el bitmap */
+        for(y = 0; y < bmp.bmih.biHeight; y++)
+        {
+            /* Leo una lÃ­nea */
+            for(x = 0; x < bmp.bmih.biWidth; x++)
+            {
+                /* Leo de a un pixel */
+                if(FSfread(&b, bmp.bmih.biBitCount/8, 1, f) != 1)
+                {
+                    Log("[DrawBitmap] Error al leer mapa de bits de %s", filename);
+                    FSfclose(f);
+                    return (-15);
+                }
+                if(bmp.bmfh.bfOffBits)
+                {
+                    if(bmp.bmih.biBitCount == 24)
+                    {
+                        DrawPixel(x0+x, y0+bmp.bmih.biHeight-y, RGB(b[2],b[1],b[0]));
+                    }
+                    /* TODO: Uso paleta de colores */
+                    
+                }
+                else
+                {
+                    if(bmp.bmih.biBitCount == 24)
+                    {
+                        DrawPixel(x0+x, y0+bmp.bmih.biHeight-y, RGB(b[2],b[1],b[0]));
                     }
                     /* TODO: bits por pixel <> de 24 */
                 }

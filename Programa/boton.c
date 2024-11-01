@@ -153,7 +153,7 @@ void BotonDraw( void )
         if(array_botones[i].icon[0])
         {
             icon_offset_y = array_botones[i].y + (array_botones[i].h/2) - (GetBitmapH(array_botones[i].icon)/2);
-            DrawBitmap(array_botones[i].icon, array_botones[i].x + (array_botones[i].h/10), icon_offset_y);
+            DrawBitmapTransparent(array_botones[i].icon, array_botones[i].x + (array_botones[i].h/10), icon_offset_y);
         }
     }
 }

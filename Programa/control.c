@@ -29,18 +29,24 @@
 #include "http.h"
 #include "log.h"
 #include "rtcc.h"
-#include "display/display.h"
-#include "sd/fsio.h"
-#include "boton.h"
 #include "strfunc.h"
+#include "delay.h"
+
+#include "sd/fsio.h"
+
+#include "display/display.h"
+#include "boton.h"
+#include "bitmap.h"
 
 typedef enum
 {
-    INVALID = 0,
+    INIT = 0,
+    SHOW_POWER,
+    WAIT_WIFI,
     ON_LOAD,
     SHOW_PAGE,
-    SCREEN_SAVER,
     LOOP,
+    SCREEN_SAVER,
     ON_TOUCH,
     ERROR
 } control_stm;
@@ -74,7 +80,7 @@ void CTRLInit( void )
     g_control_init_complete = 0;
     g_control_update_firmware = 0;
     g_ctrl_count_reset = 0;
-    g_ctrl_stm = INVALID;
+    g_ctrl_stm = INIT;
     g_ctrl_stm_delay = 0;
     strcpy(g_show_filename, "home.csv");
     
@@ -89,23 +95,34 @@ void CTRLTask( void )
     if(g_ctrl_stm_delay) return;
     switch(g_ctrl_stm)
     {
-        case INVALID:
-            x = 0;
+        case INIT:
+            /* Pantalla negra */
+            Clear(0);
+            g_ctrl_stm++;
+            break;
+        case SHOW_POWER:
+            /* Centro imagen de 100x100 */
+            DrawBitmap("power.bmp", ((DISPLAY_X_SIZE/2)-50), ((DISPLAY_Y_SIZE/2)-50) );
+            g_ctrl_stm++;
+            break;
+        case WAIT_WIFI:
             if(g_wifi_info.status.wifi_ok)
             {
+                x = 0;
                 g_ctrl_stm++;
             }
             break;
         case ON_LOAD:
             if(x < DISPLAY_X_SIZE)
             {
+                /* Linea de progreso falsa */
                 DrawLineV(x, DISPLAY_Y_SIZE-5, 5, ORANGE);
                 x++;
-                g_ctrl_stm_delay = 1;
+                Delayms(10);
             }
             else
             {
-                g_ctrl_stm_delay = 10;
+                g_ctrl_stm_delay = 25;
                 g_ctrl_stm++;
             }
             break;
@@ -348,8 +365,6 @@ void ShowScreen(const char* filename)
                 rc = FSfread(&line[line_len++], 1, 1, f);
             } while(line[line_len-1] != 0x0d && line[line_len-1] != 0x0a && line_len < MAX_LINE_LEN && rc == 1);
             line[--line_len] = 0;
-            Log("[ShowScreen] len: %u", line_len);
-            Log("[ShowScreen] line: %.80s", line);
             if(line_len > 0 && line[0] != '#')
             {
                 /* Analizo la línea */

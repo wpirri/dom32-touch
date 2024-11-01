@@ -19,6 +19,8 @@
 #define	_BITMAP_H_
 
 int DrawBitmap(const char *filename, unsigned int x0, unsigned int y0);
+int DrawBitmapTransparent(const char *filename, 
+                            unsigned int x0, unsigned int y0);
 unsigned int GetBitmapW(const char *filename);
 unsigned int GetBitmapH(const char *filename);
 
