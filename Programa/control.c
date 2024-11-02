@@ -45,7 +45,6 @@ typedef enum
     INIT = 0,
     SHOW_POWER,
     WAIT_WIFI,
-    ON_LOAD,
     SHOW_PAGE,
     LOOP,
     SCREEN_SAVER,
@@ -107,28 +106,26 @@ void CTRLTask( void )
         case SHOW_POWER:
             /* Centro imagen de 100x100 */
             DrawBitmap("power.bmp", ((DISPLAY_X_SIZE/2)-50), ((DISPLAY_Y_SIZE/2)-50) );
+            x = 0;
             g_ctrl_stm++;
             break;
         case WAIT_WIFI:
             if(g_wifi_info.status.wifi_ok)
             {
-                x = 0;
                 g_ctrl_stm++;
             }
-            break;
-        case ON_LOAD:
-            if(x < DISPLAY_X_SIZE)
+            else if(x < DISPLAY_X_SIZE)
             {
                 /* Linea de progreso falsa */
-                DrawLineV(x, DISPLAY_Y_SIZE-5, 5, ORANGE);
+                DrawLineV(x, DISPLAY_Y_SIZE-5, 5, BLUE);
                 x++;
-                Delayms(10);
+                g_ctrl_stm_delay = 1;
             }
             else
             {
-                g_ctrl_stm_delay = 25;
-                g_ctrl_stm++;
+                g_ctrl_stm = ERROR;
             }
+
             break;
         case SHOW_PAGE:
             ShowScreen(g_show_filename);
@@ -145,6 +142,8 @@ void CTRLTask( void )
             break;
         case ERROR:
         default:
+            Clear(0);
+            DrawText("Error", CENTER, DISPLAY_Y_SIZE/2, 4, RED, BLACK);
             break;
     }
 }
@@ -345,11 +344,11 @@ void BotonPressed(const char* cmd)
     }
     else if( !memcmp(cmd, "RESET", 5))
     {
-
+        CTRLReset();
     }
     else if( !memcmp(cmd, "UPGRADE", 7))
     {
-
+        g_control_update_firmware = 300;
     }
     else if( !memcmp(cmd, "SWITCH:", 7))
     {

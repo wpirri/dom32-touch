@@ -410,7 +410,12 @@ int WifiCheckUnsol( void )
         {
             if( g_wifi_read_line_buffer_index == WIFI_READ_LINE_BUFFER_LEN)
             {
-                HTTPInitTmpFile(g_wifi_read_line_buffer, WIFI_READ_LINE_BUFFER_LEN);
+                /* Si el buffer está lleno debe ser un download */
+                if(HTTPInitTmpFile(g_wifi_read_line_buffer, WIFI_READ_LINE_BUFFER_LEN) < 0)
+                {
+                    /* No había download pendiente */
+                    Log("[WifiCheckUnsol] HTTP input overflow: %-.100s", g_wifi_read_line_buffer);
+                }
             }
             else
             {

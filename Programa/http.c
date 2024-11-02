@@ -96,7 +96,7 @@ int HTTPGetFile(const char* filename, const char* params)
     snprintf(tmp_rqst, MAX_HTTP_DATA, http_get,
              tmp_uri,
              g_wifi_host);
-    if(HTTPAddOutput(tmp_uri, tmp_rqst, 250) <= 0)
+    if(HTTPAddOutput(tmp_uri, true, tmp_rqst, 250) <= 0)
     {
         /* No fue posible enviar */
         return 0;
@@ -108,6 +108,8 @@ int HTTPInitTmpFile(const char* buffer, int len)
 {
     FSFILE* f;
     int rc = (-1);
+
+    if( !http_buffer_output.download) return (-1);
 
     Log("[HTTPInitTmpFile] %-.20s (%d)", buffer, len);
     f = FSfopen(DOWNLOAD_TEMP_FILE_NAME, FS_WRITE);
@@ -124,6 +126,8 @@ int HTTPAddTmpFile(const char* buffer, int len)
     FSFILE* f;
     int rc = (-1);
 
+    if( !http_buffer_output.download) return (-1);
+    
     //Log("[HTTPAddTmpFile] %-.20s (%d)", buffer, len);
     f = FSfopen(DOWNLOAD_TEMP_FILE_NAME, FS_APPEND);
     if(f)
@@ -575,10 +579,7 @@ void HTTPTask( void )
             }
             else
             {
-                
-                
-                
-                
+                strncpy(http_buffer_response.data, http_404, MAX_HTTP_DATA);
             }
         }
         else if( !strcmp(http_buffer_input.uri, "/config.htm"))
@@ -793,7 +794,7 @@ int HTTPAddInput(int id, const char* buffer)
     return 0;
 }
     
-int HTTPAddOutput(const char* filename, const char* buffer, unsigned int to_cs)
+int HTTPAddOutput(const char* filename, bool download, const char* buffer, unsigned int to_cs)
 {
     int i;
     
@@ -808,6 +809,7 @@ int HTTPAddOutput(const char* filename, const char* buffer, unsigned int to_cs)
     http_buffer_output.timeout = to_cs;
     http_buffer_output.type = *buffer;
     http_buffer_output.id = 0;
+    http_buffer_output.download = (download)?1:0;
     /* Saco HttpDecodeFormData cuando genero un mensaje saliente porque
      * necesito que estén las secuencias de escape
     if(HttpDecodeFormData(http_buffer_output.data, buffer, MAX_HTTP_DATA) <= 0)
@@ -915,42 +917,12 @@ int HTTPNotificarStatus()
 
     Log("[HTTPNotificarStatus] - data-len: %d", strlen(tmp_rqst));
 
-    if(HTTPAddOutput(tmp_uri, tmp_rqst, 250) <= 0)
+    if(HTTPAddOutput(tmp_uri, false, tmp_rqst, 250) <= 0)
     {
         /* No fue posible enviar */
         return 0;
     }
     
-    return strlen(tmp_rqst);
-}
-
-int HTTPNotificarTarjeta( const char *crd)
-{
-    char tmp_uri[MAX_HTTP_URI+1];
-    char tmp_data[MAX_HTTP_DATA+1];
-    char tmp_rqst[MAX_HTTP_DATA+1];
-
-    Log("[HTTPNotificarTarjeta] %s", crd);
-
-    snprintf(tmp_data, MAX_HTTP_DATA, "ID=%s&TYP=IO&CARD=%s", g_wifi_info.status.hw_mac, crd);
-    snprintf(tmp_uri, MAX_HTTP_URI, "%s/infoio.cgi", g_wifi_info.f.config.rqst_path);
-
-    /* POST
-     * 1.- %s: URI
-     * 2.- %s: Host
-     * 3.- %d: Content-Length
-     * 4.- %s: datos
-     */
-    snprintf(tmp_rqst, MAX_HTTP_DATA, http_post,
-            tmp_uri,
-            g_wifi_host,
-            strlen(tmp_data),
-            tmp_data);
-    if(HTTPAddOutput(tmp_uri, tmp_rqst, 250) <= 0)
-    {
-        /* No fue posible enviar */
-        return 0;
-    }
     return strlen(tmp_rqst);
 }
 
@@ -977,7 +949,7 @@ int HTTPCommandSwitch( const char *obj_name )
     snprintf(tmp_rqst, MAX_HTTP_DATA, http_get,
              tmp_uri,
              g_wifi_host);
-    if(HTTPAddOutput(tmp_uri, tmp_rqst, 250) <= 0)
+    if(HTTPAddOutput(tmp_uri, false, tmp_rqst, 250) <= 0)
     {
         /* No fue posible enviar */
         return 0;
