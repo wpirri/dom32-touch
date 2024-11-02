@@ -48,3 +48,40 @@ int str_section(char *in, char sep, unsigned int count, char *out)
     return len;
 }
 
+int url_encode(char *in, char* out)
+{
+    char str[1024];
+    char *p;
+    
+    if(in == NULL || out == NULL) return (-1);
+    
+    p = &str[0];
+    
+    while(*in)
+    {
+        if(*in == ' ')
+        {
+            *p = '%';
+            p++;
+            *p = '2';
+            p++;
+            *p = '0';
+        }
+        else
+        {
+            *p = *in;
+        }
+        in++;
+        p++;
+    }
+    *p = 0;
+    
+    p = &str[0];
+    while(*p)
+    {
+        *out++ = *p++;
+    }
+    *out = 0;
+    
+    return (int)(p - &str[0]);
+}

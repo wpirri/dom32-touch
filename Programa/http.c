@@ -28,6 +28,7 @@
 #include "log.h"
 #include "sd/fsio.h"
 #include "control.h"
+#include "strfunc.h"
 
 #define DOWNLOAD_TEMP_FILE_NAME "download.tmp"
 
@@ -807,12 +808,16 @@ int HTTPAddOutput(const char* filename, const char* buffer, unsigned int to_cs)
     http_buffer_output.timeout = to_cs;
     http_buffer_output.type = *buffer;
     http_buffer_output.id = 0;
+    /* Saco HttpDecodeFormData cuando genero un mensaje saliente porque
+     * necesito que estén las secuencias de escape
     if(HttpDecodeFormData(http_buffer_output.data, buffer, MAX_HTTP_DATA) <= 0)
     {
         Log("[HTTPAddInput] FORM Overflow");
         return (-1);
     }
-    /* Avanzo hasta la Ãºltima '/' para dejar el nombre sin path */
+    */
+    strncpy(http_buffer_output.data, buffer, MAX_HTTP_DATA);
+    /* Avanzo hasta la ultima '/' para dejar el nombre sin path */
     while(strchr(filename, '/'))
     {
         while(*filename != '/') filename++;
@@ -941,6 +946,37 @@ int HTTPNotificarTarjeta( const char *crd)
             g_wifi_host,
             strlen(tmp_data),
             tmp_data);
+    if(HTTPAddOutput(tmp_uri, tmp_rqst, 250) <= 0)
+    {
+        /* No fue posible enviar */
+        return 0;
+    }
+    return strlen(tmp_rqst);
+}
+
+int HTTPCommandSwitch( const char *obj_name )
+{
+    /*
+     newAJAXCommand('/cgi-bin/abmassign.cgi?funcion=switch&Objeto=".$Nombre."'
+     */
+    char tmp_uri[MAX_HTTP_URI+1];
+    char tmp_rqst[MAX_HTTP_DATA+1];
+
+    Log("[HTTPCommandSwitch] %s", obj_name);
+
+    snprintf(tmp_uri, MAX_HTTP_URI, 
+            "%s/abmassign.cgi?funcion=switch&Objeto=%s",
+            g_wifi_info.f.config.rqst_path,
+            obj_name);
+    url_encode(tmp_uri, tmp_uri);
+    /*
+     * GET
+     * 1.- %s: URI
+     * 2.- %s: Host
+     */
+    snprintf(tmp_rqst, MAX_HTTP_DATA, http_get,
+             tmp_uri,
+             g_wifi_host);
     if(HTTPAddOutput(tmp_uri, tmp_rqst, 250) <= 0)
     {
         /* No fue posible enviar */

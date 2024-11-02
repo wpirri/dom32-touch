@@ -639,7 +639,22 @@ int WifiTaskInit( void )
                 //g_wifi_need_upgrade = true;
             }
             break;
-        case 8:
+        case 8/*4*/:
+            /* MAC e IP */
+            WifiWriteLine("AT+CIFSR");
+            g_wifi_task_stm_step++;
+            g_wifi_task_stm_delay = 0;
+            g_wifi_task_stm_timeout = 25;
+            break;
+        case 9/*5*/:
+            if(WifiWaitLine("OK", 0, 0, 0, 0) || g_wifi_task_stm_timeout == 0)
+            {
+                g_wifi_task_stm_step++;
+                g_wifi_task_stm_delay = 0;
+                g_wifi_task_stm_timeout = 0;
+            }
+            break;
+        case 10/*8*/:
         default:
             rc = LOOP;
             break;
@@ -700,22 +715,7 @@ int WifiTaskAPMode( void )
                 rc = (-1);
             }
             break;
-        case 4:
-            /* MAC e IP */
-            WifiWriteLine("AT+CIFSR");
-            g_wifi_task_stm_step++;
-            g_wifi_task_stm_delay = 0;
-            g_wifi_task_stm_timeout = 25;
-            break;
-        case 5:
-            if(WifiWaitLine("OK", 0, 0, 0, 0) || g_wifi_task_stm_timeout == 0)
-            {
-                g_wifi_task_stm_step++;
-                g_wifi_task_stm_delay = 0;
-                g_wifi_task_stm_timeout = 0;
-            }
-            break;
-        case 6:
+        case 4/*6*/:
             /* Nombre del AP */
             sprintf(g_wifi_cmd, "AT+CWSAP=\"Dom32touch-%s\",\"\",1,0,4,0",
                     &g_wifi_info.status.hw_mac[6]);
@@ -724,7 +724,7 @@ int WifiTaskAPMode( void )
             g_wifi_task_stm_delay = 0;
             g_wifi_task_stm_timeout = 25;
             break;
-        case 7:
+        case 5/*7*/:
             if(WifiWaitLine("OK", 0, 0, 0, 0))
             {
                 g_wifi_task_stm_step++;
@@ -736,14 +736,14 @@ int WifiTaskAPMode( void )
                 rc = (-1);
             }
             break;
-        case 8:
+        case 6/*8*/:
             /* Multiconexion */
             WifiWriteLine("AT+CIPMUX=1");
             g_wifi_task_stm_step++;
             g_wifi_task_stm_delay = 0;
             g_wifi_task_stm_timeout = 25;
             break;
-        case 9:
+        case 7/*9*/:
             if(WifiWaitLine("OK", 0, 0, 0, 0))
             {
                 g_wifi_task_stm_step++;
@@ -755,14 +755,14 @@ int WifiTaskAPMode( void )
                 rc = (-1);
             }
             break;
-        case 10:
+        case 8/*10*/:
             /* Instancias del server */
             WifiWriteLine("AT+CIPSERVERMAXCONN=1");
             g_wifi_task_stm_step++;
             g_wifi_task_stm_delay = 0;
             g_wifi_task_stm_timeout = 25;
             break;
-        case 11:
+        case 9/*11*/:
             if(WifiWaitLine("OK", 0, 0, 0, 0))
             {
                 g_wifi_task_stm_step++;
@@ -778,14 +778,14 @@ int WifiTaskAPMode( void )
                 g_wifi_task_stm_timeout = 0;
             }
             break;
-        case 12:
+        case 10/*12*/:
             /* Listen */
             WifiWriteLine("AT+CIPSERVER=1,80");
             g_wifi_task_stm_step++;
             g_wifi_task_stm_delay = 0;
             g_wifi_task_stm_timeout = 25;
             break;
-        case 13:
+        case 11/*13*/:
             if(WifiWaitLine("OK", 0, 0, 0, 0))
             {
                 Log("[WifiTaskAPMode] ********** Modo Configuracion **********");
@@ -798,7 +798,7 @@ int WifiTaskAPMode( void )
                 rc = (-1);
             }
             break;
-        case 14:
+        case 12/*14*/:
         default:
             g_wifi_timer_ap = TIMER_AP_VALUE;
             rc = LOOP;

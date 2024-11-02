@@ -57,6 +57,7 @@ unsigned int g_control_notificar;
 unsigned int g_control_init_complete;
 unsigned int g_control_update_firmware;
 unsigned int g_ctrl_count_reset;
+unsigned int g_ctrl_current_screen;
 control_stm g_ctrl_stm;
 unsigned int g_ctrl_stm_delay;
 char g_show_filename[FILE_NAME_SIZE+1];
@@ -84,6 +85,7 @@ void CTRLInit( void )
     g_ctrl_count_reset = 0;
     g_ctrl_stm = INIT;
     g_ctrl_stm_delay = 0;
+    g_ctrl_current_screen = 0;
     strcpy(g_show_filename, "home.csv");
     
 /* Primer notificacion */
@@ -306,6 +308,53 @@ void CTRLReset( void )
 void BotonPressed(const char* cmd)
 {
     Log("[BotonPressed] CMD: %s", cmd);
+    if( !memcmp(cmd, "HOME", 4))
+    {
+        strcpy(g_show_filename, "home.csv");
+        g_ctrl_current_screen = 0;
+        g_ctrl_stm = SHOW_PAGE;
+    }
+    else if( !memcmp(cmd, "MENU", 4))
+    {
+        strcpy(g_show_filename, "menu.csv");
+        g_ctrl_current_screen = 0;
+        g_ctrl_stm = SHOW_PAGE;
+    }
+    else if( !memcmp(cmd, "NEXT", 4))
+    {
+        if(g_ctrl_current_screen < 9)
+        {
+            g_ctrl_current_screen++;
+            sprintf(g_show_filename, "screen%u.csv", g_ctrl_current_screen);
+            g_ctrl_stm = SHOW_PAGE;
+        }
+    }
+    else if( !memcmp(cmd, "PREV", 4))
+    {
+        if(g_ctrl_current_screen > 0)
+        {
+            g_ctrl_current_screen--;
+            sprintf(g_show_filename, "screen%u.csv", g_ctrl_current_screen);
+            g_ctrl_stm = SHOW_PAGE;
+        }
+    }
+    else if( !memcmp(cmd, "WIFI", 4))
+    {
+        strcpy(g_show_filename, "wifi.csv");
+        g_ctrl_stm = SHOW_PAGE;
+    }
+    else if( !memcmp(cmd, "RESET", 5))
+    {
+
+    }
+    else if( !memcmp(cmd, "UPGRADE", 7))
+    {
+
+    }
+    else if( !memcmp(cmd, "SWITCH:", 7))
+    {
+        HTTPCommandSwitch(&cmd[7]);
+    }
 }
 
 void TouchTask( void )

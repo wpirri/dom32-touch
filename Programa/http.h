@@ -56,6 +56,7 @@ int HTTPAddOutput(const char* filename, const char* buffer, unsigned int to_cs);
 
 int HTTPNotificarStatus();
 int HTTPNotificarTarjeta( const char *crd );
+int HTTPCommandSwitch( const char *obj_name );
 
 int HTTPGetFormData(char *buffer, const char *label, char *value);
 

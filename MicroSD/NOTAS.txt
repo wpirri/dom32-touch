@@ -16,6 +16,9 @@
 #        NEXT
 #        PREV
 #        MENU - 
+#        WIFI
+#        RESET
+#        UPGRADE
 #    x,y - coordenadas de la esquina superior izquierda del botón
 #    ancho
 #    alto
