@@ -95,8 +95,6 @@ bool g_wifi_wait_more_data;
 char g_wifi_cmd[256];
 
 bool g_wifi_need_upgrade;
-bool g_wifi_fast_start;
-
 
 #define WIFI_UART_RX_BYTEQ_LENGTH 4095
 
@@ -646,7 +644,7 @@ int WifiTaskInit( void )
             break;
         case 8:
         default:
-            rc = LOOP;
+            rc = STMODE;
             break;
     }
     return rc;
@@ -1278,7 +1276,6 @@ int WifiTaskHttpReq( void )
             {
                 Log("[WifiTaskHttpReq] SEND Ok");
                 /* Si es un requerimiento saliente espero respuesta */
-                g_wifi_fast_start = true;
                 g_wifi_send_error_count = 0;
                 g_wifi_task_stm_step++;
                 g_wifi_task_stm_delay = 0;
@@ -1387,16 +1384,8 @@ int WifiTaskLoop( void )
     else if(g_wifi_info.status.wifi_start_ap)
     {
         g_wifi_info.status.wifi_start_ap = false;
-        if(g_wifi_fast_start)
-        {
-            Log("[WifiTaskLoop] Ir a modo ST.");
-            return STMODE;
-        }
-        else
-        {
-            Log("[WifiTaskLoop] Ir a modo AP.");
-            return APMODE;
-        }
+        Log("[WifiTaskLoop] Ir a modo AP.");
+        return APMODE;
     }
     else if(http_buffer_response.type)
     {
@@ -1469,7 +1458,6 @@ void WiFiInit( void )
     g_wifi_need_upgrade = false;
     g_wifi_send_error_count = 0;
     g_wifi_recv_error_count = 0;
-    g_wifi_fast_start = true/*false*/;
 
     /* ********************************************************************* */
     /* Configuración de los pines */
@@ -1560,7 +1548,7 @@ void WiFiTask( void )
 
             g_wifi_info.status.wifi_conectado = 0;
             g_wifi_info.status.wifi_ap_select = 1;
-            g_wifi_info.status.wifi_start_ap = true;
+            g_wifi_info.status.wifi_start_ap = false;
             g_wifi_timer_ap = 0;
             g_wifi_info.status.wifi_mode = 0;
             g_wifi_info.status.host_conectado = 0;
@@ -1644,6 +1632,7 @@ void WiFiTimer( void )
         {
             /* Vuelvo al modo normal */
             g_wifi_task_stm = STMODE;
+            
         }
     }
     

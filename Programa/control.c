@@ -47,8 +47,8 @@ typedef enum
     WAIT_WIFI,
     SHOW_PAGE,
     LOOP,
-    SCREEN_SAVER,
-    ON_TOUCH,
+    WAIT_WIFI_CONFIG,
+    WIFI_CONFIG,
     ERROR
 } control_stm;
 
@@ -134,11 +134,41 @@ void CTRLTask( void )
         case LOOP:
             TouchTask();
             break;
-        case SCREEN_SAVER:
-
+        case WAIT_WIFI_CONFIG:
+            if(g_wifi_info.status.wifi_mode == 3)
+            {
+                g_ctrl_stm++;
+            }
             break;
-        case ON_TOUCH:
-
+        case WIFI_CONFIG:
+            if(g_wifi_info.status.wifi_mode == 3)
+            {
+                if( !strcmp(g_show_filename, "wifi.bmp"))
+                {
+                    strcpy(g_show_filename, "wifi0.bmp");
+                }
+                else if( !strcmp(g_show_filename, "wifi0.bmp"))
+                {
+                    strcpy(g_show_filename, "wifi1.bmp");
+                }
+                else if( !strcmp(g_show_filename, "wifi1.bmp"))
+                {
+                    strcpy(g_show_filename, "wifi2.bmp");
+                }
+                else
+                {
+                    strcpy(g_show_filename, "wifi.bmp");
+                }
+                Clear(0);
+                DrawBitmap(g_show_filename, (DISPLAY_X_SIZE/2)-50, (DISPLAY_Y_SIZE/2)-50);
+                g_ctrl_stm_delay = 5;
+            }
+            else
+            {
+                strcpy(g_show_filename, "home.csv");
+                g_ctrl_current_screen = 0;
+                g_ctrl_stm = SHOW_PAGE;
+            }
             break;
         case ERROR:
         default:
@@ -339,8 +369,9 @@ void BotonPressed(const char* cmd)
     }
     else if( !memcmp(cmd, "WIFI", 4))
     {
-        strcpy(g_show_filename, "wifi.csv");
-        g_ctrl_stm = SHOW_PAGE;
+        Clear(0);
+        g_ctrl_stm = WAIT_WIFI_CONFIG;
+        g_wifi_info.status.wifi_start_ap = true;
     }
     else if( !memcmp(cmd, "RESET", 5))
     {
