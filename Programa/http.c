@@ -631,23 +631,16 @@ void HTTPTask( void )
     /* Proceso respuestas */
     else if(http_buffer_input.type == 'H')
     {
-        Log("[HTTPTask] Respuesta: %s %u bytes",
-                http_buffer_input.uri, strlen(http_buffer_input.data));
         /* Se trata de una respuesta HTTP/1... */
         if(http_buffer_input.http_rc == 200 &&
            http_buffer_input.form_rc == 0 )
         {
             /* Ok */
             g_wifi_info.status.host_conectado = 1;
-
-
-
         }
         else
         {
             /* Error */
-
-
             WifiSwitchHost();
         }
         g_wifi_info.status.count_inactividad = 0;
