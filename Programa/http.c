@@ -70,6 +70,8 @@ char http_process_tmp_file_to_name[FILE_NAME_SIZE+1];
 
 int ReadLine(char *buffer, size_t max_len, FSFILE *fs);
 
+unsigned int g_download_file_count;
+
 int HTTPGetFile(const char* filename, const char* params)
 {
     char tmp_uri[MAX_HTTP_URI+1];
@@ -150,6 +152,7 @@ int HTTPEndTmpFile(const char* filename, const char* buffer, int len)
     /* Procesar archivo temporal */
     http_process_tmp_file = 50;
     strncpy(http_process_tmp_file_to_name, filename, FILE_NAME_SIZE);
+    g_end_download = true;
     return rc;
 }
 
@@ -520,24 +523,6 @@ void HttpReturnResult(char *out, const char* result, int max_len)
     Log("[HttpReturnResult] %s - data-len: %d", result, strlen(out));
 }
 
-void HttpReturnIOConfig(char *out, int max_len)
-{
-    snprintf(out, max_len,
-            "%sID=%s&TYP=IO&IO1=%s&IO2=%s&IO3=%s&IO4=%s&IO5=%s&IO6=%s",
-            http_200,
-            g_wifi_info.status.hw_mac,
-            (g_wifi_info.f.config.io_config & 0x01)?((g_wifi_info.f.config.an_config & 0x01)?"ana":"in"):"out",
-            (g_wifi_info.f.config.io_config & 0x02)?((g_wifi_info.f.config.an_config & 0x02)?"ana":"in"):"out",
-            (g_wifi_info.f.config.io_config & 0x04)?((g_wifi_info.f.config.an_config & 0x04)?"ana":"in"):"out",
-            (g_wifi_info.f.config.io_config & 0x08)?((g_wifi_info.f.config.an_config & 0x08)?"ana":"in"):"out",
-            (g_wifi_info.f.config.io_config & 0x10)?((g_wifi_info.f.config.an_config & 0x10)?"ana":"in"):"out",
-            (g_wifi_info.f.config.io_config & 0x20)?((g_wifi_info.f.config.an_config & 0x20)?"ana":"in"):"out");
-    if(g_wifi_info.f.config.io_config_default && (strlen(out)+10) < max_len)
-    {
-        strcat(out, "&GETCONF=1");
-    }
-}
-
 void HttpProcessWiFiFormConfig(char* in)
 {
     HTTPGetFormData(in, "ap1", g_wifi_info.f.config.wifi_ap1);
@@ -550,6 +535,25 @@ void HttpProcessWiFiFormConfig(char* in)
     g_wifi_info.status.save_config = 50;
 }
 
+void HttpProcessCommand(char* in)
+{
+    char cmd[32];
+    
+    Log("[HttpProcessCommand] [%.100s]", in);
+    if(HTTPGetFormData(in, "Command", cmd))
+    {
+        Log("[HttpProcessCommand] Comando");
+        if( !strcmp(cmd, "Download"))
+        {
+            Log("[HttpProcessCommand] Comando Download");
+            if(HTTPGetFormData(in, "Filename", g_download_file_name))
+            {
+                Log("[HttpProcessCommand] Comando Download Filename: %s", g_download_file_name);
+            }
+        }
+    }
+}
+
 /* *****************************************************************************
  * Inicializacion, llamar al inicio
  * ************************************************************************** */
@@ -558,7 +562,9 @@ void HTTPInit( void )
     memset(&http_buffer_input, 0, sizeof(http_data));
     memset(&http_buffer_output, 0, sizeof(http_data));
     memset(&http_buffer_response, 0, sizeof(http_data));
+    g_download_file_name[0] = 0;
     http_process_tmp_file = 0;
+    g_download_file_count = 0;
 }
 
 /* *****************************************************************************
@@ -582,14 +588,6 @@ void HTTPTask( void )
                 strncpy(http_buffer_response.data, http_404, MAX_HTTP_DATA);
             }
         }
-        else if( !strcmp(http_buffer_input.uri, "/config.htm"))
-        {
-            HttpReturnIOConfig(http_buffer_response.data, MAX_HTTP_DATA);
-        }
-        else if( !strcmp(http_buffer_input.uri, "/ioconfig.htm"))
-        {
-            HttpReturnIOConfig(http_buffer_response.data, MAX_HTTP_DATA);
-        }
         else if( !strcmp(http_buffer_input.uri, "/reset.htm"))
         {
             CTRLReset();
@@ -612,6 +610,11 @@ void HTTPTask( void )
         {
             HttpProcessWiFiFormConfig(http_buffer_input.data);
             HttpReturnWiFiFormConfig(http_buffer_response.data, MAX_HTTP_DATA);
+        }
+        else if( !strcmp(http_buffer_input.uri, "/command.cgi"))
+        {
+            HttpProcessCommand(http_buffer_input.data);
+            HttpReturnResult(http_buffer_response.data, "Ok", MAX_HTTP_DATA);
         }
         else if( !strcmp(http_buffer_input.uri, "/wifi.cgi"))
         {
@@ -652,11 +655,10 @@ void HTTPTask( void )
                 http_buffer_input.data);
     }
     http_buffer_input.type = 0;
-    
 }
 
 /* *****************************************************************************
- * 
+ * Se lo llama 10 veces por segundo
  * ************************************************************************** */
 void HTTPTimer( void )
 {
@@ -703,6 +705,28 @@ void HTTPTimer( void )
             }
         }
     }
+    
+    if(http_buffer_output.type == 0 &&
+       http_buffer_input.type == 0 &&
+       http_buffer_response.type == 0 &&
+       g_download_file_name[0] )
+    {
+        if(g_download_file_count == 0)
+        {
+            g_download_file_count = 50;
+        }
+        else
+        {
+            g_download_file_count--;
+            if(g_download_file_count == 0)
+            {
+                HTTPGetFile(g_download_file_name, (g_download_file_params[0])?g_download_file_params:NULL);
+                g_download_file_name[0] = 0;
+                g_download_file_params[0] = 0;
+            }
+        }
+    }
+
 
 }
 

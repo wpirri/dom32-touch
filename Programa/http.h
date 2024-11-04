@@ -40,10 +40,14 @@ typedef struct
 http_data http_buffer_input;
 http_data http_buffer_output;
 http_data http_buffer_response;
+char g_download_file_name[256];
+char g_download_file_params[256];
 #else
 extern http_data http_buffer_input;
 extern http_data http_buffer_output;
 extern http_data http_buffer_response;
+extern char g_download_file_name[256];
+extern char g_download_file_params[256];
 #endif
 
 void HTTPInit( void );

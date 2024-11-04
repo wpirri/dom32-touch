@@ -54,7 +54,6 @@ typedef enum
 
 unsigned int g_control_notificar;
 unsigned int g_control_init_complete;
-unsigned int g_control_update_firmware;
 unsigned int g_ctrl_count_reset;
 unsigned int g_ctrl_current_screen;
 control_stm g_ctrl_stm;
@@ -80,7 +79,6 @@ void CTRLInit( void )
 {
     g_control_notificar = 0;
     g_control_init_complete = 0;
-    g_control_update_firmware = 0;
     g_ctrl_count_reset = 0;
     g_ctrl_stm = INIT;
     g_ctrl_stm_delay = 0;
@@ -235,15 +233,6 @@ void CTRLTimer( void )
         }
     }
     
-    if(g_control_update_firmware && g_wifi_info.status.flag_sd_ok)
-    {
-        g_control_update_firmware--;
-        if(g_control_update_firmware == 0)
-        {
-            HTTPGetFile(DOWNLOAD_PATH"/"FIRMWARE_FILENAME, NULL);
-        }
-    }
-    
     if(g_ctrl_stm_delay) g_ctrl_stm_delay--;
 }
 
@@ -259,7 +248,7 @@ void CTRLConfSys(char* in)
     {
         Log("********** Actualizar Firmware **********");
         /* Actualizar firmware en 30 seg */
-        g_control_update_firmware = 300;
+        strcpy(g_download_file_name, DOWNLOAD_PATH"/"FIRMWARE_FILENAME);
     }
     
     if(HTTPGetFormData(in, "report", tmp))
@@ -379,7 +368,7 @@ void BotonPressed(const char* cmd)
     }
     else if( !memcmp(cmd, "UPGRADE", 7))
     {
-        g_control_update_firmware = 300;
+        strcpy(g_download_file_name, DOWNLOAD_PATH"/"FIRMWARE_FILENAME);
     }
     else if( !memcmp(cmd, "SWITCH:", 7))
     {

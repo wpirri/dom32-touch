@@ -41,7 +41,7 @@
 #include "delay.h"
 #include "sd/fsio.h"
 
-#define WIFI_READ_LINE_BUFFER_LEN 1023
+#define WIFI_READ_LINE_BUFFER_LEN 400/*1023*/
 #define TIMER_AP_VALUE 600
 
 typedef enum
@@ -1280,6 +1280,7 @@ int WifiTaskHttpReq( void )
                 g_wifi_task_stm_step++;
                 g_wifi_task_stm_delay = 0;
                 g_wifi_task_stm_timeout = http_buffer_output.timeout;
+                g_end_download = false;
             }
             else if(g_wifi_task_stm_timeout == 0)
             {
@@ -1292,7 +1293,7 @@ int WifiTaskHttpReq( void )
             break;
         case 7: /* Esperando CLOSE del server o datos */
             sprintf(g_wifi_cmd, "%d,CLOSED", http_buffer_output.id);
-            if(WifiWaitLine(g_wifi_cmd, "UNLINK", "OK", 0, 0))
+            if(WifiWaitLine(g_wifi_cmd, "UNLINK", "OK", 0, 0) || g_end_download)
             {
                 /* Libero el buffer */
                 http_buffer_output.type = 0;
