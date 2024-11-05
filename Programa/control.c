@@ -37,6 +37,7 @@
 #include "display/display.h"
 #include "boton.h"
 #include "bitmap.h"
+#include "beep.h"
 
 #define TOUCH_DELAY 100
 
@@ -104,12 +105,22 @@ void CTRLTask( void )
         case SHOW_POWER:
             /* Centro imagen de 100x100 */
             DrawBitmap("power.bmp", ((DISPLAY_X_SIZE/2)-50), ((DISPLAY_Y_SIZE/2)-50) );
-            x = 0;
-            g_ctrl_stm++;
+            if(g_wifi_info.status.flag_sd_ok)
+            {
+                x = 0;
+                g_ctrl_stm++;
+            }
+            else
+            {
+                g_ctrl_stm_delay = 30;
+                Beeps(10);
+                g_ctrl_stm = ERROR;
+            }
             break;
         case WAIT_WIFI:
             if(g_wifi_info.status.wifi_ok)
             {
+                Beeps(3);
                 g_ctrl_stm++;
             }
             else if(x < DISPLAY_X_SIZE)
@@ -121,6 +132,7 @@ void CTRLTask( void )
             }
             else
             {
+                Beeps(10);
                 g_ctrl_stm = ERROR;
             }
 
@@ -160,6 +172,7 @@ void CTRLTask( void )
                 Clear(0);
                 DrawBitmap(g_show_filename, (DISPLAY_X_SIZE/2)-50, (DISPLAY_Y_SIZE/2)-50);
                 g_ctrl_stm_delay = 5;
+                Beeps(2);
             }
             else
             {
@@ -326,6 +339,9 @@ void CTRLReset( void )
 void BotonPressed(const char* cmd)
 {
     Log("[BotonPressed] CMD: %s", cmd);
+    
+    Beep(5);
+    
     if( !memcmp(cmd, "HOME", 4))
     {
         strcpy(g_show_filename, "home.csv");

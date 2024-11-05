@@ -18,6 +18,8 @@
 #ifndef LOG_H
 #define	LOG_H
 
+#define LOG_FILE_NAME "dom32tch.log"
+
 void LogInit(void);
 void Log(const char* msg, ...);
 

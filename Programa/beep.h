@@ -18,15 +18,19 @@
 #ifndef _BEEP_H_
 #define	_BEEP_H_
 
+#include <stdbool.h>
+
 #ifdef _ON_BEEP_C_
-    unsigned int g_beep_flag;
+    volatile bool g_beep_flag;
 #else
-    extern unsigned int g_beep_flag;
+    extern volatile bool g_beep_flag;
 #endif
 
 void InitBeep( void );
+void TimerBeep( void );
 
-void Beep(int count);
+void Beep(int len);
+void Beeps(int count);
 
 
 #endif	/* _BEEP_H_ */

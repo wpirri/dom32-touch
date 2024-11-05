@@ -21,7 +21,7 @@
 #include <xc.h>
 #include <stdbool.h>
 
-#define DEBUG_ON
+//#define DEBUG_ON
 //#define DEBUG_WIFI
 #define SLEEP_TIMER 30
 

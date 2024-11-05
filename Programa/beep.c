@@ -21,13 +21,56 @@
 #include "beep.h"
 #undef _ON_BEEP_C_
 
+volatile unsigned char g_beep_len;
+volatile unsigned char g_beep_count;
+
 void InitBeep( void )
 {
     g_beep_flag = 0;
     
 }
 
-void Beep(int count)
+void TimerBeep( void )
 {
-    
+    if(g_beep_len)
+    {
+        g_beep_len--;
+        if(g_beep_len == 0)
+        {
+            if(g_beep_count)
+            {
+                g_beep_count--;
+                if(g_beep_count == 0)
+                {
+                    g_beep_flag = 0;
+                }
+                else
+                {
+                    g_beep_flag = (g_beep_count&0x01)?0:1;
+                    g_beep_len = 10;
+                }
+            }
+            else
+            {
+                g_beep_flag = 0;
+            }
+        }
+    }
+    else
+    {
+        g_beep_flag = 0;
+    }
+}
+
+void Beep(int len)
+{
+    g_beep_flag = 1;
+    g_beep_len = len;
+    g_beep_count = 0;
+}
+
+void Beeps(int count)
+{
+    Beep(20);
+    g_beep_count = count*2;
 }

@@ -25,6 +25,7 @@
 #include <stdarg.h>
 
 #include "config.h"
+#include "sd/fsio.h"
 
 void LogInit(void)
 {
@@ -64,12 +65,17 @@ void LogInit(void)
     SYSKEY = 0x00000000; 
     /* ************************************************************************** */
 #endif /*  DEBUG_ON */
+    if(g_wifi_info.status.flag_sd_ok)
+    {
+        FSremove(LOG_FILE_NAME);
+    }
     Log("[log] Init Ok");
 }
 
 void Log(const char* msg, ...)
 {
-#ifdef  DEBUG_ON
+    FSFILE *f;
+    
     va_list arg;
     char str[1024];
     char *p;
@@ -78,6 +84,8 @@ void Log(const char* msg, ...)
     vsnprintf(str, 1021, msg, arg);
     va_end(arg);
     strcat(str, "\r\n");
+    
+#ifdef  DEBUG_ON
     p = &str[0];
     while(*p)
     {
@@ -85,4 +93,14 @@ void Log(const char* msg, ...)
         U2TXREG = *p++;
     }
 #endif /*  DEBUG_ON */
+    
+    if(g_wifi_info.status.flag_sd_ok)
+    {
+        f = FSfopen(LOG_FILE_NAME, FS_APPEND);
+        if(f)
+        {
+            FSfwrite(str, 1, sizeof(str), f);
+            FSfclose(f);
+        }
+    }
 }

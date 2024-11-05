@@ -96,21 +96,14 @@ int main(void)
     main_core_timer_count_x1000 = 0;
     
     ConfigInit();
+    if(FSInit())
+    {
+        g_wifi_info.status.flag_sd_ok = true;
+    }
     LogInit();
     RTCC_Initialize();
     DisplayInit();
     Clear(0);
-
-    if(FSInit())
-    {
-        Log("[sd] Init Ok");
-        g_wifi_info.status.flag_sd_ok = true;
-    }
-    else
-    {
-        Log("[sd] Init Error");
-    }
-
     ConfigLoad();    
     TouchInit();
     WiFiInit();
@@ -134,7 +127,7 @@ int main(void)
         {
             main_core_timer_flag = false;
             /* 10ms / 100/s */
-            
+
 
         }
         else if(main_core_timer_flag_x10)
@@ -175,18 +168,17 @@ void __attribute__ ((vector(_CORE_TIMER_VECTOR), interrupt(IPL1SOFT))) _CORE_TIM
     IFS0CLR= 1 << _IFS0_CTIF_POSITION;
 
     main_core_timer_flag = true;
+    TimerBeep();
     main_core_timer_count_x10++;
     if(main_core_timer_count_x10 >= 10)
     {
         main_core_timer_count_x10 = 0;
         main_core_timer_flag_x10 = true;
-
         main_core_timer_count_x100++;
         if(main_core_timer_count_x100 >= 10)
         {
             main_core_timer_count_x100 = 0;
             main_core_timer_flag_x100 = true;
-            
             main_core_timer_count_x1000++;
             if(main_core_timer_count_x1000 >= 10)
             {
