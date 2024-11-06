@@ -78,7 +78,9 @@ void Log(const char* msg, ...)
     
     va_list arg;
     char str[1024];
+#ifdef  DEBUG_ON
     char *p;
+#endif /*  DEBUG_ON */
     
     va_start(arg, msg);
     vsnprintf(str, 1021, msg, arg);

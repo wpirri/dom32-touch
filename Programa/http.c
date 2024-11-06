@@ -29,6 +29,7 @@
 #include "sd/fsio.h"
 #include "control.h"
 #include "strfunc.h"
+#include "beep.h"
 
 #define DOWNLOAD_TEMP_FILE_NAME "download.tmp"
 
@@ -239,6 +240,7 @@ void HTTPProcessTmpFile(const char* tmpname, const char* filename)
             FSfclose(fo);
         }
         FSfclose(fi);
+        Beeps(3);
     }        
 }
 

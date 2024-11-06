@@ -340,8 +340,6 @@ void BotonPressed(const char* cmd)
 {
     Log("[BotonPressed] CMD: %s", cmd);
     
-    Beep(5);
-    
     if( !memcmp(cmd, "HOME", 4))
     {
         strcpy(g_show_filename, "home.csv");
@@ -351,6 +349,12 @@ void BotonPressed(const char* cmd)
     else if( !memcmp(cmd, "MENU", 4))
     {
         strcpy(g_show_filename, "menu.csv");
+        g_ctrl_current_screen = 0;
+        g_ctrl_stm = SHOW_PAGE;
+    }
+    else if( !memcmp(cmd, "CONFIG", 6))
+    {
+        strcpy(g_show_filename, "config.csv");
         g_ctrl_current_screen = 0;
         g_ctrl_stm = SHOW_PAGE;
     }
@@ -435,7 +439,7 @@ void ShowScreen(const char* filename)
     unsigned int line_len;
     char str_tmp[256];
     
-    char btn_name[32];
+    char btn_text[16];
     char btn_cmd[64];
     int btn_x;
     int btn_y;
@@ -465,8 +469,11 @@ void ShowScreen(const char* filename)
                 /* Analizo la línea */
                 if( !memcmp(line, "BOTON1", 6) )
                 {
-                    /* Boton con texto y con o sin icono */
-                    if(str_section(line, ',', 1, btn_name) == 0) break;
+                    /* Boton con texto o sin y con o sin icono */
+                    if(str_section(line, ',', 1, btn_text) == 0)
+                    {
+                        btn_text[0] = 0;
+                    }
                     if(str_section(line, ',', 2, btn_cmd) == 0) break;
                     if(str_section(line, ',', 3, str_tmp) == 0) break;
                     btn_x = atoi(str_tmp);
@@ -486,11 +493,11 @@ void ShowScreen(const char* filename)
                     {
                         btn_icono[0] = 0;
                     }
-                    BotonAdd(btn_name,
+                    BotonAdd(btn_text,
                             btn_cmd,
                             btn_x,btn_y,btn_w,btn_h, 
                             btn_color_f, btn_color_b, btn_color_n,
-                            ((strlen(btn_icono))?btn_icono: NULL) );
+                            ((btn_icono[0])?btn_icono: NULL) );
                 }
             }
         } while(rc == 1);
