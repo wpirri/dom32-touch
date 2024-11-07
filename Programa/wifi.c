@@ -219,7 +219,7 @@ int WifiWaitLine(const char *line1, const char *line2, const char *line3, const 
     while(WifiSerialIsRxReady())
     {
         c = WifiSerialRead();
-        g_wifi_read_line_buffer_timer = 5;
+        g_wifi_read_line_buffer_timer = 3;
 
         /* Si estoy esperando fin de linea ... */
         if(g_wifi_read_line_wait_crlf)
@@ -260,7 +260,7 @@ int WifiWaitLine(const char *line1, const char *line2, const char *line3, const 
     
     if(g_wifi_wait_more_data && ((g_wifi_read_line_buffer_timer == 0) || (g_wifi_read_line_buffer_index == WIFI_READ_LINE_BUFFER_LEN)) )
     {
-        if((g_wifi_read_line_buffer_timer == 0))
+        if(g_wifi_read_line_buffer_timer == 0)
         {
             /* time-out esperando mas datos */
             HTTPEndTmpFile(http_buffer_output.filename, 

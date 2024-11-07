@@ -23,6 +23,9 @@
 
 //#define DEBUG_ON
 //#define DEBUG_WIFI
+//#define LOG_TO_FILE
+
+
 #define SLEEP_TIMER 30
 
 // Clock frequency values

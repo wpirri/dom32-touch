@@ -74,8 +74,9 @@ void LogInit(void)
 
 void Log(const char* msg, ...)
 {
+#ifdef LOG_TO_FILE
     FSFILE *f;
-    
+#endif
     va_list arg;
     char str[2048];
 #ifdef  DEBUG_ON
@@ -96,6 +97,7 @@ void Log(const char* msg, ...)
     }
 #endif /*  DEBUG_ON */
     
+#ifdef LOG_TO_FILE
     if(g_wifi_info.status.flag_sd_ok)
     {
         f = FSfopen(LOG_FILE_NAME, FS_APPEND);
@@ -105,4 +107,5 @@ void Log(const char* msg, ...)
             FSfclose(f);
         }
     }
+#endif
 }

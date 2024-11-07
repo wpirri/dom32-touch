@@ -141,7 +141,7 @@ int HTTPAddTmpFile(const char* buffer, int len)
 
     if( !http_buffer_output.download) return (-1);
     
-    //Log("[HTTPAddTmpFile] %-.20s (%d)", buffer, len);
+    Log("[HTTPAddTmpFile] %-.20s (%d)", buffer, len);
     f = FSfopen(DOWNLOAD_TEMP_FILE_NAME, FS_APPEND);
     if(f)
     {
