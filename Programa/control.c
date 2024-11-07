@@ -343,7 +343,6 @@ void BotonPressed(const char* cmd)
     if( !memcmp(cmd, "HOME", 4))
     {
         strcpy(g_show_filename, "home.csv");
-        g_ctrl_current_screen = 0;
         g_ctrl_stm = SHOW_PAGE;
     }
     else if( !memcmp(cmd, "MENU", 4))
@@ -355,14 +354,16 @@ void BotonPressed(const char* cmd)
     else if( !memcmp(cmd, "CONFIG", 6))
     {
         strcpy(g_show_filename, "config.csv");
-        g_ctrl_current_screen = 0;
         g_ctrl_stm = SHOW_PAGE;
     }
     else if( !memcmp(cmd, "NEXT", 4))
     {
         if(g_ctrl_current_screen < 9)
         {
-            g_ctrl_current_screen++;
+            if( !memcmp(g_show_filename, "screen", 6))
+            {
+                g_ctrl_current_screen++;
+            }
             sprintf(g_show_filename, "screen%u.csv", g_ctrl_current_screen);
             g_ctrl_stm = SHOW_PAGE;
         }
@@ -393,6 +394,10 @@ void BotonPressed(const char* cmd)
     else if( !memcmp(cmd, "SWITCH:", 7))
     {
         HTTPCommandSwitch(&cmd[7]);
+    }
+    else if( !memcmp(cmd, "PULSE:", 6))
+    {
+        HTTPCommandPulse(&cmd[6]);
     }
 }
 

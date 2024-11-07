@@ -41,7 +41,6 @@
 #include "delay.h"
 #include "sd/fsio.h"
 
-#define WIFI_READ_LINE_BUFFER_LEN 400/*1023*/
 #define TIMER_AP_VALUE 600
 
 typedef enum
@@ -220,7 +219,7 @@ int WifiWaitLine(const char *line1, const char *line2, const char *line3, const 
     while(WifiSerialIsRxReady())
     {
         c = WifiSerialRead();
-        g_wifi_read_line_buffer_timer = 3;
+        g_wifi_read_line_buffer_timer = 5;
 
         /* Si estoy esperando fin de linea ... */
         if(g_wifi_read_line_wait_crlf)
@@ -269,6 +268,7 @@ int WifiWaitLine(const char *line1, const char *line2, const char *line3, const 
                     g_wifi_read_line_buffer_index);
             g_wifi_wait_more_data = false;
             g_wifi_read_line_buffer_index = 0;
+            http_buffer_output.download = 0;
         }
         else if(g_wifi_read_line_buffer_index == WIFI_READ_LINE_BUFFER_LEN)
         {
@@ -389,7 +389,7 @@ int WifiCheckUnsol( void )
         /*
         +IPD,0,442:<datos>
         */
-        Log("[WifiCheckUnsol] %-.100s", g_wifi_read_line_buffer);
+        Log("[WifiCheckUnsol] %-.2000s", g_wifi_read_line_buffer);
 
         id = 0;
         len = 0;
@@ -406,14 +406,18 @@ int WifiCheckUnsol( void )
         p = strchr(g_wifi_read_line_buffer, ':');
         if(p)
         {
-            if( g_wifi_read_line_buffer_index == WIFI_READ_LINE_BUFFER_LEN)
+            if( g_wifi_read_line_buffer_index == WIFI_READ_LINE_BUFFER_LEN ||
+                ( http_buffer_output.download && 
+                  (strstr(g_wifi_read_line_buffer, "Content-Type: text/csv") ||
+                   strstr(g_wifi_read_line_buffer, "Content-Type: image/bmp"))) )
             {
                 /* Si el buffer está lleno debe ser un download */
-                if(HTTPInitTmpFile(g_wifi_read_line_buffer, WIFI_READ_LINE_BUFFER_LEN) < 0)
+                if(HTTPInitTmpFile(g_wifi_read_line_buffer, g_wifi_read_line_buffer_index) < 0)
                 {
                     /* No había download pendiente */
                     Log("[WifiCheckUnsol] HTTP input overflow: %-.100s", g_wifi_read_line_buffer);
                 }
+                g_wifi_read_line_buffer_index = 0;
             }
             else
             {

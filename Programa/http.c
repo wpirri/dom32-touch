@@ -121,6 +121,16 @@ int HTTPInitTmpFile(const char* buffer, int len)
         rc = FSfwrite(buffer, 1, len, f);
         FSfclose(f);
     }
+    
+    if(len < WIFI_READ_LINE_BUFFER_LEN)
+    {
+        /* Es un archivo chico */
+        /* Procesar archivo temporal */
+        http_process_tmp_file = 50;
+        strncpy(http_process_tmp_file_to_name, http_buffer_output.filename, FILE_NAME_SIZE);
+        g_end_download = true;
+    }
+    
     return rc;
 }
 
@@ -957,6 +967,37 @@ int HTTPCommandSwitch( const char *obj_name )
 
     snprintf(tmp_uri, MAX_HTTP_URI, 
             "%s/abmassign.cgi?funcion=switch&Objeto=%s",
+            g_wifi_info.f.config.rqst_path,
+            obj_name);
+    url_encode(tmp_uri, tmp_uri);
+    /*
+     * GET
+     * 1.- %s: URI
+     * 2.- %s: Host
+     */
+    snprintf(tmp_rqst, MAX_HTTP_DATA, http_get,
+             tmp_uri,
+             g_wifi_host);
+    if(HTTPAddOutput(tmp_uri, false, tmp_rqst, 250) <= 0)
+    {
+        /* No fue posible enviar */
+        return 0;
+    }
+    return strlen(tmp_rqst);
+}
+
+int HTTPCommandPulse( const char *obj_name )
+{
+    /*
+     newAJAXCommand('/cgi-bin/abmassign.cgi?funcion=switch&Objeto=".$Nombre."'
+     */
+    char tmp_uri[MAX_HTTP_URI+1];
+    char tmp_rqst[MAX_HTTP_DATA+1];
+
+    Log("[HTTPCommandSwitch] %s", obj_name);
+
+    snprintf(tmp_uri, MAX_HTTP_URI, 
+            "%s/abmassign.cgi?funcion=pulse&Objeto=%s",
             g_wifi_info.f.config.rqst_path,
             obj_name);
     url_encode(tmp_uri, tmp_uri);

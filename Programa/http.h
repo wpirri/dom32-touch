@@ -61,6 +61,7 @@ int HTTPAddOutput(const char* filename, bool download, const char* buffer, unsig
 
 int HTTPNotificarStatus();
 int HTTPCommandSwitch( const char *obj_name );
+int HTTPCommandPulse( const char *obj_name );
 
 int HTTPGetFormData(char *buffer, const char *label, char *value);
 

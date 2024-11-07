@@ -77,7 +77,7 @@ void Log(const char* msg, ...)
     FSFILE *f;
     
     va_list arg;
-    char str[1024];
+    char str[2048];
 #ifdef  DEBUG_ON
     char *p;
 #endif /*  DEBUG_ON */

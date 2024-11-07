@@ -20,6 +20,8 @@
 
 #include <stdbool.h>
 
+#define WIFI_READ_LINE_BUFFER_LEN 1023
+
 #ifdef _IN_WIFI_C_
     char *g_wifi_host;
     unsigned int g_wifi_port;
