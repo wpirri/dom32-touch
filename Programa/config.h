@@ -21,10 +21,12 @@
 #include <xc.h>
 #include <stdbool.h>
 
-//#define DEBUG_ON
+/* Activa el logueo a la UART */
+#define DEBUG_ON
+/* Incrementa mensaje de logueo del modulo wifi */
 //#define DEBUG_WIFI
+/* Vuelca el log a tarjeta SD */
 //#define LOG_TO_FILE
-
 
 #define SLEEP_TIMER 30
 
@@ -42,8 +44,8 @@
 
 #define DOWNLOAD_PATH           "/download"
 #define FIRMWARE_FILENAME       "d32touch.hex"
-#define BOOT_FILENAME           "FIRMWARE.HEX"
-#define CONFIG_FILENAME         "D32TOUCH.CFG"
+#define BOOT_FILENAME           "pgm.hex"
+#define CONFIG_FILENAME         "d32touch.cfg"
 
 typedef struct _config_in_file_ /*  */
 {
@@ -84,6 +86,7 @@ typedef struct
         unsigned char save_config;
         unsigned int wifi_port_select;
         unsigned int count_inactividad;
+        unsigned int control_notificar;
         char hw_mac[13];
         char wifi_at[65];
         char wifi_sdk[65];

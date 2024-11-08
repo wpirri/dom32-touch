@@ -139,9 +139,13 @@ int HTTPAddTmpFile(const char* buffer, int len)
     FSFILE* f;
     int rc = (-1);
 
-    if( !http_buffer_output.download) return (-1);
-    
     Log("[HTTPAddTmpFile] %-.20s (%d)", buffer, len);
+    if( !http_buffer_output.download)
+    {
+        Log("[HTTPAddTmpFile] ERROR: Download no iniciado");
+        return (-1);
+    }
+    
     f = FSfopen(DOWNLOAD_TEMP_FILE_NAME, FS_APPEND);
     if(f)
     {

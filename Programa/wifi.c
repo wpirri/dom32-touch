@@ -835,7 +835,7 @@ int WifiTaskSTMode( void )
             WifiWriteLine("AT+CIPSERVER=0");
             g_wifi_task_stm_step++;
             g_wifi_task_stm_delay = 0;
-            g_wifi_task_stm_timeout = 100;
+            g_wifi_task_stm_timeout = 10;
             g_wifi_info.status.wifi_mode = 0;
             g_wifi_info.status.host_conectado = 0;
             break;
@@ -852,7 +852,7 @@ int WifiTaskSTMode( void )
             WifiWriteLine("AT+CWMODE=1");
             g_wifi_task_stm_step++;
             g_wifi_task_stm_delay = 0;
-            g_wifi_task_stm_timeout = 100;
+            g_wifi_task_stm_timeout = 25;
             break;
         case 3:
             if(WifiWaitLine("OK", 0, 0, 0, 0))
@@ -1019,6 +1019,7 @@ int WifiTaskSTMode( void )
                 g_wifi_task_stm_step++;
                 g_wifi_task_stm_delay = 0;
                 g_wifi_task_stm_timeout = 0;
+                g_wifi_info.status.control_notificar = 1;
             }
             else if(g_wifi_task_stm_timeout == 0)
             {
@@ -1540,13 +1541,10 @@ void WiFiTask( void )
         case RESET:
 			Log("[WiFiTask] RESET");
             CLR_RESET;
-            g_wifi_task_stm_timeout = 0;
-            g_wifi_task_stm_step = 0;
             g_wifi_read_line_buffer_index = 0;
             g_wifi_read_line_buffer_timer = 0;
             g_wifi_read_line_wait_crlf = true;
             g_wifi_wait_more_data = false;
-            g_wifi_task_stm_delay = 30;
 
             g_wifi_send_error_count = 0;
             g_wifi_recv_error_count = 0;
@@ -1558,18 +1556,16 @@ void WiFiTask( void )
             g_wifi_info.status.wifi_mode = 0;
             g_wifi_info.status.host_conectado = 0;
             
-            WifiTaskSTMSet(START, 50, 0);
+            WifiTaskSTMSet(START, 20, 0);
             break;
         case START:
 			//Log("START\n");
             SET_RESET;
-            g_wifi_task_stm_delay = 10;
-            WifiTaskSTMSet(CLEAN, 5, 50);
+            WifiTaskSTMSet(CLEAN, 5, 20);
             break;
         case CLEAN:
             /* Me quedo recibiendo un rato la basura de la POST del ESP-02 */
             /* No es basura, pero se ve como basura porque esta a otra velocidad */
-            g_wifi_task_stm_delay = 0;
             WifiWaitLine(0, 0, 0, 0, 0);
             if(g_wifi_task_stm_timeout == 0)
             {

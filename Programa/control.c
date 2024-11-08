@@ -53,7 +53,6 @@ typedef enum
     ERROR
 } control_stm;
 
-unsigned int g_control_notificar;
 unsigned int g_control_init_complete;
 unsigned int g_ctrl_count_reset;
 unsigned int g_ctrl_current_screen;
@@ -69,16 +68,16 @@ void CTRLNotificarStatus( int time )
 {
     if(time == 0) time = 1;
     
-    if(time < g_control_notificar || g_control_notificar == 0)
+    if(time < g_wifi_info.status.control_notificar || g_wifi_info.status.control_notificar == 0)
     {
         Log("Notificar en %i segundos", time/10);
-        g_control_notificar = time;
+        g_wifi_info.status.control_notificar = time;
     }
 }
 
 void CTRLInit( void )
 {
-    g_control_notificar = 0;
+    g_wifi_info.status.control_notificar = 0;
     g_control_init_complete = 0;
     g_ctrl_count_reset = 0;
     g_ctrl_stm = INIT;
@@ -104,7 +103,9 @@ void CTRLTask( void )
             break;
         case SHOW_POWER:
             /* Centro imagen de 100x100 */
-            DrawBitmap("power.bmp", ((DISPLAY_X_SIZE/2)-50), ((DISPLAY_Y_SIZE/2)-50) );
+            DrawBitmap("power.bmp", 
+                    ((DISPLAY_X_SIZE/2)-(GetBitmapW("power.bmp")/2)), 
+                    ((DISPLAY_Y_SIZE/2)-(GetBitmapH("power.bmp")/2)) );
             if(g_wifi_info.status.flag_sd_ok)
             {
                 x = 0;
@@ -170,7 +171,10 @@ void CTRLTask( void )
                     strcpy(g_show_filename, "wifi.bmp");
                 }
                 Clear(0);
-                DrawBitmap(g_show_filename, (DISPLAY_X_SIZE/2)-50, (DISPLAY_Y_SIZE/2)-50);
+                DrawBitmap(g_show_filename, 
+                        ((DISPLAY_X_SIZE/2)-(GetBitmapW(g_show_filename)/2)), 
+                        ((DISPLAY_Y_SIZE/2)-(GetBitmapH(g_show_filename)/2)) );
+
                 g_ctrl_stm_delay = 5;
                 Beeps(2);
             }
@@ -192,17 +196,17 @@ void CTRLTask( void )
 /* Se llama 10 veces por segundo - 100ms */
 void CTRLTimer( void )
 {
-    if(g_wifi_info.status.host_conectado == 0 && g_control_notificar > 100)
+    if(g_wifi_info.status.host_conectado == 0 && g_wifi_info.status.control_notificar > 100)
     {
-        g_control_notificar = 100;
+        g_wifi_info.status.control_notificar = 100;
     }
 
-    if( g_control_notificar > 0 &&
+    if( g_wifi_info.status.control_notificar > 0 &&
         g_wifi_info.status.wifi_mode == 1 &&
         g_wifi_info.status.wifi_conectado != 0 )
     {
-        g_control_notificar--;
-        if(g_control_notificar == 0)
+        g_wifi_info.status.control_notificar--;
+        if(g_wifi_info.status.control_notificar == 0)
         {
             /* Levanto el flag para que
              * en adelante los cambios cuenten */
@@ -214,7 +218,7 @@ void CTRLTimer( void )
             }
         }
     }
-    else if(g_control_notificar == 0)
+    else if(g_wifi_info.status.control_notificar == 0)
     {
         /* notifico segun lo configurado */
         CTRLNotificarStatus(g_wifi_info.f.config.report);
