@@ -694,6 +694,7 @@ void HTTPTimer( void )
         if(http_buffer_output.timeout == 0)
         {
             http_buffer_output.type = 0;
+            http_buffer_output.download = false;
             Log("[HTTPTimer] TIMEOUT de mensaje saliente");
         }
     }
@@ -822,6 +823,7 @@ int HTTPAddInput(int id, const char* buffer)
         {
             Log("[HTTPAddInput] HTTP Error %i", http_buffer_input.http_rc);
             http_buffer_input.form_rc = 0;
+            http_buffer_output.download = false;
         }
     }
     return 0;

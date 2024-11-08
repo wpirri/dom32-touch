@@ -22,7 +22,7 @@
 #include <stdbool.h>
 
 /* Activa el logueo a la UART */
-#define DEBUG_ON
+//#define DEBUG_ON
 /* Incrementa mensaje de logueo del modulo wifi */
 //#define DEBUG_WIFI
 /* Vuelca el log a tarjeta SD */

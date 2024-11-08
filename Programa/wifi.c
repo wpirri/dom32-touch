@@ -1360,6 +1360,7 @@ int WifiTaskHttpReq( void )
                 g_wifi_task_stm_timeout = 0;
                 /* Libero el buffer */
                 http_buffer_output.type = 0;
+                http_buffer_output.download = false;
                 g_wifi_info.status.host_conectado = 0;
             }
             break;
