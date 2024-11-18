@@ -109,7 +109,8 @@ void BotonDraw( void )
     int i;
     unsigned int text_x, text_y;
     unsigned int icon_offset_x, icon_offset_y;
-    
+
+    CLR_DI_BKL;
     for(i = 0; i < MAX_BOTONES; i++)
     {
         if( !array_botones[i].cmd[0]) break;
@@ -173,6 +174,7 @@ void BotonDraw( void )
             DrawBitmapTransparent(array_botones[i].icon, icon_offset_x, icon_offset_y);
         }
     }
+    SET_DI_BKL;
 }
 
 int BotonTask( unsigned int x, unsigned int y )

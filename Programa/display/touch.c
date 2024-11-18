@@ -15,37 +15,39 @@
     License along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  ***************************************************************************/
-#include <xc.h>
-
+/*
+ * Leer Y
+ *   Input: Y+, Y- 
+ *   Analog: Y+ 
+ *   Output: X+ = 1, X- = 0
+ *   Leer: Y+
+ * 
+ * +
+ *   Input: X+, X-
+ *   Analog: X-
+ *   Output: Y+ = 1, Y- = 0
+ *   Leer: X-
+ * 
+ * Leer Z
+ *   Input:  X-, Y+
+ *   Analog: X-, Y+
+ *   Output: X+ = 0 Y- = 1
+ *   Leer: X-, Y+
+  */
 #include "touch.h"
 
 #include "../config.h"
-//#include "../log.h"
+#include "../log.h"
+#include "../delay.h"
 #include "dili9341.h"
 
-#define TOUCH_XP        LATBbits.LATB6
-#define TOUCH_XP_TRIS   TRISBbits.TRISB6
+#define TOUCH_MIN_X     150
+#define TOUCH_MAX_X     820
+#define TOUCH_MIN_Y     120
+#define TOUCH_MAX_Y     850
 
-#define TOUCH_XM        LATAbits.LATA3
-#define TOUCH_XM_TRIS   TRISAbits.TRISA3
-#define TOUCH_XM_ANA    ANSELAbits.ANSA3    /* AN6 */
-
-#define TOUCH_YP        LATAbits.LATA2
-#define TOUCH_YP_TRIS   TRISAbits.TRISA2
-#define TOUCH_YP_ANA    ANSELAbits.ANSA2    /* AN5 */
-
-#define TOUCH_YM        LATBbits.LATB7
-#define TOUCH_YM_TRIS   TRISBbits.TRISB7
-
-#define TOUCH_MIN_X     200
-#define TOUCH_MAX_X     880
-#define TOUCH_MIN_Y     130
-#define TOUCH_MAX_Y     920
-
-#define R_XP_XM         250
 #define MUESTREOS_ADC   5
-#define MIN_Z           10
-#define MAX_Z           1024
+#define MIN_Z           300
 
 
 #define swap(a, b) { int t = a; a = b; b = t; }
@@ -88,7 +90,7 @@ unsigned int Touch2DisplayY(unsigned int yt)
         touch_min_y = yt;
     }
 
-    return DISPLAY_Y_SIZE - ((yt-touch_min_y)*DISPLAY_Y_SIZE/(touch_max_y-touch_min_y));
+    return ((yt-touch_min_y)*DISPLAY_Y_SIZE/(touch_max_y-touch_min_y));
 }
 
 void TouchInit( void )
@@ -128,10 +130,13 @@ bool TouchIsPressed( unsigned int *x, unsigned int *y, unsigned int *z )
     //
     zz = ReadTouchPressure(xm);
 
-    //Log("[TouchIsPressed] X: %u Y: %u Z: %u", xm, yp, zz);
+#ifdef DEBUG_TOUCH
+    Log("[TouchIsPressed] X: %u Y: %u Z: %u", xm, yp, zz);
+    Delayms(1000);
+#endif
 
-    if(y) *y = Touch2DisplayY(yp);
     if(x) *x = Touch2DisplayX(xm);
+    if(y) *y = Touch2DisplayY(yp);
     if(z) *z = zz;   
 
     /* Devuelvo todo a su estado anterior */
@@ -142,7 +147,7 @@ bool TouchIsPressed( unsigned int *x, unsigned int *y, unsigned int *z )
     TOUCH_YP_TRIS = yp_tris;
     TOUCH_YM_TRIS = ym_tris;
     
-    return (zz > MIN_Z && zz < MAX_Z);
+    return (zz > MIN_Z)?true:false;
 }
 
 unsigned int ReadADCChannel(unsigned int channel)
@@ -159,12 +164,12 @@ unsigned int ReadADCChannel(unsigned int channel)
         // Start sampling...
         AD1CON1bits.SAMP = 1;
         // Delay at least 1 TAD
-        Nop(); Nop(); Nop(); Nop();
-        Nop(); Nop(); Nop(); Nop();
-        Nop(); Nop(); Nop(); Nop();
-        Nop(); Nop(); Nop(); Nop();
-        Nop(); Nop(); Nop(); Nop();
-        Nop(); Nop(); Nop(); Nop();
+        Nop(); Nop(); Nop(); Nop(); Nop();
+        Nop(); Nop(); Nop(); Nop(); Nop();
+        Nop(); Nop(); Nop(); Nop(); Nop();
+        Nop(); Nop(); Nop(); Nop(); Nop();
+        Nop(); Nop(); Nop(); Nop(); Nop();
+        Nop(); Nop(); Nop(); Nop(); Nop();
         // Reset ADC interrupt flag
         IFS1CLR = _IFS1_AD1IF_MASK;
         // Start converting ...
@@ -207,62 +212,82 @@ unsigned int ReadADCChannel(unsigned int channel)
 
 unsigned int ReadTouchX()
 {
-    TOUCH_YP_TRIS = 1;
-    TOUCH_YM_TRIS = 1;
+    TOUCH_YP_TRIS = 0;
+    TOUCH_YM_TRIS = 0;
     TOUCH_XP_TRIS = 0;
     TOUCH_XM_TRIS = 0;
 
+    CLR_TOUCH_YP;
+    CLR_TOUCH_YM;
+    SET_TOUCH_XP;
+    CLR_TOUCH_XM;
+
+    TOUCH_YP_TRIS = 1;
+    TOUCH_YM_TRIS = 1;
     TOUCH_YP_ANA = 1;
     TOUCH_XM_ANA = 0;
 
-    TOUCH_XP = 1;
-    TOUCH_XM = 0;
-    
     // Leo analog YP (AN5)
-    return (1023 - ReadADCChannel(5));
+    return ReadADCChannel(5);
 }
 
 unsigned int ReadTouchY()
 {
     TOUCH_YP_TRIS = 0;
     TOUCH_YM_TRIS = 0;
+    TOUCH_XP_TRIS = 0;
+    TOUCH_XM_TRIS = 0;
+
+    CLR_TOUCH_YP;
+    SET_TOUCH_YM;
+    CLR_TOUCH_XP;
+    CLR_TOUCH_XM;
+
     TOUCH_XP_TRIS = 1;
     TOUCH_XM_TRIS = 1;
-
-    TOUCH_YP_ANA = 1;
-    TOUCH_XM_ANA = 0;
-
-    TOUCH_YP = 1;
-    TOUCH_YM = 0;
+    TOUCH_YP_ANA = 0;
+    TOUCH_XM_ANA = 1;
 
     // Leo analog XM (AN6)
-    return (1023 - ReadADCChannel(6));
+    return ReadADCChannel(6);
 }
 
 unsigned int ReadTouchPressure(unsigned int x)
 {
-    unsigned long z0;
-    unsigned int z1, z2;
+    unsigned int z1, z2, delta;
 
-    TOUCH_YP_TRIS = 1;
+    TOUCH_YP_TRIS = 0;
     TOUCH_YM_TRIS = 0;
     TOUCH_XP_TRIS = 0;
+    TOUCH_XM_TRIS = 0;
+    
+    CLR_TOUCH_YP;
+    SET_TOUCH_YM;
+    CLR_TOUCH_XP;
+    CLR_TOUCH_XM;
+    
+    TOUCH_YP_TRIS = 1;
     TOUCH_XM_TRIS = 1;
-
     TOUCH_XM_ANA = 1;
     TOUCH_YP_ANA = 1;
     
-    TOUCH_XP = 0;
-    TOUCH_YM = 1;
-
     // Leo analog XM (AN6)
     z1 = ReadADCChannel(6);
-    if(z1 == 0) return 0;
     // Leo analog YP (AN5)
     z2 = ReadADCChannel(5);
+
+    if(z1 > z2)
+    {
+        delta = 1023 - z1 + z2;
+    }
+    else
+    {
+        delta = 1023 - z2 + z1;
+    }
     
-    z0 = ((z2/z1) - 1) * x * R_XP_XM / 1024;
-    
-    return (unsigned int)z0;
+#ifdef DEBUG_TOUCH
+    Log("[ReadTouchPressure] z1: %u  z2: %u delta: %u", z1, z2, delta);
+#endif
+    return delta;
     
 }

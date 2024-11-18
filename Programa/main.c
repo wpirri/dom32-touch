@@ -95,12 +95,12 @@ int main(void)
     main_core_timer_flag_x1000 = false;
     main_core_timer_count_x1000 = 0;
     
+    LogInit();
     ConfigInit();
     if(FSInit())
     {
         g_wifi_info.status.flag_sd_ok = true;
     }
-    LogInit();
     RTCC_Initialize();
     DisplayInit();
     Clear(0);

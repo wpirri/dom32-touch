@@ -18,7 +18,26 @@
 #ifndef _TOUCH_H_
 #define	_TOUCH_H_
 
+#include <xc.h>
 #include <stdbool.h>
+
+#define TOUCH_XP_TRIS   TRISBbits.TRISB6
+#define SET_TOUCH_XP    (LATBSET=(1<<6))
+#define CLR_TOUCH_XP    (LATBCLR=(1<<6))
+
+#define TOUCH_XM_TRIS   TRISAbits.TRISA3
+#define SET_TOUCH_XM    (LATASET=(1<<3))
+#define CLR_TOUCH_XM    (LATACLR=(1<<3))
+#define TOUCH_XM_ANA    ANSELAbits.ANSA3    /* AN6 */
+
+#define TOUCH_YP_TRIS   TRISAbits.TRISA2
+#define SET_TOUCH_YP    (LATASET=(1<<2))
+#define CLR_TOUCH_YP    (LATACLR=(1<<2))
+#define TOUCH_YP_ANA    ANSELAbits.ANSA2    /* AN5 */
+
+#define TOUCH_YM_TRIS   TRISBbits.TRISB7
+#define SET_TOUCH_YM    (LATBSET=(1<<7))
+#define CLR_TOUCH_YM    (LATBCLR=(1<<7))
 
 void TouchInit( void );
 bool TouchIsPressed( unsigned int *x, unsigned int *y, unsigned int *z );

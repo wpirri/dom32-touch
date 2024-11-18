@@ -24,71 +24,7 @@ void DisplayWriteData(unsigned char data);
 
 void Display_Init( void )
 {
-    /*
-    DisplayWriteCommand(0xCB);  
-    DisplayWriteData(0x39); 
-    DisplayWriteData(0x2C); 
-    DisplayWriteData(0x00); 
-    DisplayWriteData(0x34); 
-    DisplayWriteData(0x02); 
-
-    DisplayWriteCommand(0xCF);  
-    DisplayWriteData(0x00); 
-    DisplayWriteData(0XC1); 
-    DisplayWriteData(0X30); 
-
-    DisplayWriteCommand(0xE8);  
-    DisplayWriteData(0x85); 
-    DisplayWriteData(0x00); 
-    DisplayWriteData(0x78); 
-
-    DisplayWriteCommand(0xEA);  
-    DisplayWriteData(0x00); 
-    DisplayWriteData(0x00); 
- 
-    DisplayWriteCommand(0xED);  
-    DisplayWriteData(0x64); 
-    DisplayWriteData(0x03); 
-    DisplayWriteData(0X12); 
-    DisplayWriteData(0X81); 
-
-    DisplayWriteCommand(0xF7);  
-    DisplayWriteData(0x20); 
-  
-    DisplayWriteCommand(0xC0);    //Power control 
-    DisplayWriteData(0x23);   //VRH[5:0] 
- 
-    DisplayWriteCommand(0xC1);    //Power control 
-    DisplayWriteData(0x10);   //SAP[2:0];BT[3:0] 
-
-    DisplayWriteCommand(0xC5);    //VCM control 
-    DisplayWriteData(0x3e);   //Contrast
-    DisplayWriteData(0x28); 
- 
-    DisplayWriteCommand(0xC7);    //VCM control2 
-    DisplayWriteData(0x86);   //--
- 
-    DisplayWriteCommand(0x36);    // Memory Access Control 
-    DisplayWriteData(0x48);   
-
-    DisplayWriteCommand(0x3A);    
-    DisplayWriteData(0x55); 
-
-    DisplayWriteCommand(0xB1);    
-    DisplayWriteData(0x00);  
-    DisplayWriteData(0x18); 
- 
-    DisplayWriteCommand(0xB6);    // Display Function Control 
-    DisplayWriteData(0x08); 
-    DisplayWriteData(0x82);
-    DisplayWriteData(0x27);  
-
-    DisplayWriteCommand(0x11);    //Exit Sleep 
-    Delayms(120); 
-				
-    DisplayWriteCommand(0x29);    //Display on 
-    DisplayWriteCommand(0x2c); 
-    */
+    /* **** Display Arduino **** */
     DisplayWriteCommand(ILI9341_SOFTRESET);         //Soft Reset
     Delayms(50);
     DisplayWriteCommand(ILI9341_DISPLAYOFF);        //Display Off
@@ -183,7 +119,6 @@ void Display_Init( void )
     DisplayWriteCommand(ILI9341_SLEEPOUT);            //Sleep Out
     Delayms(150);
     DisplayWriteCommand(ILI9341_DISPLAYON);          //Display On
-
 }
 
 void Display_XY( unsigned int x1, unsigned int y1, unsigned int x2, unsigned int y2 )

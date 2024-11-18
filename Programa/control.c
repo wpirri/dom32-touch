@@ -103,9 +103,11 @@ void CTRLTask( void )
             break;
         case SHOW_POWER:
             /* Centro imagen de 100x100 */
+            CLR_DI_BKL;
             DrawBitmap("power.bmp", 
                     ((DISPLAY_X_SIZE/2)-(GetBitmapW("power.bmp")/2)), 
                     ((DISPLAY_Y_SIZE/2)-(GetBitmapH("power.bmp")/2)) );
+            SET_DI_BKL;
             if(g_wifi_info.status.flag_sd_ok)
             {
                 x = 0;

@@ -18,6 +18,7 @@
 #ifndef _DI_BUS_H_
 #define	_DI_BUS_H_
 
+#include <xc.h>
 #include <stdbool.h>
 
 #include "dili9341.h"
@@ -49,6 +50,44 @@
 #define CENTER 9998
 
 #define RGB(r,g,b) (((r & 0xF8) << 8) | ((g & 0xFC) << 3) | ((b & 0xF8) >> 3))
+
+/******************* Pin and Register Definitions ********************/
+// Chip Select Output bit
+
+#define SET_DI_CS           (LATASET=(1<<4))
+#define CLR_DI_CS           (LATACLR=(1<<4))
+#define DI_CS_TRIS          TRISAbits.TRISA4
+#define DI_CS_OC            ODCAbits.ODCA4
+
+//#define SET_DI_RD           (LATASET=(1<<0))
+//#define CLR_DI_RD           (LATACLR=(1<<0))
+//#define DI_RD_TRIS          TRISAbits.TRISA0
+//#define DI_RD_OC            ODCAbits.ODCA0
+
+#define SET_DI_WR           (LATASET=(1<<2))
+#define CLR_DI_WR           (LATACLR=(1<<2))
+#define DI_WR_TRIS          TRISAbits.TRISA2
+#define DI_WR_OC            ODCAbits.ODCA2
+// 
+#define SET_DI_RS           (LATASET=(1<<3))
+#define CLR_DI_RS           (LATACLR=(1<<3))
+#define DI_RS_TRIS          TRISAbits.TRISA3
+#define DI_RS_OC            ODCAbits.ODCA3
+// Reset
+#define SET_DI_RESET        (LATASET=(1<<1))
+#define CLR_DI_RESET        (LATACLR=(1<<1))
+#define DI_RESET_TRIS       TRISAbits.TRISA1
+#define DI_RESET_OC         ODCAbits.ODCA1
+// Display Bus
+#define DI_PORT_IN          PORTB
+#define DI_PORT_OUT         LATB
+#define DI_PORT_TRIS        TRISB
+#define DI_PORT_OC          ODCB
+// Back Ligth
+#define SET_DI_BKL          (LATASET=(1<<0))
+#define CLR_DI_BKL          (LATACLR=(1<<0))
+#define DI_BKL_TRIS         TRISAbits.TRISA0
+#define DI_BKL_OC           ODCAbits.ODCA0
 
 int DisplayInit( void );
 
