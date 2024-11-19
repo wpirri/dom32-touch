@@ -103,6 +103,7 @@ int main(void)
     }
     RTCC_Initialize();
     DisplayInit();
+    //DrawSampleScreen();
     Clear(0);
     ConfigLoad();    
     TouchInit();

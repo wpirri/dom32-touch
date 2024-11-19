@@ -117,5 +117,7 @@ void DrawText(const char* text, unsigned int x, unsigned int y,
             unsigned int size, unsigned int text_color, unsigned int bg_color);
 void VertScroll(unsigned int top, unsigned int scrollines, int offset);
 
+void DrawSampleScreen( void );
+
 #endif	/* _DI_BUS_H_ */
 

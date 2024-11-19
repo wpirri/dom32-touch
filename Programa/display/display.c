@@ -63,9 +63,9 @@ int DisplayInit( void )
     SET_DI_WR;      /* modo escritura desactivado */
     SET_DI_RS;      /* modo comando desactivado */
     DI_PORT_OUT = (DI_PORT_IN & 0x00FF);
-    Delayms(100);
+    Delayms(800);
     SET_DI_RESET;   /* levanto reset */
-    Delayms(120);
+    Delayms(800);
     CLR_DI_CS;      /* Selecciono display */
     Delayms(1);
     Display_Init();
@@ -106,8 +106,8 @@ void Clear( unsigned int color )
     for (i = 0; i < (DISPLAY_X_SIZE*DISPLAY_Y_SIZE); i++)
     {
         CLRWDT();
-        DisplayWriteData((color >> 8) & 0x00FF);
-        DisplayWriteData(color & 0x00FF);
+        DisplayWriteData(color >> 8);
+        DisplayWriteData(color);
     }
     SET_DI_CS;
     SET_DI_BKL;
@@ -118,8 +118,8 @@ void DrawPixel(unsigned int x, unsigned int y, unsigned int color)
     //Log("[DrawPixel] X: %u Y: %u Color: %0x%04X", x, y, color);
     CLR_DI_CS;
 	Display_XY( x, y, x, y );
-    DisplayWriteData((color >> 8) & 0x00FF);
-    DisplayWriteData(color & 0x00FF);
+    DisplayWriteData(color >> 8);
+    DisplayWriteData(color);
     SET_DI_CS;
 }
 
@@ -131,8 +131,8 @@ void DrawRectFill(unsigned int x, unsigned int y, unsigned int w, unsigned int h
 	Display_XY( x, y, x+w-1, y+h-1 );
     for (i = 0; i < (w * h); i++)
     {
-        DisplayWriteData((color >> 8) & 0x00FF);
-        DisplayWriteData(color & 0x00FF);
+        DisplayWriteData(color >> 8);
+        DisplayWriteData(color);
     }
     SET_DI_CS;
 }
@@ -629,4 +629,30 @@ void DrawChar(  unsigned int x, unsigned int y, unsigned char c,
       		line >>= 1;
     	}
     }
+}
+
+void DrawSampleScreen( void )
+{
+    unsigned int y = 0;
+    DrawRectFill(0, y, DISPLAY_X_SIZE, 32, WHITE);
+    y += 32;
+    DrawRectFill(0, y, DISPLAY_X_SIZE, 32, RED);
+    y += 32;
+    DrawRectFill(0, y, DISPLAY_X_SIZE, 32, GREEN);
+    y += 32;
+    DrawRectFill(0, y, DISPLAY_X_SIZE, 32, BLUE);
+    y += 32;
+    DrawRectFill(0, y, DISPLAY_X_SIZE, 32, WHITE);
+    y += 32;
+    DrawRectFill(0, y, DISPLAY_X_SIZE, 32, ORANGE);
+    y += 32;
+    DrawRectFill(0, y, DISPLAY_X_SIZE, 32, DARKGREEN);
+    y += 32;
+    DrawRectFill(0, y, DISPLAY_X_SIZE, 32, NAVY);
+    y += 32;
+    DrawRectFill(0, y, DISPLAY_X_SIZE, 32, WHITE);
+    y += 32;
+    DrawRectFill(0, y, DISPLAY_X_SIZE, 32, BLACK);
+    
+    while(1) { CLRWDT(); }
 }
