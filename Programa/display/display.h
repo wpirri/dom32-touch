@@ -91,8 +91,6 @@
 
 int DisplayInit( void );
 
-void DisplaySleep( unsigned int on_off);
-
 void Clear( unsigned int color );
 void DrawPixel(unsigned int x, unsigned int y, unsigned int color);
 void DrawRectFill(unsigned int x, unsigned int y, unsigned int w, unsigned int h, unsigned int color);

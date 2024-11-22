@@ -72,35 +72,14 @@ int DisplayInit( void )
     SET_DI_CS;      /* display no seleccionado */
     Delayms(1);
 
-#ifdef SET_DI_BKL
     SET_DI_BKL;
-#endif
     return 1;
-}
-
-void DisplaySleep( unsigned int on_off)
-{
-    if(on_off)
-    {
-        Log("[Display] Sleep ON");
-#ifdef CLR_DI_BKL
-        CLR_DI_BKL;
-#endif
-    }
-    else
-    {
-        Log("[Display] Sleep OFF");
-#ifdef CLR_DI_BKL
-        SET_DI_BKL;
-#endif
-    }
 }
 
 void Clear( unsigned int color )
 {
 	long i;
 
-    CLR_DI_BKL;
     CLR_DI_CS;
 	Display_XY( 0, 0, DISPLAY_X_SIZE-1, DISPLAY_Y_SIZE-1);
     for (i = 0; i < (DISPLAY_X_SIZE*DISPLAY_Y_SIZE); i++)
@@ -110,7 +89,6 @@ void Clear( unsigned int color )
         DisplayWriteData(color);
     }
     SET_DI_CS;
-    SET_DI_BKL;
 }
 
 void DrawPixel(unsigned int x, unsigned int y, unsigned int color)

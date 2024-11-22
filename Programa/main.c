@@ -84,6 +84,7 @@ volatile bool main_core_timer_flag_x100;
 volatile unsigned char main_core_timer_count_x100;
 volatile bool main_core_timer_flag_x1000;
 volatile unsigned char main_core_timer_count_x1000;
+volatile unsigned char main_brillo_count;
 
 int main(void)
 {
@@ -94,6 +95,9 @@ int main(void)
     main_core_timer_count_x100 = 0;
     main_core_timer_flag_x1000 = false;
     main_core_timer_count_x1000 = 0;
+    main_brillo_count = 0;
+    
+    g_wifi_info.status.brillo = g_wifi_info.f.config.brillo_med;
     
     LogInit();
     ConfigInit();
@@ -115,6 +119,10 @@ int main(void)
             sizeof(g_wifi_info.status.up_fw)-1);
     
     Log("[main] Init Ok");
+    
+    /* TODO: Sacar esto. Es para probar */
+    g_wifi_info.f.config.screen_saver_time = 250;
+    
     while(1)
     {
         CLRWDT();
@@ -128,7 +136,7 @@ int main(void)
         {
             main_core_timer_flag = false;
             /* 10ms / 100/s */
-
+            
 
         }
         else if(main_core_timer_flag_x10)
@@ -200,5 +208,27 @@ void __attribute__ ( ( vector(_TIMER_1_VECTOR) , interrupt(IPL7SOFT) ) ) _TIMER1
         LATCINV = (1 << 9);
     }
 #endif /* DEBUG_ON */
+    if(g_wifi_info.status.brillo == 0)
+    {
+        CLR_DI_BKL;
+    }
+    else if(g_wifi_info.status.brillo == 100)
+    {
+        SET_DI_BKL;
+    }
+    else if(main_brillo_count < 100)
+    {
+        main_brillo_count++;
+        if(main_brillo_count == g_wifi_info.status.brillo)
+        {
+            CLR_DI_BKL;
+        }
+    }
+    else
+    {
+        main_brillo_count = 0;
+        SET_DI_BKL;
+    }
+
 }
 

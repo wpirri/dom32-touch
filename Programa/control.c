@@ -50,6 +50,8 @@ typedef enum
     LOOP,
     WAIT_WIFI_CONFIG,
     WIFI_CONFIG,
+    LOAD_SCREEN_SAVER,
+    SCREEN_SAVER,
     ERROR
 } control_stm;
 
@@ -58,6 +60,7 @@ unsigned int g_ctrl_count_reset;
 unsigned int g_ctrl_current_screen;
 control_stm g_ctrl_stm;
 unsigned int g_ctrl_stm_delay;
+unsigned char g_screen_saver_count;
 char g_show_filename[FILE_NAME_SIZE+1];
 
 void ShowScreen(const char* filename);
@@ -83,6 +86,7 @@ void CTRLInit( void )
     g_ctrl_stm = INIT;
     g_ctrl_stm_delay = 0;
     g_ctrl_current_screen = 0;
+    g_screen_saver_count = 0;
     strcpy(g_show_filename, "home.csv");
     
 /* Primer notificacion */
@@ -98,16 +102,16 @@ void CTRLTask( void )
     {
         case INIT:
             /* Pantalla negra */
+            g_wifi_info.status.brillo = g_wifi_info.f.config.brillo_min;
             Clear(0);
             g_ctrl_stm++;
             break;
         case SHOW_POWER:
             /* Centro imagen de 100x100 */
-            CLR_DI_BKL;
             DrawBitmap("power.bmp", 
                     ((DISPLAY_X_SIZE/2)-(GetBitmapW("power.bmp")/2)), 
                     ((DISPLAY_Y_SIZE/2)-(GetBitmapH("power.bmp")/2)) );
-            SET_DI_BKL;
+            g_wifi_info.status.brillo = g_wifi_info.f.config.brillo_med;
             if(g_wifi_info.status.flag_sd_ok)
             {
                 x = 0;
@@ -179,9 +183,24 @@ void CTRLTask( void )
 
                 g_ctrl_stm_delay = 5;
                 Beeps(2);
+                g_screen_saver_count = 0;
             }
             else
             {
+                strcpy(g_show_filename, "home.csv");
+                g_ctrl_current_screen = 0;
+                g_ctrl_stm = SHOW_PAGE;
+            }
+            break;
+        case LOAD_SCREEN_SAVER:
+            g_wifi_info.status.brillo = g_wifi_info.f.config.brillo_min;
+            Clear(0);
+            g_ctrl_stm++;
+            break;
+        case SCREEN_SAVER:
+            if(TouchIsPressed( NULL, NULL, NULL ))
+            {
+                g_screen_saver_count = 0;
                 strcpy(g_show_filename, "home.csv");
                 g_ctrl_current_screen = 0;
                 g_ctrl_stm = SHOW_PAGE;
@@ -253,6 +272,16 @@ void CTRLTimer( void )
     }
     
     if(g_ctrl_stm_delay) g_ctrl_stm_delay--;
+    
+    if(g_wifi_info.f.config.screen_saver_time > 0 && 
+       g_screen_saver_count < g_wifi_info.f.config.screen_saver_time)
+    {
+        g_screen_saver_count++;
+        if(g_screen_saver_count == g_wifi_info.f.config.screen_saver_time)
+        {
+            g_ctrl_stm = LOAD_SCREEN_SAVER;
+        }
+    }
 }
 
 void CTRLConfSys(char* in)
@@ -345,6 +374,8 @@ void CTRLReset( void )
 void BotonPressed(const char* cmd)
 {
     Log("[BotonPressed] CMD: %s", cmd);
+    
+    g_screen_saver_count = 0;
     
     if( !memcmp(cmd, "HOME", 4))
     {
@@ -461,6 +492,8 @@ void ShowScreen(const char* filename)
     int btn_color_n;
     char btn_icono[FILE_NAME_SIZE+1];
 
+
+    g_wifi_info.status.brillo = g_wifi_info.f.config.brillo_min;
     Clear(0);
     InitBotones(BotonPressed);
 
@@ -515,5 +548,6 @@ void ShowScreen(const char* filename)
         FSfclose(f);
     }
     BotonDraw();
-    
+    g_wifi_info.status.brillo = g_wifi_info.f.config.brillo_max;
+
 }

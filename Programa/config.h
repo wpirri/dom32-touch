@@ -66,6 +66,10 @@ typedef struct _config_in_file_ /*  */
     unsigned char enable_wiegand;
     unsigned char io_config_default;
     unsigned long rtcc_clk_div_adj;
+    unsigned char brillo_max;
+    unsigned char brillo_med;
+    unsigned char brillo_min;
+    unsigned char screen_saver_time;
 } config_in_file;
 
 typedef struct
@@ -92,6 +96,7 @@ typedef struct
         char wifi_at[65];
         char wifi_sdk[65];
         char up_fw[65];
+        unsigned char brillo;
     } status;
 } wifi_info;
 
