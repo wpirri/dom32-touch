@@ -60,7 +60,7 @@ unsigned int g_ctrl_count_reset;
 unsigned int g_ctrl_current_screen;
 control_stm g_ctrl_stm;
 unsigned int g_ctrl_stm_delay;
-unsigned char g_screen_saver_count;
+unsigned int g_screen_saver_count;
 char g_show_filename[FILE_NAME_SIZE+1];
 
 void ShowScreen(const char* filename);
@@ -246,7 +246,7 @@ void CTRLTimer( void )
     }
     
     /* Control de reset */
-    if(g_ctrl_count_reset)
+    if(g_ctrl_count_reset && (g_ctrl_stm == LOOP) )
     {
         g_ctrl_count_reset--;
         if(g_ctrl_count_reset == 0)
@@ -273,11 +273,13 @@ void CTRLTimer( void )
     
     if(g_ctrl_stm_delay) g_ctrl_stm_delay--;
     
-    if(g_wifi_info.f.config.screen_saver_time > 0 && 
-       g_screen_saver_count < g_wifi_info.f.config.screen_saver_time)
+    /* Screen saver */
+    if( g_wifi_info.f.config.screen_saver_time > 0 && 
+        g_screen_saver_count < (g_wifi_info.f.config.screen_saver_time * 10) &&
+        g_ctrl_stm == LOOP )
     {
         g_screen_saver_count++;
-        if(g_screen_saver_count == g_wifi_info.f.config.screen_saver_time)
+        if(g_screen_saver_count >= (g_wifi_info.f.config.screen_saver_time * 10) )
         {
             g_ctrl_stm = LOAD_SCREEN_SAVER;
         }

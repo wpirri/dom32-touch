@@ -121,8 +121,11 @@ int main(void)
     Log("[main] Init Ok");
     
     /* TODO: Sacar esto. Es para probar */
-    g_wifi_info.f.config.screen_saver_time = 250;
-    
+    g_wifi_info.f.config.screen_saver_time = 60;
+    g_wifi_info.f.config.brillo_max = 100;
+    g_wifi_info.f.config.brillo_med = 30;
+    g_wifi_info.f.config.brillo_min = 0;
+   
     while(1)
     {
         CLRWDT();
@@ -216,10 +219,10 @@ void __attribute__ ( ( vector(_TIMER_1_VECTOR) , interrupt(IPL7SOFT) ) ) _TIMER1
     {
         SET_DI_BKL;
     }
-    else if(main_brillo_count < 100)
+    else if(main_brillo_count < 10)
     {
         main_brillo_count++;
-        if(main_brillo_count == g_wifi_info.status.brillo)
+        if(main_brillo_count == (g_wifi_info.status.brillo / 10) )
         {
             CLR_DI_BKL;
         }

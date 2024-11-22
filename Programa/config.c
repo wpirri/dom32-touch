@@ -125,14 +125,11 @@ void DumpConfig( void );
 void ConfigLoadDefault( void)
 {
     memset(&g_wifi_info.f.config, 0, sizeof(config_in_file));
-    g_wifi_info.f.config.io_config = 0xFF;
-    g_wifi_info.f.config.an_config = 0x00;
     g_wifi_info.f.config.wifi_host1_port = 80;
     g_wifi_info.f.config.wifi_host2_port = 80;
     strcpy(g_wifi_info.f.config.rqst_path, "/cgi-bin");
     g_wifi_info.f.config.report = 600;
     g_wifi_info.f.config.enable_https = 0;
-    g_wifi_info.f.config.enable_wiegand = 0;
     g_wifi_info.f.config.io_config_default = 1;
     g_wifi_info.f.config.rtcc_clk_div_adj = 480000;
     g_wifi_info.f.config.brillo_max = 100;
@@ -326,7 +323,6 @@ void ConfigTimer(void)
         if(g_wifi_info.status.save_config == 0)
         {
             ConfigSave();
-            CTRLInit();
         }
     }
     
@@ -343,10 +339,11 @@ void DumpConfig( void )
     Log("[DumpConfig] wifi_host2:       %s", g_wifi_info.f.config.wifi_host2);
     Log("[DumpConfig] wifi_host2_port:  %d", g_wifi_info.f.config.wifi_host2_port);
     Log("[DumpConfig] rqst_path:        %s", g_wifi_info.f.config.rqst_path);
-    Log("[DumpConfig] io_config:        0x%02X", g_wifi_info.f.config.io_config);
-    Log("[DumpConfig] an_config:        0x%02X", g_wifi_info.f.config.an_config);
     Log("[DumpConfig] report:           %d", g_wifi_info.f.config.report);
     Log("[DumpConfig] enable_https:     %s", (g_wifi_info.f.config.enable_https)?"si":"no");
-    Log("[DumpConfig] enable_wiegand:   %s", (g_wifi_info.f.config.enable_wiegand)?"si":"no");
     Log("[DumpConfig] rtcc_clk_div_adj: %li", g_wifi_info.f.config.rtcc_clk_div_adj);
+    Log("[DumpConfig] Brillo maximo:    %d", g_wifi_info.f.config.brillo_max);
+    Log("[DumpConfig] Brillo medio:     %d", g_wifi_info.f.config.brillo_med);
+    Log("[DumpConfig] Brillo minimo:    %d", g_wifi_info.f.config.brillo_min);
+    Log("[DumpConfig] Screen Saver:     %d", g_wifi_info.f.config.screen_saver_time);
 }

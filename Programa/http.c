@@ -551,6 +551,47 @@ void HttpProcessWiFiFormConfig(char* in)
     g_wifi_info.status.save_config = 50;
 }
 
+void HttpProcessGeneralConfig(char* in)
+{
+    char s[16];
+    HTTPGetFormData(in, "ap1", g_wifi_info.f.config.wifi_ap1);
+    HTTPGetFormData(in, "ap1p", g_wifi_info.f.config.wifi_ap1_pass);
+    HTTPGetFormData(in, "ap2", g_wifi_info.f.config.wifi_ap2);
+    HTTPGetFormData(in, "ap2p", g_wifi_info.f.config.wifi_ap2_pass);
+    HTTPGetFormData(in, "ce1", g_wifi_info.f.config.wifi_host1);
+    HTTPGetFormData(in, "ce2", g_wifi_info.f.config.wifi_host2);
+    HTTPGetFormData(in, "path", g_wifi_info.f.config.rqst_path);
+    if(HTTPGetFormData(in, "ce1p", s))
+    {
+        g_wifi_info.f.config.wifi_host1_port = atoi(s);
+    }
+    if(HTTPGetFormData(in, "ce2p", s))
+    {
+        g_wifi_info.f.config.wifi_host2_port = atoi(s);
+    }
+    if(HTTPGetFormData(in, "report", s))
+    {
+        g_wifi_info.f.config.report = atoi(s);
+    }
+    if(HTTPGetFormData(in, "brillo-max", s))
+    {
+        g_wifi_info.f.config.brillo_max = atoi(s);
+    }
+    if(HTTPGetFormData(in, "brillo-med", s))
+    {
+        g_wifi_info.f.config.brillo_med = atoi(s);
+    }
+    if(HTTPGetFormData(in, "brillo-min", s))
+    {
+        g_wifi_info.f.config.brillo_min = atoi(s);
+    }
+    if(HTTPGetFormData(in, "screen-saver", s))
+    {
+        g_wifi_info.f.config.screen_saver_time = atoi(s);
+    }
+    g_wifi_info.status.save_config = 50;
+}
+
 void HttpProcessCommand(char* in)
 {
     char cmd[32];
@@ -636,6 +677,11 @@ void HTTPTask( void )
         {
             HttpProcessWiFiFormConfig(http_buffer_input.data);
             HttpReturnWiFiConfig(http_buffer_response.data, MAX_HTTP_DATA);
+        }
+        else if( !strcmp(http_buffer_input.uri, "/config.cgi"))
+        {
+            HttpProcessGeneralConfig(http_buffer_input.data);
+            HttpReturnResult(http_buffer_response.data, "Ok", MAX_HTTP_DATA);
         }
         else
         {

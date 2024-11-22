@@ -50,20 +50,17 @@
 
 typedef struct _config_in_file_ /*  */
 {
-    char wifi_ap1[33];
-    char wifi_ap1_pass[33];
-    char wifi_ap2[33];
-    char wifi_ap2_pass[33];
-    char wifi_host1[33];
-    char wifi_host2[33];
-    char rqst_path[33];
-    unsigned int wifi_host1_port;
-    unsigned int wifi_host2_port;
+    char wifi_ap1[33];                  /* ap1 */
+    char wifi_ap1_pass[33];             /* ap1p */
+    char wifi_ap2[33];                  /* ap2 */
+    char wifi_ap2_pass[33];             /* ap2p */
+    char wifi_host1[33];                /* ce1 */
+    char wifi_host2[33];                /* ce2 */
+    char rqst_path[33];                 /* path */
+    unsigned int wifi_host1_port;       /* ce1p */
+    unsigned int wifi_host2_port;       /* ce2p */
     unsigned int report;
-    unsigned char io_config;
-    unsigned char an_config;
     unsigned char enable_https;
-    unsigned char enable_wiegand;
     unsigned char io_config_default;
     unsigned long rtcc_clk_div_adj;
     unsigned char brillo_max;
