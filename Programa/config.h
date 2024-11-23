@@ -59,14 +59,14 @@ typedef struct _config_in_file_ /*  */
     char rqst_path[33];                 /* path */
     unsigned int wifi_host1_port;       /* ce1p */
     unsigned int wifi_host2_port;       /* ce2p */
-    unsigned int report;
+    unsigned int report;                /* report */
     unsigned char enable_https;
     unsigned char io_config_default;
     unsigned long rtcc_clk_div_adj;
-    unsigned char brillo_max;
-    unsigned char brillo_med;
-    unsigned char brillo_min;
-    unsigned char screen_saver_time;
+    unsigned char brillo_max;           /* brillo-max */
+    unsigned char brillo_med;           /* brillo-med */
+    unsigned char brillo_min;           /* brillo-min */
+    unsigned char screen_saver_time;    /* screen-saver */
 } config_in_file;
 
 typedef struct
