@@ -64,6 +64,25 @@ void LogInit(void)
     // System Reg Lock
     SYSKEY = 0x00000000; 
     /* ************************************************************************** */
+#else
+    /* ************************************************************************** */
+    // System Reg Unlock
+    SYSKEY = 0x00000000; 
+    SYSKEY = 0xAA996655; //write Key1 to SYSKEY
+    SYSKEY = 0x556699AA; //write Key2 to SYSKEY
+    /* ************************************************************************** */
+    /* UART2 */
+    // Config PPS
+    // unlock PPS
+    RPCONbits.IOLOCK = 0;
+    // Mapeo de UART2 a nada
+    RPOR4bits.RP18R = 0;
+    // lock   PPS
+    RPCONbits.IOLOCK = 1; 
+    /* ************************************************************************** */
+    // System Reg Lock
+    SYSKEY = 0x00000000; 
+    /* ************************************************************************** */
 #endif /*  DEBUG_ON */
     if(g_wifi_info.status.flag_sd_ok)
     {

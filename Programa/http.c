@@ -139,7 +139,7 @@ int HTTPAddTmpFile(const char* buffer, int len)
     FSFILE* f;
     int rc = (-1);
 
-    Log("[HTTPAddTmpFile] %-.20s (%d)", buffer, len);
+    //Log("[HTTPAddTmpFile] %-.20s (%d)", buffer, len);
     if( !http_buffer_output.download)
     {
         Log("[HTTPAddTmpFile] ERROR: Download no iniciado");
@@ -600,7 +600,7 @@ void HttpProcessCommand(char* in)
     if(HTTPGetFormData(in, "Command", cmd))
     {
         Log("[HttpProcessCommand] Comando");
-        if( !strcmp(cmd, "Download"))
+        if( !strcmp(cmd, "download"))
         {
             Log("[HttpProcessCommand] Comando Download");
             if(HTTPGetFormData(in, "Filename", g_download_file_name))
