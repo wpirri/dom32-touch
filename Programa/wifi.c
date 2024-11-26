@@ -647,8 +647,13 @@ int WifiTaskInit( void )
             }
             break;
         case 8:
+            if( !g_wifi_info.status.wifi_start_ap &&
+                ! g_wifi_info.status.wifi_start_st )
+            {
+                g_wifi_info.status.wifi_start_st = true;
+            }
         default:
-            rc = STMODE;
+            rc = LOOP;
             break;
     }
     return rc;
@@ -1026,8 +1031,8 @@ int WifiTaskSTMode( void )
                 Log("[WifiTaskSTMode] Error de conexion con AP.");
                 Log("[WifiTaskSTMode] Reconectando...");
                 g_wifi_info.status.wifi_ap_select = (g_wifi_info.status.wifi_ap_select == 1)?2:1;
-                //rc = (-1);
-                rc = STMODE;
+                g_wifi_info.status.wifi_start_st = true;
+                rc = LOOP;
             }
             break;
             // Puede faltar                
@@ -1391,8 +1396,12 @@ int WifiTaskLoop( void )
     else if(g_wifi_info.status.wifi_start_ap)
     {
         g_wifi_info.status.wifi_start_ap = false;
-        Log("[WifiTaskLoop] Ir a modo AP.");
         return APMODE;
+    }
+    else if(g_wifi_info.status.wifi_start_st)
+    {
+        g_wifi_info.status.wifi_start_st = false;
+        return STMODE;
     }
     else if(http_buffer_response.type)
     {
@@ -1517,6 +1526,18 @@ void WiFiInit( void )
     
     g_wifi_host = &g_wifi_info.f.config.wifi_host1[0];
     g_wifi_port = (g_wifi_info.f.config.wifi_host1_port)?g_wifi_info.f.config.wifi_host1_port:((g_wifi_info.f.config.enable_https)?443:80);
+    
+    if(g_wifi_info.f.config.start_config_mode)
+    {
+        g_wifi_info.status.wifi_start_ap = true;
+    }
+    else
+    {
+        g_wifi_info.status.wifi_start_st = true;
+        /* En el proximo arranque inicia en modo config */
+        g_wifi_info.f.config.start_config_mode = true;
+        ConfigSave();
+    }
 }
 
 /* *****************************************************************************
@@ -1552,7 +1573,6 @@ void WiFiTask( void )
 
             g_wifi_info.status.wifi_conectado = 0;
             g_wifi_info.status.wifi_ap_select = 1;
-            g_wifi_info.status.wifi_start_ap = false;
             g_wifi_timer_ap = 0;
             g_wifi_info.status.wifi_mode = 0;
             g_wifi_info.status.host_conectado = 0;
@@ -1633,8 +1653,7 @@ void WiFiTimer( void )
         if(g_wifi_timer_ap == 0)
         {
             /* Vuelvo al modo normal */
-            g_wifi_task_stm = STMODE;
-            
+            g_wifi_info.status.wifi_start_st = true;
         }
     }
     

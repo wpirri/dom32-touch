@@ -702,6 +702,13 @@ void HTTPTask( void )
         {
             /* Ok */
             g_wifi_info.status.host_conectado = 1;
+            
+            /* En el proximo arranque inicia en modo normal */
+            if(g_wifi_info.f.config.start_config_mode)
+            {
+                g_wifi_info.f.config.start_config_mode = false;
+                ConfigSave();
+            }
         }
         else
         {

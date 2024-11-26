@@ -48,10 +48,11 @@ typedef enum
     WAIT_WIFI,
     SHOW_PAGE,
     LOOP,
-    WAIT_WIFI_CONFIG,
     WIFI_CONFIG,
     LOAD_SCREEN_SAVER,
     SCREEN_SAVER,
+    OFFLINE_SCREEN,
+    OFFLINE_LOOP,
     ERROR
 } control_stm;
 
@@ -125,10 +126,23 @@ void CTRLTask( void )
             }
             break;
         case WAIT_WIFI:
-            if(g_wifi_info.status.wifi_ok)
+            if(g_wifi_info.status.wifi_mode == 1)
             {
+                if(g_wifi_info.status.host_conectado)
+                {
+                    strcpy(g_show_filename, "home.csv");
+                    g_ctrl_current_screen = 0;
+                    g_ctrl_stm = SHOW_PAGE;
+                }
+                else
+                {
+                    g_ctrl_stm = OFFLINE_SCREEN;
+                }
                 Beeps(3);
-                g_ctrl_stm++;
+            }
+            if(g_wifi_info.status.wifi_mode == 3)
+            {
+                g_ctrl_stm = WIFI_CONFIG;
             }
             else if(x < DISPLAY_X_SIZE)
             {
@@ -142,19 +156,30 @@ void CTRLTask( void )
                 Beeps(10);
                 g_ctrl_stm = ERROR;
             }
-
             break;
         case SHOW_PAGE:
             ShowScreen(g_show_filename);
             g_ctrl_stm++;
             break;
         case LOOP:
-            TouchTask();
-            break;
-        case WAIT_WIFI_CONFIG:
-            if(g_wifi_info.status.wifi_mode == 3)
+            if(g_wifi_info.status.wifi_mode == 1)
             {
-                g_ctrl_stm++;
+                if(g_wifi_info.status.host_conectado)
+                {
+                    TouchTask();
+                }
+                else
+                {
+                    g_ctrl_stm = OFFLINE_SCREEN;
+                }
+            }
+            else if(g_wifi_info.status.wifi_mode == 3)
+            {
+                g_ctrl_stm = WIFI_CONFIG;
+            }
+            else
+            {
+                
             }
             break;
         case WIFI_CONFIG:
@@ -201,6 +226,23 @@ void CTRLTask( void )
             if(TouchIsPressed( NULL, NULL, NULL ))
             {
                 g_screen_saver_count = 0;
+                strcpy(g_show_filename, "home.csv");
+                g_ctrl_current_screen = 0;
+                g_ctrl_stm = SHOW_PAGE;
+            }
+            break;
+        case OFFLINE_SCREEN:
+            g_wifi_info.status.brillo = g_wifi_info.f.config.brillo_min;
+            Clear(0);
+            DrawBitmap("power.bmp", 
+                    ((DISPLAY_X_SIZE/2)-(GetBitmapW("power.bmp")/2)), 
+                    ((DISPLAY_Y_SIZE/2)-(GetBitmapH("power.bmp")/2)) );
+            g_wifi_info.status.brillo = g_wifi_info.f.config.brillo_med;
+            g_ctrl_stm++;
+            break;
+        case OFFLINE_LOOP:
+            if(g_wifi_info.status.host_conectado)
+            {
                 strcpy(g_show_filename, "home.csv");
                 g_ctrl_current_screen = 0;
                 g_ctrl_stm = SHOW_PAGE;
@@ -419,7 +461,6 @@ void BotonPressed(const char* cmd)
     else if( !memcmp(cmd, "WIFI", 4))
     {
         Clear(0);
-        g_ctrl_stm = WAIT_WIFI_CONFIG;
         g_wifi_info.status.wifi_start_ap = true;
     }
     else if( !memcmp(cmd, "RESET", 5))
