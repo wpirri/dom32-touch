@@ -85,7 +85,7 @@ int DrawBitmapTransparent(const char *filename, unsigned int x0, unsigned int y0
     long x, y;
     unsigned char b[3];
     
-    Log("[DrawBitmap] X: %u Y: %u file: %s", x0, y0, filename);
+    LogMessage("[DrawBitmap] X: %u Y: %u file: %s", x0, y0, filename);
     
     f = FSfopen(filename, FS_READ);
     if(f)
@@ -93,7 +93,7 @@ int DrawBitmapTransparent(const char *filename, unsigned int x0, unsigned int y0
         /* Leo las dos partes de la cabecera */
         if(FSfread(&bmp, sizeof(bitmap_header), 1, f) != 1)
         {
-            Log("[DrawBitmap] Error al leer HEADER de %s", filename);
+            LogMessage("[DrawBitmap] Error al leer HEADER de %s", filename);
             FSfclose(f);
             return (-10);
         }
@@ -101,21 +101,21 @@ int DrawBitmapTransparent(const char *filename, unsigned int x0, unsigned int y0
         /* mime-type */
         if(bmp.bmfh.bfType != 0x4d42)
         {
-            Log("[DrawBitmap] Archivo %s con formato invalido", filename);
+            LogMessage("[DrawBitmap] Archivo %s con formato invalido", filename);
             FSfclose(f);
             return (-11);
         }            
         /* No soporto compresion */
         if(bmp.bmih.biCompression != 0)
         {
-            Log("[DrawBitmap] Compresion %lu no soportada para %s", bmp.bmih.biCompression, filename);
+            LogMessage("[DrawBitmap] Compresion %lu no soportada para %s", bmp.bmih.biCompression, filename);
             FSfclose(f);
             return (-12);
         }            
         /* Soporto solamente 8 y 24 bits por pixel */
         if(bmp.bmih.biBitCount < 24)
         {
-            Log("[DrawBitmap] %lu bits por pixel no soportado en %s", bmp.bmih.biBitCount, filename);
+            LogMessage("[DrawBitmap] %lu bits por pixel no soportado en %s", bmp.bmih.biBitCount, filename);
             FSfclose(f);
             return (-13);
         }            
@@ -124,7 +124,7 @@ int DrawBitmapTransparent(const char *filename, unsigned int x0, unsigned int y0
         {
             if(FSfseek(f, bmp.bmfh.bfOffBits, SEEK_SET) != 0)
             {
-                Log("[DrawBitmap] Error al posicionarse en el mapa de bits de %s", filename);
+                LogMessage("[DrawBitmap] Error al posicionarse en el mapa de bits de %s", filename);
                 FSfclose(f);
                 return (-14);
             }
@@ -139,7 +139,7 @@ int DrawBitmapTransparent(const char *filename, unsigned int x0, unsigned int y0
                 /* Leo de a un pixel */
                 if(FSfread(&b, bmp.bmih.biBitCount/8, 1, f) != 1)
                 {
-                    Log("[DrawBitmap] Error al leer mapa de bits de %s", filename);
+                    LogMessage("[DrawBitmap] Error al leer mapa de bits de %s", filename);
                     FSfclose(f);
                     return (-15);
                 }
@@ -174,7 +174,7 @@ int DrawBitmapTransparent(const char *filename, unsigned int x0, unsigned int y0
     }
     else
     {
-        Log("[DrawBitmap] Error al abrir %s", filename);
+        LogMessage("[DrawBitmap] Error al abrir %s", filename);
     }
     return 0;
 }
@@ -186,7 +186,7 @@ int DrawBitmap(const char *filename, unsigned int x0, unsigned int y0)
     long x, y;
     unsigned char b[3];
     
-    Log("[DrawBitmap] X: %u Y: %u file: %s", x0, y0, filename);
+    LogMessage("[DrawBitmap] X: %u Y: %u file: %s", x0, y0, filename);
     
     f = FSfopen(filename, FS_READ);
     if(f)
@@ -194,7 +194,7 @@ int DrawBitmap(const char *filename, unsigned int x0, unsigned int y0)
         /* Leo las dos partes de la cabecera */
         if(FSfread(&bmp, sizeof(bitmap_header), 1, f) != 1)
         {
-            Log("[DrawBitmap] Error al leer HEADER de %s", filename);
+            LogMessage("[DrawBitmap] Error al leer HEADER de %s", filename);
             FSfclose(f);
             return (-10);
         }
@@ -202,21 +202,21 @@ int DrawBitmap(const char *filename, unsigned int x0, unsigned int y0)
         /* mime-type */
         if(bmp.bmfh.bfType != 0x4d42)
         {
-            Log("[DrawBitmap] Archivo %s con formato invalido", filename);
+            LogMessage("[DrawBitmap] Archivo %s con formato invalido", filename);
             FSfclose(f);
             return (-11);
         }            
         /* No soporto compresion */
         if(bmp.bmih.biCompression != 0)
         {
-            Log("[DrawBitmap] Compresion %lu no soportada para %s", bmp.bmih.biCompression, filename);
+            LogMessage("[DrawBitmap] Compresion %lu no soportada para %s", bmp.bmih.biCompression, filename);
             FSfclose(f);
             return (-12);
         }            
         /* Soporto solamente 8 y 24 bits por pixel */
         if(bmp.bmih.biBitCount < 24)
         {
-            Log("[DrawBitmap] %lu bits por pixel no soportado en %s", bmp.bmih.biBitCount, filename);
+            LogMessage("[DrawBitmap] %lu bits por pixel no soportado en %s", bmp.bmih.biBitCount, filename);
             FSfclose(f);
             return (-13);
         }            
@@ -225,7 +225,7 @@ int DrawBitmap(const char *filename, unsigned int x0, unsigned int y0)
         {
             if(FSfseek(f, bmp.bmfh.bfOffBits, SEEK_SET) != 0)
             {
-                Log("[DrawBitmap] Error al posicionarse en el mapa de bits de %s", filename);
+                LogMessage("[DrawBitmap] Error al posicionarse en el mapa de bits de %s", filename);
                 FSfclose(f);
                 return (-14);
             }
@@ -240,7 +240,7 @@ int DrawBitmap(const char *filename, unsigned int x0, unsigned int y0)
                 /* Leo de a un pixel */
                 if(FSfread(&b, bmp.bmih.biBitCount/8, 1, f) != 1)
                 {
-                    Log("[DrawBitmap] Error al leer mapa de bits de %s", filename);
+                    LogMessage("[DrawBitmap] Error al leer mapa de bits de %s", filename);
                     FSfclose(f);
                     return (-15);
                 }
@@ -267,7 +267,7 @@ int DrawBitmap(const char *filename, unsigned int x0, unsigned int y0)
     }
     else
     {
-        Log("[DrawBitmap] Error al abrir %s", filename);
+        LogMessage("[DrawBitmap] Error al abrir %s", filename);
     }
     return 0;
 }

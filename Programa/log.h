@@ -21,7 +21,7 @@
 #define LOG_FILE_NAME "dom32tch.log"
 
 void LogInit(void);
-void Log(const char* msg, ...);
+void LogMessage(const char* msg, ...);
 
 #endif	/* LOG_H */
 

@@ -131,7 +131,7 @@ bool TouchIsPressed( unsigned int *x, unsigned int *y, unsigned int *z )
     zz = ReadTouchPressure(xm);
 
 #ifdef DEBUG_TOUCH
-    Log("[TouchIsPressed] X: %u Y: %u Z: %u", xm, yp, zz);
+    LogMessage("[TouchIsPressed] X: %u Y: %u Z: %u", xm, yp, zz);
     Delayms(1000);
 #endif
 
@@ -194,7 +194,7 @@ unsigned int ReadADCChannel(unsigned int channel)
             }
         }
     }
-    //Log("[ReadADCChannel] muestras: %u %u [%u] %u %u",
+    //LogMessage("[ReadADCChannel] muestras: %u %u [%u] %u %u",
     //        muestras[0],muestras[1],muestras[2],muestras[3],muestras[4]);
     /* Devuelvo el del medio */
     return muestras[MUESTREOS_ADC/2];
@@ -286,7 +286,7 @@ unsigned int ReadTouchPressure(unsigned int x)
     }
     
 #ifdef DEBUG_TOUCH
-    Log("[ReadTouchPressure] z1: %u  z2: %u delta: %u", z1, z2, delta);
+    LogMessage("[ReadTouchPressure] z1: %u  z2: %u delta: %u", z1, z2, delta);
 #endif
     return delta;
     

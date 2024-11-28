@@ -111,10 +111,10 @@ void __attribute__((weak, nomips16)) _general_exception_handler (void)
         case EXCEP_C2E: _except_str = "coprocessor 2"; break;
     }
 
-    Log("[Exception] Compilacion " __DATE__ " " __TIME__ ".");
-    Log("[Exception] Compilador " __VERSION__ ".");
-    Log("[Exception] %s.", _except_str);
-    Log("[Exception] Cde: 0x%04X Addr: 0x%08X.", _excep_code, _excep_addr);
+    LogMessage("[Exception] Compilacion " __DATE__ " " __TIME__ ".");
+    LogMessage("[Exception] Compilador " __VERSION__ ".");
+    LogMessage("[Exception] %s.", _except_str);
+    LogMessage("[Exception] Cde: 0x%04X Addr: 0x%08X.", _excep_code, _excep_addr);
 
     while(1);
 }
@@ -263,7 +263,7 @@ void ConfigLoad( void )
     FSFILE* f;
     int rc;
 
-    Log("[ConfigLoad] Leyendo configuracion de %s.", CONFIG_FILENAME);
+    LogMessage("[ConfigLoad] Leyendo configuracion de %s.", CONFIG_FILENAME);
     /* Lectura de configuración em tarjeta SD */
     f = FSfopen(CONFIG_FILENAME, FS_READ);
     if(f)
@@ -272,14 +272,14 @@ void ConfigLoad( void )
         FSfclose(f);
         if(rc == 1)
         {
-            Log("[ConfigLoad] Lectura de %s Ok.", CONFIG_FILENAME);
+            LogMessage("[ConfigLoad] Lectura de %s Ok.", CONFIG_FILENAME);
             DumpConfig();
             return;
         }
-        Log("[ConfigLoad] Error de lectura de %s.", CONFIG_FILENAME);
+        LogMessage("[ConfigLoad] Error de lectura de %s.", CONFIG_FILENAME);
     }
     
-    Log("[ConfigLoad] Load Defaults.");
+    LogMessage("[ConfigLoad] Load Defaults.");
     ConfigLoadDefault();
     ConfigSave();
 }
@@ -293,7 +293,7 @@ void ConfigSave(void)
     
     if(g_wifi_info.status.flag_sd_ok)
     {
-        Log("[ConfigSave] Guardando configuracion en %s.", CONFIG_FILENAME);
+        LogMessage("[ConfigSave] Guardando configuracion en %s.", CONFIG_FILENAME);
         f = FSfopen(CONFIG_FILENAME, FS_WRITE);
         if(f)
         {
@@ -301,17 +301,17 @@ void ConfigSave(void)
             FSfclose(f);
             if(rc == 1)
             {
-                Log("[ConfigSave] Guardado en %s Ok.", CONFIG_FILENAME);
+                LogMessage("[ConfigSave] Guardado en %s Ok.", CONFIG_FILENAME);
                 DumpConfig();
             }
             else
             {
-                Log("[ConfigSave] Error de escritura en %s.", CONFIG_FILENAME);
+                LogMessage("[ConfigSave] Error de escritura en %s.", CONFIG_FILENAME);
             }
         }
         else
         {
-            Log("[ConfigSave] Error al abrir/crear el archivo "CONFIG_FILENAME" en SD.");
+            LogMessage("[ConfigSave] Error al abrir/crear el archivo "CONFIG_FILENAME" en SD.");
         }
     }
 }
@@ -331,20 +331,20 @@ void ConfigTimer(void)
 
 void DumpConfig( void )
 {
-    Log("[DumpConfig] wifi_ap1:         %s", g_wifi_info.f.config.wifi_ap1);
-    Log("[DumpConfig] wifi_ap1_pass:    %s", g_wifi_info.f.config.wifi_ap1_pass);
-    Log("[DumpConfig] wifi_ap2:         %s", g_wifi_info.f.config.wifi_ap2);
-    Log("[DumpConfig] wifi_ap2_pass:    %s", g_wifi_info.f.config.wifi_ap2_pass);
-    Log("[DumpConfig] wifi_host1:       %s", g_wifi_info.f.config.wifi_host1);
-    Log("[DumpConfig] wifi_host1_port:  %d", g_wifi_info.f.config.wifi_host1_port);
-    Log("[DumpConfig] wifi_host2:       %s", g_wifi_info.f.config.wifi_host2);
-    Log("[DumpConfig] wifi_host2_port:  %d", g_wifi_info.f.config.wifi_host2_port);
-    Log("[DumpConfig] rqst_path:        %s", g_wifi_info.f.config.rqst_path);
-    Log("[DumpConfig] report:           %d", g_wifi_info.f.config.report);
-    Log("[DumpConfig] enable_https:     %s", (g_wifi_info.f.config.enable_https)?"si":"no");
-    Log("[DumpConfig] rtcc_clk_div_adj: %li", g_wifi_info.f.config.rtcc_clk_div_adj);
-    Log("[DumpConfig] Brillo maximo:    %d", g_wifi_info.f.config.brillo_max);
-    Log("[DumpConfig] Brillo medio:     %d", g_wifi_info.f.config.brillo_med);
-    Log("[DumpConfig] Brillo minimo:    %d", g_wifi_info.f.config.brillo_min);
-    Log("[DumpConfig] Screen Saver:     %d", g_wifi_info.f.config.screen_saver_time);
+    LogMessage("[DumpConfig] wifi_ap1:         %s", g_wifi_info.f.config.wifi_ap1);
+    LogMessage("[DumpConfig] wifi_ap1_pass:    %s", g_wifi_info.f.config.wifi_ap1_pass);
+    LogMessage("[DumpConfig] wifi_ap2:         %s", g_wifi_info.f.config.wifi_ap2);
+    LogMessage("[DumpConfig] wifi_ap2_pass:    %s", g_wifi_info.f.config.wifi_ap2_pass);
+    LogMessage("[DumpConfig] wifi_host1:       %s", g_wifi_info.f.config.wifi_host1);
+    LogMessage("[DumpConfig] wifi_host1_port:  %d", g_wifi_info.f.config.wifi_host1_port);
+    LogMessage("[DumpConfig] wifi_host2:       %s", g_wifi_info.f.config.wifi_host2);
+    LogMessage("[DumpConfig] wifi_host2_port:  %d", g_wifi_info.f.config.wifi_host2_port);
+    LogMessage("[DumpConfig] rqst_path:        %s", g_wifi_info.f.config.rqst_path);
+    LogMessage("[DumpConfig] report:           %d", g_wifi_info.f.config.report);
+    LogMessage("[DumpConfig] enable_https:     %s", (g_wifi_info.f.config.enable_https)?"si":"no");
+    LogMessage("[DumpConfig] rtcc_clk_div_adj: %li", g_wifi_info.f.config.rtcc_clk_div_adj);
+    LogMessage("[DumpConfig] Brillo maximo:    %d", g_wifi_info.f.config.brillo_max);
+    LogMessage("[DumpConfig] Brillo medio:     %d", g_wifi_info.f.config.brillo_med);
+    LogMessage("[DumpConfig] Brillo minimo:    %d", g_wifi_info.f.config.brillo_min);
+    LogMessage("[DumpConfig] Screen Saver:     %d", g_wifi_info.f.config.screen_saver_time);
 }

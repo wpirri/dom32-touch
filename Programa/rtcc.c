@@ -121,19 +121,19 @@ void RTCC_AdjustClk(int diferencia)
 {
     if(diferencia < 0)
     {
-        Log("[RTCC_AdjustClk] Diferencia %li (adelantar).", diferencia);
+        LogMessage("[RTCC_AdjustClk] Diferencia %li (adelantar).", diferencia);
         if(g_wifi_info.f.config.rtcc_clk_div_adj > 450000) g_wifi_info.f.config.rtcc_clk_div_adj--;
-        Log("[RTCC_AdjustClk] Ajuste fino de reloj: %d.", g_wifi_info.f.config.rtcc_clk_div_adj);
+        LogMessage("[RTCC_AdjustClk] Ajuste fino de reloj: %d.", g_wifi_info.f.config.rtcc_clk_div_adj);
     }
     else if(diferencia > 0)
     {
-        Log("[RTCC_AdjustClk] Diferencia %li (atrasar).", diferencia);
+        LogMessage("[RTCC_AdjustClk] Diferencia %li (atrasar).", diferencia);
         if(g_wifi_info.f.config.rtcc_clk_div_adj < 510000) g_wifi_info.f.config.rtcc_clk_div_adj++;
-        Log("[RTCC_AdjustClk] Ajuste fino de reloj: %d.", g_wifi_info.f.config.rtcc_clk_div_adj);
+        LogMessage("[RTCC_AdjustClk] Ajuste fino de reloj: %d.", g_wifi_info.f.config.rtcc_clk_div_adj);
     }
     else
     {
-        Log("[RTCC_AdjustClk] Ajuste fino de clock Ok.");
+        LogMessage("[RTCC_AdjustClk] Ajuste fino de clock Ok.");
         /*
         if(g_rtcc_diferencia_anterior != 0)
         {
@@ -177,7 +177,7 @@ void RTCC_TimeSet(struct tm *initialTime)
     
     if(diferencia != 0)
     {
-        Log("[RTCC_TimeSet] Cambio de hora [%i/%02i/%02i %02i:%02i:%02i] -> [%i/%02i/%02i %02i:%02i:%02i].",
+        LogMessage("[RTCC_TimeSet] Cambio de hora [%i/%02i/%02i %02i:%02i:%02i] -> [%i/%02i/%02i %02i:%02i:%02i].",
                 oldTime.tm_year+1900, oldTime.tm_mon, oldTime.tm_mday, oldTime.tm_hour,
                 oldTime.tm_min, oldTime.tm_sec,initialTime->tm_year+1900, initialTime->tm_mon,
                 initialTime->tm_mday, initialTime->tm_hour, initialTime->tm_min, initialTime->tm_sec);
@@ -217,7 +217,7 @@ void RTCC_TimeSet(struct tm *initialTime)
     }
     else
     {
-        Log("[RTCC_TimeSet] No se cambia el horario");
+        LogMessage("[RTCC_TimeSet] No se cambia el horario");
     }
 }
 

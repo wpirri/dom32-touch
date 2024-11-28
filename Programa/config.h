@@ -44,8 +44,7 @@
 #define CORE_TIMER_COMPARE_VAL 0x1D4C0
 
 #define DOWNLOAD_PATH           "/download"
-#define FIRMWARE_FILENAME       "d32touch.hex"
-#define BOOT_FILENAME           "pgm.hex"
+#define FIRMWARE_FILENAME       "domtouch.hex"
 #define CONFIG_FILENAME         "d32touch.cfg"
 
 typedef struct _config_in_file_ /*  */

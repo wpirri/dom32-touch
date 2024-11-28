@@ -88,10 +88,10 @@ void LogInit(void)
     {
         FSremove(LOG_FILE_NAME);
     }
-    Log("[log] Init Ok");
+    LogMessage("[log] Init Ok");
 }
 
-void Log(const char* msg, ...)
+void LogMessage(const char* msg, ...)
 {
 #ifdef LOG_TO_FILE
     FSFILE *f;

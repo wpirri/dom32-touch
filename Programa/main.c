@@ -118,7 +118,7 @@ int main(void)
     strncpy(g_wifi_info.status.up_fw, __DATE__ " " __TIME__, 
             sizeof(g_wifi_info.status.up_fw)-1);
     
-    Log("[main] Init Ok");
+    LogMessage("[main] Init Ok");
     
     /* TODO: Sacar esto. Es para probar */
     g_wifi_info.f.config.screen_saver_time = 60;

@@ -57,7 +57,9 @@ typedef enum
 } control_stm;
 
 unsigned int g_control_init_complete;
+unsigned int g_control_update_firmware;
 unsigned int g_ctrl_count_reset;
+
 unsigned int g_ctrl_current_screen;
 control_stm g_ctrl_stm;
 unsigned int g_ctrl_stm_delay;
@@ -70,13 +72,15 @@ void BotonPressed(const char* name);
 
 void CTRLNotificarStatus( int time )
 {
-    if(time == 0) time = 1;
-    
-    if(time < g_wifi_info.status.control_notificar || g_wifi_info.status.control_notificar == 0)
+    if(time == 0)
     {
-        Log("Notificar en %i segundos", time/10);
+        g_wifi_info.status.control_notificar = g_wifi_info.f.config.report;
+    }
+    else if(time < g_wifi_info.status.control_notificar || g_wifi_info.status.control_notificar == 0)
+    {
         g_wifi_info.status.control_notificar = time;
     }
+    LogMessage("Notificar en %i segundos", g_wifi_info.status.control_notificar/10);
 }
 
 void CTRLInit( void )
@@ -84,6 +88,7 @@ void CTRLInit( void )
     g_wifi_info.status.control_notificar = 0;
     g_control_init_complete = 0;
     g_ctrl_count_reset = 0;
+    g_control_update_firmware = 0;
     g_ctrl_stm = INIT;
     g_ctrl_stm_delay = 0;
     g_ctrl_current_screen = 0;
@@ -259,9 +264,9 @@ void CTRLTask( void )
 /* Se llama 10 veces por segundo - 100ms */
 void CTRLTimer( void )
 {
-    if(g_wifi_info.status.host_conectado == 0 && g_wifi_info.status.control_notificar > 100)
+    if(g_wifi_info.status.host_conectado == 0 && g_wifi_info.status.control_notificar > (g_wifi_info.f.config.report/10))
     {
-        g_wifi_info.status.control_notificar = 100;
+        g_wifi_info.status.control_notificar = (g_wifi_info.f.config.report/10);
     }
 
     if( g_wifi_info.status.control_notificar > 0 &&
@@ -274,17 +279,15 @@ void CTRLTimer( void )
             /* Levanto el flag para que
              * en adelante los cambios cuenten */
             g_control_init_complete = 1;
-            if( !HTTPNotificarStatus() )
-            {
-                /* programo un reintento */
-                CTRLNotificarStatus(10);
-            }
+            HTTPNotificarStatus();
+            /* programo un reintento, si hay respuesta Ok luego se extiende el tiempo */
+            g_wifi_info.status.control_notificar = (g_wifi_info.f.config.report/10);
         }
     }
     else if(g_wifi_info.status.control_notificar == 0)
     {
         /* notifico segun lo configurado */
-        CTRLNotificarStatus(g_wifi_info.f.config.report);
+        g_wifi_info.status.control_notificar = g_wifi_info.f.config.report;
     }
     
     /* Control de reset */
@@ -294,7 +297,7 @@ void CTRLTimer( void )
         if(g_ctrl_count_reset == 0)
         {
             ConfigSave();
-            Log("[CTRL] RESET.");
+            LogMessage("[CTRL] RESET.");
             /* The following code illustrates a software Reset */
             // assume interrupts are disabled
             // assume the DMA controller is suspended
@@ -310,6 +313,18 @@ void CTRLTimer( void )
             unsigned int dummy; dummy = RSWRST;
             /* prevent any unwanted code execution until reset occurs*/
             while(dummy | 1);
+        }
+    }
+    
+    if(g_control_update_firmware && g_wifi_info.status.flag_sd_ok)
+    {
+        g_control_update_firmware--;
+        if(g_control_update_firmware == 0)
+        {
+            if(HTTPGetFile(DOWNLOAD_PATH"/"FIRMWARE_FILENAME, NULL) <= 0 )
+            {
+                g_control_update_firmware = 10;
+            }
         }
     }
     
@@ -334,13 +349,13 @@ void CTRLConfSys(char* in)
     bool change = false;
     struct tm tm_time;
 
-    Log("[CTRLConfSys] %s", in);
+    LogMessage("[CTRLConfSys] %s", in);
 
     if(HTTPGetFormData(in, "UPDATE-FW", tmp))
     {
-        Log("********** Actualizar Firmware **********");
-        /* Actualizar firmware en 30 seg */
-        strcpy(g_download_file_name, DOWNLOAD_PATH"/"FIRMWARE_FILENAME);
+        LogMessage("********** Actualizar Firmware **********");
+        /* Actualizar firmware en 5 seg */
+        g_control_update_firmware = 50;
     }
     
     if(HTTPGetFormData(in, "report", tmp))
@@ -351,7 +366,7 @@ void CTRLConfSys(char* in)
         {
             g_wifi_info.f.config.report = 600;
         }
-        Log("Keep Alive: %is", g_wifi_info.f.config.report/10);
+        LogMessage("Keep Alive: %is", g_wifi_info.f.config.report/10);
     }
     
     if(HTTPGetFormData(in, "REPORT", tmp))
@@ -362,12 +377,12 @@ void CTRLConfSys(char* in)
         {
             g_wifi_info.f.config.report = 600;
         }
-        Log("Keep Alive: %is", g_wifi_info.f.config.report/10);
+        LogMessage("Keep Alive: %is", g_wifi_info.f.config.report/10);
     }
     
     if(HTTPGetFormData(in, "TIME", tmp))
     {
-        Log("TIME: %s", tmp);
+        LogMessage("TIME: %s", tmp);
         /*             1111111111
          *   01234567890123456789
          tmp YYYY/MM/DD hh:mm:ss
@@ -393,7 +408,7 @@ void CTRLConfSys(char* in)
         }
         else
         {
-            Log("[CTRLConfSys] Error de formato para TIME");
+            LogMessage("[CTRLConfSys] Error de formato para TIME");
         }
     }
     
@@ -407,8 +422,8 @@ void CTRLConfSys(char* in)
 void CTRLReset( void )
 {
     /* reset en 10 seg */
-    Log("[CTRL] RESET solicitado.");
-    g_ctrl_count_reset = 100;
+    LogMessage("[CTRL] RESET solicitado.");
+    g_ctrl_count_reset = 30;
 }
 
 
@@ -417,7 +432,7 @@ void CTRLReset( void )
 
 void BotonPressed(const char* cmd)
 {
-    Log("[BotonPressed] CMD: %s", cmd);
+    LogMessage("[BotonPressed] CMD: %s", cmd);
     
     g_screen_saver_count = 0;
     
@@ -465,11 +480,13 @@ void BotonPressed(const char* cmd)
     }
     else if( !memcmp(cmd, "RESET", 5))
     {
+        Clear(0);
         CTRLReset();
     }
     else if( !memcmp(cmd, "UPGRADE", 7))
     {
-        strcpy(g_download_file_name, DOWNLOAD_PATH"/"FIRMWARE_FILENAME);
+        Clear(0);
+        g_control_update_firmware = 50;
     }
     else if( !memcmp(cmd, "SWITCH:", 7))
     {
@@ -496,7 +513,7 @@ void TouchTask( void )
             if(touch_counter == TOUCH_DELAY && !touch_pressed)
             {
                 touch_pressed = true;
-                Log("[TOUCH] X: %u y: %u", touch_x, touch_y);
+                LogMessage("[TOUCH] X: %u y: %u", touch_x, touch_y);
                 BotonTask(touch_x, touch_y);
             }
         }
@@ -540,7 +557,7 @@ void ShowScreen(const char* filename)
     Clear(0);
     InitBotones(BotonPressed);
 
-    Log("[ShowScreen] Cargando: %s", filename);
+    LogMessage("[ShowScreen] Cargando: %s", filename);
     f = FSfopen(filename, FS_READ);
     if(f)
     {
