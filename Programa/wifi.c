@@ -34,10 +34,12 @@
 #include <stdio.h>
 #include <stdbool.h>
 
+#include "log.h"
+#include "uart3.h"
 #include "strfunc.h"
+#include "control.h"
 #include "http.h"
 #include "config.h"
-#include "log.h"
 #include "delay.h"
 #include "sd/fsio.h"
 
@@ -95,80 +97,6 @@ char g_wifi_cmd[256];
 
 bool g_wifi_need_upgrade;
 
-#define WIFI_UART_RX_BYTEQ_LENGTH 4095
-
-static uint8_t * volatile rxTail;
-static uint8_t * rxHead;
-static uint8_t * volatile txHead;
-static bool volatile rxOverflowed;
-static uint8_t rxQueue[WIFI_UART_RX_BYTEQ_LENGTH+1] ;
-
-void WifiSerialInit(void)
-{
-    rxHead = rxQueue;
-    rxTail = rxQueue;
-    rxOverflowed = 0;
-
-    /* ************************************************************************** */
-    // System Reg Unlock
-    SYSKEY = 0x00000000; 
-    SYSKEY = 0xAA996655; //write Key1 to SYSKEY
-    SYSKEY = 0x556699AA; //write Key2 to SYSKEY
-    /* ************************************************************************** */
-
-    IEC1bits.U3TXIE = 0;
-    IEC1bits.U3RXIE = 0;
-
-    // STSEL 1; PDSEL 8N; RTSMD disabled; OVFDIS disabled; ACTIVE disabled; RXINV disabled; WAKE disabled; BRGH enabled; IREN disabled; ON enabled; SLPEN disabled; SIDL disabled; ABAUD disabled; LPBACK disabled; UEN TX_RX; CLKSEL PBCLK; 
-    U3MODE = (0x8008 & ~(1<<15));  // disabling UART
-    // UTXISEL TX_ONE_CHAR; UTXINV disabled; ADDR 0; MASK 0; URXEN disabled; OERR disabled; URXISEL RX_ONE_CHAR; UTXBRK disabled; UTXEN disabled; ADDEN disabled; 
-    U3STA = 0x0;
-    // BaudRate = 115200; Frequency = 24000000 Hz; BRG 51; 
-    U3BRG = 0x33;
-
-    IEC1bits.U3RXIE = 1;
-
-     //Make sure to set LAT bit corresponding to TxPin as high before UART initialization
-    U3STASET = _U3STA_UTXEN_MASK;
-    U3MODESET = _U3MODE_ON_MASK;  // enabling UART ON bit
-    U3STASET = _U3STA_URXEN_MASK; 
-
-    /* ************************************************************************** */
-    // System Reg Lock
-     SYSKEY = 0x00000000; 
-}
-
-bool WifiSerialIsRxReady(void)
-{    
-    return !(rxHead == rxTail);
-}
-
-
-void WifiSerialWrite(unsigned int ch)
-{
-    while(U3STAbits.UTXBF);
-    U3TXREG = ch;
-}
-
-unsigned char WifiSerialRead( void)
-{
-    unsigned char data = 0;
-
-    while (rxHead == rxTail );
-    
-    data = *rxHead;
-
-    rxHead++;
-
-    if (rxHead == (rxQueue + WIFI_UART_RX_BYTEQ_LENGTH))
-    {
-        rxHead = rxQueue;
-    }
-    return data;
-}
-
-
-
 void WifiTaskSTMSet(task_stm st, unsigned int delay, unsigned int to)
 {
     g_wifi_task_stm = st;
@@ -185,7 +113,7 @@ void WifiWrite( const char *buffer )
         LogMessage("[WifiWrite] %-.100s", buffer);
         while(*buffer)
         {
-            WifiSerialWrite(*buffer);
+            UART3_Write(*buffer);
             buffer++;
         }
     }
@@ -198,12 +126,12 @@ void WifiWriteLine( const char *line )
         LogMessage("[WifiWriteLine] %-.100s", line);
         while(*line)
         {
-            WifiSerialWrite(*line);
+            UART3_Write(*line);
             line++;
         }
     }
-    WifiSerialWrite('\r');
-    WifiSerialWrite('\n');
+    UART3_Write('\r');
+    UART3_Write('\n');
 }
 
 /*
@@ -216,9 +144,9 @@ int WifiWaitLine(const char *line1, const char *line2, const char *line3, const 
     int rc = 0;
     unsigned char c = 0;
 
-    while(WifiSerialIsRxReady())
+    while(UART3_IsRxReady())
     {
-        c = WifiSerialRead();
+        c = UART3_Read();
         g_wifi_read_line_buffer_timer = 3;
 
         /* Si estoy esperando fin de linea ... */
@@ -369,9 +297,9 @@ int WifiWaitLine(const char *line1, const char *line2, const char *line3, const 
 
 int WifiWaitPrompt(const char prompt)
 {
-    while(WifiSerialIsRxReady())
+    while(UART3_IsRxReady())
     {
-        if(WifiSerialRead() == prompt) return 1;
+        if(UART3_Read() == prompt) return 1;
     }
     return 0;
 }
@@ -1474,55 +1402,8 @@ void WiFiInit( void )
     g_wifi_need_upgrade = false;
     g_wifi_send_error_count = 0;
     g_wifi_recv_error_count = 0;
-
-    /* ********************************************************************* */
-    /* Configuración de los pines */
-    // Tx
-    TRISBbits.TRISB8 = 0;
-    // Rx
-    TRISBbits.TRISB9 = 1;
-    // Reset
-    TRISBbits.TRISB10 = 0;
-    ODCBbits.ODCB10 = 1;
-    /* ********************************************************************* */
-    /* Configuración de interrupción */
-    //    UTXI: UART 3 Error
-    //    Priority: 1
-        IPC15bits.U3EIP = 1;
-    //    Sub Priority: 0
-        IPC15bits.U3EIS = 0;
-    //    UTXI: UART 3 Transmission
-    //    Priority: 1
-    //    IPC13bits.U3TXIP = 1;
-    //    Sub Priority: 0
-    //    IPC13bits.U3TXIS = 0;
-    //    URXI: UART 3 Reception
-    //    Priority: 1
-        IPC14bits.U3RXIP = 1;
-    //    Sub Priority: 0
-        IPC14bits.U3RXIS = 0;
-    /* Configuración del UART */
-    /* ********************************************************************* */
-    // System Reg Unlock
-    SYSKEY = 0x00000000; 
-    SYSKEY = 0xAA996655; //write Key1 to SYSKEY
-    SYSKEY = 0x556699AA; //write Key2 to SYSKEY
-    /* ********************************************************************* */
-    // Config PPS
-    // unlock PPS
-    RPCONbits.IOLOCK = 0;
-    // Mapeo de UART3
-    RPOR3bits.RP13R = 6;       // UART3:U3TX -> RP13
-    RPINR8bits.U3RXR = 14;     // RP14 -> UART3:U3RX
-    // lock   PPS
-    RPCONbits.IOLOCK = 1; 
-    /* ********************************************************************* */
-    // System Reg Lock
-    SYSKEY = 0x00000000; 
-    /* ********************************************************************* */
-
     
-    WifiSerialInit();
+    UART3_Init();
     
     g_wifi_host = &g_wifi_info.f.config.wifi_host1[0];
     g_wifi_port = (g_wifi_info.f.config.wifi_host1_port)?g_wifi_info.f.config.wifi_host1_port:((g_wifi_info.f.config.enable_https)?443:80);
@@ -1662,43 +1543,3 @@ void WiFiTimer( void )
 }
 
 /* ************************************************************************* */
-
-
-void __attribute__ ((vector(_UART3_RX_VECTOR), interrupt(IPL1SOFT))) _UART3_RX( void )
-{
-    while((U3STAbits.URXDA == 1))
-    {
-        *rxTail = U3RXREG;
-
-        // Will the increment not result in a wrap and not result in a pure collision?
-        // This is most often condition so check first
-        if ( ( rxTail    != (rxQueue + WIFI_UART_RX_BYTEQ_LENGTH-1)) &&
-             ((rxTail+1) != rxHead) )
-        {
-            rxTail++;
-        } 
-        else if ( (rxTail == (rxQueue + WIFI_UART_RX_BYTEQ_LENGTH-1)) &&
-                  (rxHead !=  rxQueue) )
-        {
-            // Pure wrap no collision
-            rxTail = rxQueue;
-        } 
-        else // must be collision
-        {
-            rxOverflowed = true;
-        }
-
-    }
-
-    IFS1CLR= 1 << _IFS1_U3RXIF_POSITION;
-}
-
-void __attribute__ ((vector(_UART3_ERR_VECTOR), interrupt(IPL1SOFT))) _UART3_ERR ( void )
-{
-    if ((U3STAbits.OERR == 1))
-    {
-        U3STACLR = _U3STA_OERR_MASK; 
-    }
-
-     IFS1CLR= 1 << _IFS1_U3EIF_POSITION;
-}

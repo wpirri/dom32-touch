@@ -27,6 +27,7 @@
       <itemPath>../http.h</itemPath>
       <itemPath>../control.h</itemPath>
       <itemPath>../rtcc.h</itemPath>
+      <itemPath>../uart3.h</itemPath>
     </logicalFolder>
     <logicalFolder name="ExternalFiles"
                    displayName="Important Files"
@@ -63,6 +64,7 @@
       <itemPath>../http.c</itemPath>
       <itemPath>../control.c</itemPath>
       <itemPath>../rtcc.c</itemPath>
+      <itemPath>../uart3.c</itemPath>
     </logicalFolder>
   </logicalFolder>
   <sourceRootList>

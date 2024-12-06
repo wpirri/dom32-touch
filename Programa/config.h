@@ -73,6 +73,7 @@ typedef struct
 {
     union
     {
+        char dummy[ ((sizeof(config_in_file)/sizeof(uint32_t))+1)*sizeof(uint32_t) ];
         config_in_file config;
     } f;
     struct
