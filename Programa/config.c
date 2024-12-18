@@ -268,9 +268,10 @@ void ConfigLoad( void )
     f = FSfopen(CONFIG_FILENAME, FS_READ);
     if(f)
     {
-        rc = FSfread(&g_wifi_info.f.config, sizeof(config_in_file), 1, f);
+        rc = FSfread(&g_wifi_info.f.config, 1, sizeof(config_in_file), f);
         FSfclose(f);
-        if(rc >= 245)
+        LogMessage("[ConfigLoad] Leidos %i bytes de %s.", rc, CONFIG_FILENAME);
+        if(rc >= 236)
         {
             LogMessage("[ConfigLoad] Lectura de %s Ok.", CONFIG_FILENAME);
             if(rc < sizeof(config_in_file))
