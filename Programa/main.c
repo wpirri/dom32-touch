@@ -120,12 +120,6 @@ int main(void)
     
     LogMessage("[main] Init Ok");
     
-    /* TODO: Sacar esto. Es para probar */
-    g_wifi_info.f.config.screen_saver_time = 60;
-    g_wifi_info.f.config.brillo_max = 100;
-    g_wifi_info.f.config.brillo_med = 30;
-    g_wifi_info.f.config.brillo_min = 0;
-   
     while(1)
     {
         CLRWDT();

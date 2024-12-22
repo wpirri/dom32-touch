@@ -108,7 +108,7 @@ void CTRLTask( void )
     {
         case INIT:
             /* Pantalla negra */
-            g_wifi_info.status.brillo = g_wifi_info.f.config.brillo_min;
+            g_wifi_info.status.brillo = 0;
             Clear(0);
             g_ctrl_stm++;
             break;
@@ -223,8 +223,12 @@ void CTRLTask( void )
             }
             break;
         case LOAD_SCREEN_SAVER:
-            g_wifi_info.status.brillo = g_wifi_info.f.config.brillo_min;
+            g_wifi_info.status.brillo = 0;
             Clear(0);
+            DrawBitmap("power.bmp", 
+                    ((DISPLAY_X_SIZE/2)-(GetBitmapW("power.bmp")/2)), 
+                    ((DISPLAY_Y_SIZE/2)-(GetBitmapH("power.bmp")/2)) );
+            g_wifi_info.status.brillo = g_wifi_info.f.config.brillo_min;
             g_ctrl_stm++;
             break;
         case SCREEN_SAVER:
@@ -237,7 +241,7 @@ void CTRLTask( void )
             }
             break;
         case OFFLINE_SCREEN:
-            g_wifi_info.status.brillo = g_wifi_info.f.config.brillo_min;
+            g_wifi_info.status.brillo = 0;
             Clear(0);
             DrawBitmap("power.bmp", 
                     ((DISPLAY_X_SIZE/2)-(GetBitmapW("power.bmp")/2)), 
@@ -553,7 +557,7 @@ void ShowScreen(const char* filename)
     char btn_icono[FILE_NAME_SIZE+1];
 
 
-    g_wifi_info.status.brillo = g_wifi_info.f.config.brillo_min;
+    g_wifi_info.status.brillo = 0;
     Clear(0);
     InitBotones(BotonPressed);
 
