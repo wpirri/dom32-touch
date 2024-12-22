@@ -46,3 +46,31 @@
 # ORANGE       64800
 # GREENYELLOW  45029
 # PINK         65519
+#
+Comandos:
+
+download Touch-POC, /download/touch/config.csv
+
+
+configurar <dispositivo>, <parametro=valor>
+
+Parametros generales:
+ap1
+ap1p
+ap2
+ap2p
+ce1
+ce2
+path
+ce1p
+ce2p
+report
+
+Parametros touch:
+brillo-max
+brillo-med
+brillo-min
+screen-saver
+
+configurar Touch-POC, brillo-min=10
+configurar Touch-POC, screen-saver=5

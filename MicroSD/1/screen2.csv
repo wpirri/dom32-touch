@@ -1,0 +1,8 @@
+#SCREEN -----------------------------------------------------------------------
+BOTON1,Puerta,SWITCH:Puerta Entrada,20,10,200,70,992,2016,65535,key0.bmp
+BOTON1,Extractor,SWITCH:Extractor Cocina,20,90,200,70,992,2016,65535,vent1.bmp
+#BOTON1,xxxx,SWITCH:XXXX,20,170,200,70,992,2016,65535,lamp1.bmp
+
+BOTON1,,PREV,20,250,60,70,0,0,0,prev.bmp
+BOTON1,,HOME,90,250,60,70,0,2016,0,home.bmp
+#BOTON1,,NEXT,160,250,60,70,0,0,0,next.bmp
