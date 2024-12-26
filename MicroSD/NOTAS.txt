@@ -47,6 +47,11 @@
 # GREENYELLOW  45029
 # PINK         65519
 #
+
+Colores 16bit
+https://github.com/newdigate/rgb565_colors
+
+
 Comandos:
 
 download Touch-POC, /download/touch/config.csv
