@@ -728,6 +728,7 @@ void HTTPTask( void )
         else
         {
             /* Error */
+            g_wifi_info.status.host_conectado = 0;
             WifiSwitchHost();
         }
         g_wifi_info.status.count_inactividad = 0;

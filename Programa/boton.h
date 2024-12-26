@@ -18,11 +18,15 @@
 #ifndef _BOTON_H_
 #define	_BOTON_H_
 
+#define BOTON_TEXT_LEN 16
+#define BOTON_CMD_LEN 64
+
 void InitBotones( void* handler );
 
 void BotonAdd(  const char *name, const char *cmd,
                 unsigned int x, unsigned int y,
                 unsigned int w, unsigned int h,
+                unsigned int border, unsigned int radio, 
                 unsigned int f_color, unsigned int b_color, unsigned int n_color,
                 const char* icon_file);
 

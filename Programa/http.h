@@ -19,9 +19,10 @@
 #define _HTTP_H_
 
 #include <stdbool.h>
+#include "sd/fsio.h"
 
-#define MAX_HTTP_DATA 2047
-#define MAX_HTTP_URI  63
+#define MAX_HTTP_DATA 2048
+#define MAX_HTTP_URI  256
 
 typedef struct
 {
@@ -33,7 +34,7 @@ typedef struct
     char uri[MAX_HTTP_URI + 1];
     char data[MAX_HTTP_DATA + 1];
     char download;
-    char filename[13];
+    char filename[FILE_NAME_SIZE+1];
 } http_data;
 
 #ifdef _IN_HTTP_C_

@@ -113,11 +113,11 @@ void CTRLTask( void )
             g_ctrl_stm++;
             break;
         case SHOW_POWER:
-            /* Centro imagen de 100x100 */
+            /* Imagen centrada */
             DrawBitmap("power.bmp", 
                     ((DISPLAY_X_SIZE/2)-(GetBitmapW("power.bmp")/2)), 
                     ((DISPLAY_Y_SIZE/2)-(GetBitmapH("power.bmp")/2)) );
-            g_wifi_info.status.brillo = g_wifi_info.f.config.brillo_med;
+            g_wifi_info.status.brillo = g_wifi_info.f.config.brillo_max;
             if(g_wifi_info.status.flag_sd_ok)
             {
                 x = 0;
@@ -163,6 +163,7 @@ void CTRLTask( void )
             }
             break;
         case SHOW_PAGE:
+            g_screen_saver_count = 0;
             ShowScreen(g_show_filename);
             g_ctrl_stm++;
             break;
@@ -181,10 +182,6 @@ void CTRLTask( void )
             else if(g_wifi_info.status.wifi_mode == 3)
             {
                 g_ctrl_stm = WIFI_CONFIG;
-            }
-            else
-            {
-                
             }
             break;
         case WIFI_CONFIG:
@@ -234,15 +231,21 @@ void CTRLTask( void )
         case SCREEN_SAVER:
             if(TouchIsPressed( NULL, NULL, NULL ))
             {
-                g_screen_saver_count = 0;
                 strcpy(g_show_filename, "home.csv");
                 g_ctrl_current_screen = 0;
                 g_ctrl_stm = SHOW_PAGE;
+            }
+            else if(g_wifi_info.status.host_conectado == 0)
+            {
+                g_ctrl_stm = OFFLINE_SCREEN;
             }
             break;
         case OFFLINE_SCREEN:
             g_wifi_info.status.brillo = 0;
             Clear(0);
+            DrawRoundRectangleEmpty(0, 0, DISPLAY_X_SIZE, DISPLAY_Y_SIZE, 10, RED);
+            DrawRoundRectangleEmpty(1, 1, DISPLAY_X_SIZE-1, DISPLAY_Y_SIZE-1, 10, RED);
+            DrawRoundRectangleEmpty(2, 2, DISPLAY_X_SIZE-2, DISPLAY_Y_SIZE-2, 10, RED);
             DrawBitmap("power.bmp", 
                     ((DISPLAY_X_SIZE/2)-(GetBitmapW("power.bmp")/2)), 
                     ((DISPLAY_Y_SIZE/2)-(GetBitmapH("power.bmp")/2)) );
@@ -545,8 +548,8 @@ void ShowScreen(const char* filename)
     unsigned int line_len;
     char str_tmp[256];
     
-    char btn_text[16];
-    char btn_cmd[64];
+    char btn_text[BOTON_TEXT_LEN+1];
+    char btn_cmd[BOTON_CMD_LEN+1];
     int btn_x;
     int btn_y;
     int btn_w;
@@ -575,7 +578,7 @@ void ShowScreen(const char* filename)
             if(line_len > 0 && line[0] != '#')
             {
                 /* Analizo la línea */
-                if( !memcmp(line, "BOTON1", 6) )
+                if( !memcmp(line, "BOTON", 5) )
                 {
                     /* Boton con texto o sin y con o sin icono */
                     if(str_section(line, ',', 1, btn_text) == 0)
@@ -601,11 +604,61 @@ void ShowScreen(const char* filename)
                     {
                         btn_icono[0] = 0;
                     }
-                    BotonAdd(btn_text,
-                            btn_cmd,
-                            btn_x,btn_y,btn_w,btn_h, 
-                            btn_color_f, btn_color_b, btn_color_n,
-                            ((btn_icono[0])?btn_icono: NULL) );
+                    
+                    if(line[5] == '0')
+                    {
+                        BotonAdd(btn_text,
+                                btn_cmd,
+                                btn_x,btn_y,btn_w,btn_h, 
+                                1, 0,
+                                btn_color_f, btn_color_b, btn_color_n,
+                                ((btn_icono[0])?btn_icono: NULL) );
+                    }
+                    else if(line[5] == '1')
+                    {
+                        BotonAdd(btn_text,
+                                btn_cmd,
+                                btn_x,btn_y,btn_w,btn_h, 
+                                1, btn_h/5,
+                                btn_color_f, btn_color_b, btn_color_n,
+                                ((btn_icono[0])?btn_icono: NULL) );
+                    }
+                    else if(line[5] == '2')
+                    {
+                        BotonAdd(btn_text,
+                                btn_cmd,
+                                btn_x,btn_y,btn_w,btn_h, 
+                                2, 0,
+                                btn_color_f, btn_color_b, btn_color_n,
+                                ((btn_icono[0])?btn_icono: NULL) );
+                    }
+                    else if(line[5] == '3')
+                    {
+                        BotonAdd(btn_text,
+                                btn_cmd,
+                                btn_x,btn_y,btn_w,btn_h, 
+                                2, btn_h/5,
+                                btn_color_f, btn_color_b, btn_color_n,
+                                ((btn_icono[0])?btn_icono: NULL) );
+                    }
+                    else if(line[5] == '4')
+                    {
+                        BotonAdd(btn_text,
+                                btn_cmd,
+                                btn_x,btn_y,btn_w,btn_h, 
+                                3, 0,
+                                btn_color_f, btn_color_b, btn_color_n,
+                                ((btn_icono[0])?btn_icono: NULL) );
+                    }
+                    else if(line[5] == '5')
+                    {
+                        BotonAdd(btn_text,
+                                btn_cmd,
+                                btn_x,btn_y,btn_w,btn_h, 
+                                3, btn_h/5,
+                                btn_color_f, btn_color_b, btn_color_n,
+                                ((btn_icono[0])?btn_icono: NULL) );
+                    }
                 }
             }
         } while(rc == 1);

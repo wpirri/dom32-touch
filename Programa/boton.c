@@ -32,13 +32,15 @@
 
 typedef struct _BOTON
 {
-    char cmd[64];
-    char text[16];
+    char cmd[BOTON_CMD_LEN+1];
+    char text[BOTON_TEXT_LEN+1];
     char icon[FILE_NAME_SIZE+1];
     unsigned int x;
     unsigned int y;
     unsigned int w;
     unsigned int h;
+    unsigned int border;
+    unsigned int radio;
     unsigned int f_color;
     unsigned int b_color;
     unsigned int n_color;
@@ -70,6 +72,7 @@ void InitBotones( void* handler )
 void BotonAdd(  const char *text, const char *cmd,
                 unsigned int x, unsigned int y,
                 unsigned int w, unsigned int h,
+                unsigned int border, unsigned int radio, 
                 unsigned int f_color, unsigned int b_color, unsigned int n_color,
                 const char* icon_file)
 {
@@ -79,13 +82,15 @@ void BotonAdd(  const char *text, const char *cmd,
     {
         if( !array_botones[i].cmd[0])
         {
-            strcpy(array_botones[i].cmd, cmd);
-            if(text) strcpy(array_botones[i].text, text);
+            strncpy(array_botones[i].cmd, cmd, BOTON_CMD_LEN);
+            if(text) strncpy(array_botones[i].text, text, BOTON_TEXT_LEN);
             else array_botones[i].text[0] = 0;
             array_botones[i].x = x;
             array_botones[i].y = y;
             array_botones[i].w = w;
             array_botones[i].h = h;
+            array_botones[i].border = border;
+            array_botones[i].radio = radio;
             array_botones[i].f_color = f_color;
             array_botones[i].b_color = b_color;
             array_botones[i].n_color = n_color;
@@ -106,7 +111,7 @@ void BotonAdd(  const char *text, const char *cmd,
 
 void BotonDraw( void )
 {
-    int i;
+    int i, j;
     unsigned int text_x, text_y;
     unsigned int icon_offset_x, icon_offset_y;
 
@@ -114,18 +119,46 @@ void BotonDraw( void )
     {
         if( !array_botones[i].cmd[0]) break;
         
-        DrawRoundRectangleFill(array_botones[i].x,
-                array_botones[i].y, 
-                array_botones[i].x+array_botones[i].w,
-                array_botones[i].y+array_botones[i].h, 
-                array_botones[i].h/5,
-                array_botones[i].f_color);
-        DrawRoundRectangleEmpty(array_botones[i].x,
-                array_botones[i].y, 
-                array_botones[i].x+array_botones[i].w,
-                array_botones[i].y+array_botones[i].h, 
-                array_botones[i].h/5,
-                array_botones[i].b_color);
+        if(array_botones[i].radio)
+        {
+            DrawRoundRectangleFill(array_botones[i].x,
+                    array_botones[i].y, 
+                    array_botones[i].x+array_botones[i].w,
+                    array_botones[i].y+array_botones[i].h, 
+                    array_botones[i].radio,
+                    array_botones[i].f_color);
+            if(array_botones[i].f_color != array_botones[i].b_color)
+            {
+                for(j = 0; j < array_botones[i].border; j++)
+                {
+                    DrawRoundRectangleEmpty(array_botones[i].x+j,
+                            array_botones[i].y+j, 
+                            array_botones[i].x+array_botones[i].w-j,
+                            array_botones[i].y+array_botones[i].h-j, 
+                            array_botones[i].radio,
+                            array_botones[i].b_color);
+                }
+            }
+        }
+        else
+        {
+            DrawRectFill(array_botones[i].x,
+                    array_botones[i].y, 
+                    array_botones[i].w,
+                    array_botones[i].h, 
+                    array_botones[i].f_color);
+            if(array_botones[i].f_color != array_botones[i].b_color)
+            {
+                for(j = 0; j < array_botones[i].border; j++)
+                {
+                    DrawRectEmpty(array_botones[i].x+j,
+                            array_botones[i].y+j, 
+                            array_botones[i].w-j,
+                            array_botones[i].h-j, 
+                            array_botones[i].b_color);
+                }
+            }
+        }
 
         if(array_botones[i].text[0])
         {
