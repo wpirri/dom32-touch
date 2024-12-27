@@ -497,10 +497,12 @@ void BotonPressed(const char* cmd)
     }
     else if( !memcmp(cmd, "SWITCH:", 7))
     {
+        g_wifi_info.status.sombra = 10;
         HTTPCommandSwitch(&cmd[7]);
     }
     else if( !memcmp(cmd, "PULSE:", 6))
     {
+        g_wifi_info.status.sombra = 10;
         HTTPCommandPulse(&cmd[6]);
     }
 }

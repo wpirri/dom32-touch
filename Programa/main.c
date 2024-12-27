@@ -98,6 +98,7 @@ int main(void)
     main_brillo_count = 0;
     
     g_wifi_info.status.brillo = g_wifi_info.f.config.brillo_med;
+    g_wifi_info.status.sombra = 0;
     
     LogInit();
     ConfigInit();
@@ -145,6 +146,19 @@ int main(void)
             HTTPTimer();
             CTRLTimer();
             ConfigTimer();
+            
+            if(g_wifi_info.status.sombra)
+            {
+                g_wifi_info.status.sombra--;
+                if(g_wifi_info.status.sombra == 0)
+                {
+                    g_wifi_info.status.brillo = g_wifi_info.f.config.brillo_max;
+                }
+                else
+                {
+                    g_wifi_info.status.brillo = g_wifi_info.f.config.brillo_med;
+                }
+            }
         }
         else if(main_core_timer_flag_x100)
         {

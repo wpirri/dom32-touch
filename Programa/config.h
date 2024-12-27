@@ -96,6 +96,7 @@ typedef struct
         char wifi_sdk[65];
         char up_fw[65];
         unsigned char brillo;
+        unsigned char sombra;
     } status;
 } wifi_info;
 
