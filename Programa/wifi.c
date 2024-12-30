@@ -144,7 +144,17 @@ int WifiWaitLine(const char *line1, const char *line2, const char *line3, const 
     int rc = 0;
     unsigned char c = 0;
 
-    while(UART3_IsRxReady())
+    /* Ante un overflow booro lo que haya sin procesar */
+    if(UART3_Overflow())
+    {
+        LogMessage("[WifiWriteLine] UART buffer overflow");
+        g_wifi_read_line_buffer_timer = 0;
+        g_wifi_read_line_buffer_index = 0;
+        return 0;
+    }
+    
+    while( UART3_IsRxReady() &&
+            g_wifi_read_line_buffer_index < WIFI_READ_LINE_BUFFER_LEN )
     {
         c = UART3_Read();
         g_wifi_read_line_buffer_timer = 3;
@@ -181,8 +191,6 @@ int WifiWaitLine(const char *line1, const char *line2, const char *line3, const 
                     g_wifi_read_line_wait_crlf = false;
                 }
             }
-            /* Si el buffer está lleno, salgo */
-            if(g_wifi_read_line_buffer_index == WIFI_READ_LINE_BUFFER_LEN) break;
         }
     }   
     
@@ -191,12 +199,12 @@ int WifiWaitLine(const char *line1, const char *line2, const char *line3, const 
         if(g_wifi_read_line_buffer_timer == 0)
         {
             /* time-out esperando mas datos */
-            HTTPEndTmpFile(http_buffer_output.filename, 
+            HTTPEndTmpFile(http_buffer_input.filename, 
                     g_wifi_read_line_buffer, 
                     g_wifi_read_line_buffer_index);
             g_wifi_wait_more_data = false;
             g_wifi_read_line_buffer_index = 0;
-            http_buffer_output.download = 0;
+            http_buffer_input.download = false;
         }
         else if(g_wifi_read_line_buffer_index == WIFI_READ_LINE_BUFFER_LEN)
         {
@@ -317,7 +325,7 @@ int WifiCheckUnsol( void )
         /*
         +IPD,0,442:<datos>
         */
-        LogMessage("[WifiCheckUnsol] %-.2000s", g_wifi_read_line_buffer);
+        LogMessage("[WifiCheckUnsol] %-.28s", g_wifi_read_line_buffer);
 
         id = 0;
         len = 0;

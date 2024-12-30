@@ -86,6 +86,75 @@ volatile bool main_core_timer_flag_x1000;
 volatile unsigned char main_core_timer_count_x1000;
 volatile unsigned char main_brillo_count;
 
+/* * Manejo de excepciones ************************************************** */
+static enum {
+    EXCEP_IRQ = 0,            // interrupt
+    EXCEP_AdEL = 4,            // address error exception (load or ifetch)
+    EXCEP_AdES,                // address error exception (store)
+    EXCEP_IBE,                // bus error (ifetch)
+    EXCEP_DBE,                // bus error (load/store)
+    EXCEP_Sys,                // syscall
+    EXCEP_Bp,                // breakpoint
+    EXCEP_RI,                // reserved instruction
+    EXCEP_CpU,                // coprocessor unusable
+    EXCEP_Overflow,            // arithmetic overflow
+    EXCEP_Trap,                // trap (possible divide by zero)
+    EXCEP_IS1 = 16,            // implementation specfic 1
+    EXCEP_CEU,                // CorExtend Unuseable
+    EXCEP_C2E                // coprocessor 2
+} _excep_code;
+
+
+void __attribute__((weak, nomips16)) _general_exception_handler (void)
+{
+    static unsigned int _excep_addr;
+    static char* _except_str;
+    char str[80];
+    FSFILE *f;
+    
+    asm volatile("mfc0 %0,$13" : "=r" (_excep_code));
+    asm volatile("mfc0 %0,$14" : "=r" (_excep_addr));
+
+    _excep_code = (_excep_code & 0x0000007C) >> 2;
+
+    switch(_excep_code){
+        case EXCEP_IRQ: _except_str = "interrupt"; break;
+        case EXCEP_AdEL: _except_str = "address error exception (load or ifetch)"; break;
+        case EXCEP_AdES: _except_str = "address error exception (store)"; break;
+        case EXCEP_IBE: _except_str = "bus error (ifetch)"; break;
+        case EXCEP_DBE: _except_str = "bus error (load/store)"; break;
+        case EXCEP_Sys: _except_str = "syscall"; break;
+        case EXCEP_Bp: _except_str = "breakpoint"; break;
+        case EXCEP_RI: _except_str = "reserved instruction"; break;
+        case EXCEP_CpU: _except_str = "coprocessor unusable"; break;
+        case EXCEP_Overflow: _except_str = "arithmetic overflow"; break;
+        case EXCEP_Trap: _except_str = "trap (possible divide by zero)"; break;
+        case EXCEP_IS1: _except_str = "implementation specfic 1"; break;
+        case EXCEP_CEU: _except_str = "CorExtend Unuseable"; break;
+        case EXCEP_C2E: _except_str = "coprocessor 2"; break;
+    }
+
+    LogMessage("[Exception] Compilacion " __DATE__ " " __TIME__ ".");
+    LogMessage("[Exception] Compilador " __VERSION__ ".");
+    LogMessage("[Exception] %s.", _except_str);
+    LogMessage("[Exception] Cde: 0x%04X Addr: 0x%08X.", _excep_code, _excep_addr);
+
+    f = FSfopen("CORE.TXT", FS_WRITE);
+    if(f)
+    {
+        sprintf(str, "[Exception] Compilacion " __DATE__ " " __TIME__ ".\n");
+        FSfwrite(str, 1, strlen(str), f);
+        sprintf(str, "[Exception] Compilador " __VERSION__ ".\n");
+        FSfwrite(str, 1, strlen(str), f);
+        sprintf(str, "[Exception] %s.", _except_str);
+        FSfwrite(str, 1, strlen(str), f);
+        sprintf(str, "[Exception] Cde: 0x%04X Addr: 0x%08X.", _excep_code, _excep_addr);
+        FSfwrite(str, 1, strlen(str), f);
+        FSfclose(f);
+    }
+    while(1);
+}
+
 int main(void)
 {
     main_core_timer_flag = false;

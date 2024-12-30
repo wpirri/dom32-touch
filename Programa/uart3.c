@@ -24,7 +24,7 @@
 #include <stdio.h>
 #include <stdbool.h>
 
-#define WIFI_UART_RX_BYTEQ_LENGTH 4095
+#define WIFI_UART_RX_BYTEQ_LENGTH 4096
 
 static uint8_t * volatile rxTail;
 static uint8_t * rxHead;
@@ -176,12 +176,33 @@ void __attribute__ ((vector(_UART3_RX_VECTOR), interrupt(IPL1SOFT))) _UART3_RX( 
     IFS1CLR= 1 << _IFS1_U3RXIF_POSITION;
 }
 
+bool UART3_Overflow()
+{
+    unsigned char c;
+    
+    if(rxOverflowed)
+    {
+        rxHead = rxQueue;
+        rxTail = rxQueue;
+        while((U3STAbits.URXDA == 1)) { c = U3RXREG; }
+        rxOverflowed = false;
+        return true;
+    }
+    return false;
+}
+
 void __attribute__ ((vector(_UART3_ERR_VECTOR), interrupt(IPL1SOFT))) _UART3_ERR ( void )
 {
+    unsigned char c;
+
     if ((U3STAbits.OERR == 1))
     {
         U3STACLR = _U3STA_OERR_MASK; 
     }
+    
+    rxHead = rxQueue;
+    rxTail = rxQueue;
+    while((U3STAbits.URXDA == 1)) { c = U3RXREG; }
 
-     IFS1CLR= 1 << _IFS1_U3EIF_POSITION;
+    IFS1CLR= 1 << _IFS1_U3EIF_POSITION;
 }

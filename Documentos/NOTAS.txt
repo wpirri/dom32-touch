@@ -1,32 +1,32 @@
-* Asignacion de pines para PIC32MM0064GPL028 en Dom32Term
- * 1    MCLR / Vpp                      Programaciïon/Debug/Reset
- * 2    RA0                             LED_STATUS
- * 3    RA1							    LED_MODO
- * 4    RB0                             PGED1
- * 5    RB1                             PGEC1
- * 6    RB2                             LED_INFO
- * 7    RB3
- * 8    Vss                             Vss
- * 9    RA2/RP3/U2TX                    DEBUG
- * 10   RA3
- * 11   RB4
- * 12   RA4                             LCD_RST (OC)
- * 13   Vdd                             +3v3
- * 14   RB5								LCD_CD
- * 15   RB6								LCD_CS
- * 16   RB7								SD_CS
- * 17   RB8/RP7/SCK2OUT                 SCK
- * 18   RB9/RP8/SDO2                    MOSI
- * 19   RC9/RP19/SDI2                   MISO
- * 20   VCap                            Cap 100n + 10uF
- * 21   RB10
- * 22   RB11
- * 23   Vusb                            Vusb                            
- * 24   RB13							WiFi_RST (OC)
- * 25   RB14/RP19/U1TX                  WiFi_TX
- * 26   RB15/RP10/U1RX                  WiFi_RX
- * 27   AVss                            Vss
- * 28   AVdd                            +3v3
+ * Asignacion de pines para PIC32MM0256GPL028 en Dom32Touch
+ * 01   MCLR        Reset               Tact Switch
+ * 02   RA0         OUT                 Display Back Ligth
+ * 03   RA1         OUT                 Display Reset
+ * 04   RB0         OUT                 Display Data0   
+ * 05   RB1         OUT                 Display Data1   
+ * 06   RB2         OUT                 Display Data2
+ * 07   RB3         OUT                 Display Data3
+ * 08   Vss
+ * 09   RA2/AN5     OUT                 Display WR      (Touch YP)
+ * 10   RA3/AN6     OUT                 Display RS/CD   (Touch XM)
+ * 11   RB4         OUT                 Display Data4
+ * 12   RA4         OUT                 Display CS
+ * 13   Vdd
+ * 14   RB5         OUT                 Display Data5
+ * 15   RB6         OUT                 Display Data6   (Touch XP)
+ * 16   RB7         OUT                 Display Data7   (Touch YM)
+ * 17   U3TX        U3TX -> RP13        WiFi Rx
+ * 18   U3RX        U3RX -> RP14        WiFi Tx
+ * 19   U2TX/RC9    U2TX -> RP18        Debug / Beep
+ * 20   VCap
+ * 21   RB10        OUT                 WiFi Reset
+ * 22   RB11        OUT                 MicroSD CS
+ * 23   Vusb
+ * 24   SCK2OUT     SCK2OUT -> RP15     MicroSD SCK
+ * 25   SDI2        SDI2 -> RP16        MicroSD MISO
+ * 26   SDO2        SDO2 -> RP17        MicroSD MOSI
+ * 27   AVss
+ * 28   AVdd
  
 
 GRAPHIC DISPLAY TFT RGB 2.4"
@@ -34,57 +34,7 @@ AFY240320B0-2.4N6NTM-R
 Orient Display
 
 Quantity
-Unit Price	Ext Price
-1
-$18.08000	$18.08
-25
-$16.51000	$412.75
-50
-$14.93000	$746.50
-
-
-FPC LINKER: FPC connector: CF4240FH0R0-05-NH (Cvilux USA)
-
-Display 2.44LCD-344B (SDW-96-36PW)
- 1    NC
- 2    NC
- 3    NC
- 4    NC
- 5    NC
- 6    RST
- 7    NC
- 8    NC
- 9    Vcc
-10    NC
-11    D7
-12    D6
-13    D5
-14    D4
-15    D3
-16    D2
-17    D1
-18    D0
-19    NC
-20    D15
-21    D14
-22    D13
-23    D12
-24    D11
-25    D10
-26    D9
-27    D8
-28    NC
-29    RD
-30    WR
-31    RS
-32    CS
-33    Gnd
-34    Vcc
-35    Gnd
-36    Vcc
-
- 1    X-
- 2    Y+
- 3    X+
- 4    y-
- 
+Unit    Price	    Ext Price
+1       $18.08000	$18.08
+25      $16.51000	$412.75
+50      $14.93000	$746.50

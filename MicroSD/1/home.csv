@@ -1,7 +1,8 @@
 # HOME ------------------------------------------------------------------------
-BOTON5,Comedor,SWITCH:Luz Comedor,0,0,240,80, 14726,43338,65535,lamp1.bmp
-BOTON5,Living,SWITCH:Luz Living,0,85,240,80, 14726,43338,65535,lamp1.bmp
-BOTON5,Pasillo,SWITCH:Luz Pasillo,0,170,240,80, 14726,43338,65535,lamp1.bmp
+FONDO,0
+BOTON0,Comedor,SWITCH:Luz Comedor,20,0,200,80, 0,0,65535,lamp1.bmp
+BOTON0,Living,SWITCH:Luz Living,20,85,200,80, 0,0,65535,lamp1.bmp
+BOTON0,Pasillo,SWITCH:Luz Pasillo,20,170,200,80, 0,0,65535,lamp1.bmp
 
 BOTON0,,CONFIG,20,260,60,60,0,0,0,gear.bmp
 BOTON0,,NEXT,160,260,60,60,0,0,0,next.bmp

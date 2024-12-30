@@ -25,5 +25,7 @@ bool UART3_IsRxReady(void);
 void UART3_Write(unsigned int ch);
 unsigned char UART3_Read( void);
 
+bool UART3_Overflow();
+
 #endif	/* _UART3_H_ */
 

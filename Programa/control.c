@@ -187,28 +187,12 @@ void CTRLTask( void )
         case WIFI_CONFIG:
             if(g_wifi_info.status.wifi_mode == 3)
             {
-                if( !strcmp(g_show_filename, "wifi.bmp"))
-                {
-                    strcpy(g_show_filename, "wifi0.bmp");
-                }
-                else if( !strcmp(g_show_filename, "wifi0.bmp"))
-                {
-                    strcpy(g_show_filename, "wifi1.bmp");
-                }
-                else if( !strcmp(g_show_filename, "wifi1.bmp"))
-                {
-                    strcpy(g_show_filename, "wifi2.bmp");
-                }
-                else
-                {
-                    strcpy(g_show_filename, "wifi.bmp");
-                }
                 Clear(0);
+                strcpy(g_show_filename, "wifi.bmp");
                 DrawBitmap(g_show_filename, 
                         ((DISPLAY_X_SIZE/2)-(GetBitmapW(g_show_filename)/2)), 
                         ((DISPLAY_Y_SIZE/2)-(GetBitmapH(g_show_filename)/2)) );
-
-                g_ctrl_stm_delay = 5;
+                g_ctrl_stm_delay = 20;
                 Beeps(2);
                 g_screen_saver_count = 0;
             }
@@ -559,11 +543,11 @@ void ShowScreen(const char* filename)
     int btn_color_f;
     int btn_color_b;
     int btn_color_n;
+    int color_fondo = 0;
     char btn_icono[FILE_NAME_SIZE+1];
 
 
     g_wifi_info.status.brillo = 0;
-    Clear(0);
     InitBotones(BotonPressed);
 
     LogMessage("[ShowScreen] Cargando: %s", filename);
@@ -662,10 +646,16 @@ void ShowScreen(const char* filename)
                                 ((btn_icono[0])?btn_icono: NULL) );
                     }
                 }
+                else if( !memcmp(line, "FONDO", 5) )
+                {
+                    if(str_section(line, ',', 1, str_tmp) == 0) break;
+                    color_fondo = atoi(str_tmp);
+                }
             }
         } while(rc == 1);
         FSfclose(f);
     }
+    Clear(color_fondo);
     BotonDraw();
     g_wifi_info.status.brillo = g_wifi_info.f.config.brillo_max;
 
