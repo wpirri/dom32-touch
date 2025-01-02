@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>Tabla de colores</title>
+</head>
+
+<body onload='OnLoad();'>
+
+<div id='colores' class='lista-de-colores'></div>
+
+
+
+
+
+
+<script type="text/javascript" >
+function OnLoad() {
+	output = '<table width="50%" border=1>';
+	output += '<tr>';
+	output += '<td align="center">Color</td> <td align="center">RGB</td> <td align="center">16 Bit</td>';
+	output += '</tr>\n';
+
+	for(r = 0; r < 256; r+=32) {
+		for(g = 0; g < 256; g+=32) {
+			for(b = 0; b < 256; b+=32) {
+				output += '<tr>';
+				output += '<td style="background-color:rgb(' + r + ',' + g + ',' + b + ')">&nbsp;</td>';
+				output += '<td>' + r + ',' + g + ',' + b + '</td>';
+				output += '<td>' + (((r & 0xF8) << 8) | ((g & 0xFC) << 3) | ((b & 0xF8) >> 3)) + '</td>';
+				output += '</tr>\n';
+			}
+		}
+	}
+
+
+
+	output += '</table>\n';
+	document.getElementById('colores').innerHTML = output;
+}
+
+</script>
+
+</body>
+</html>
