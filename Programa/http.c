@@ -88,7 +88,7 @@ int HTTPGetFile(const char* filename, const char* params)
     }
 
     LogMessage("[HTTPGetFile] Solicitando archivo %s.", filename);
-    
+    g_wifi_info.status.control_notificar = 0;
     if(params)
     {
         snprintf(tmp_uri, MAX_HTTP_URI, "%s?%s", filename, params);
@@ -125,7 +125,7 @@ int HTTPInitTmpFile(const char* buffer, int len)
     }
 
     LogMessage("[HTTPInitTmpFile] (%d bytes) -> %s", len, DOWNLOAD_TEMP_FILE_NAME);
-
+    g_wifi_info.status.control_notificar = 0;
     http_buffer_input.download = true;
     strcpy(http_buffer_input.filename, http_buffer_output.filename);
     
@@ -165,7 +165,7 @@ int HTTPAddTmpFile(const char* buffer, int len)
     }
     
     LogMessage("[HTTPAddTmpFile] (%d bytes) -> %s", len, DOWNLOAD_TEMP_FILE_NAME);
-
+    g_wifi_info.status.control_notificar = 0;
     f = FSfopen(DOWNLOAD_TEMP_FILE_NAME, FS_APPEND);
     if(f)
     {
@@ -631,6 +631,10 @@ void HttpProcessGeneralConfig(char* in)
     if(HTTPGetFormData(in, "screen-saver", s))
     {
         g_wifi_info.f.config.screen_saver_time = atoi(s);
+    }
+    if(HTTPGetFormData(in, "debug", s))
+    {
+        g_wifi_info.f.config.debug = atoi(s);
     }
     
     g_wifi_info.status.save_config = 50;

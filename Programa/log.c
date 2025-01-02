@@ -29,61 +29,6 @@
 
 void LogInit(void)
 {
-#ifdef DEBUG_ON
-    /* ************************************************************************** */
-    // System Reg Unlock
-    SYSKEY = 0x00000000; 
-    SYSKEY = 0xAA996655; //write Key1 to SYSKEY
-    SYSKEY = 0x556699AA; //write Key2 to SYSKEY
-    /* ************************************************************************** */
-    /* UART2 */
-    // Config PPS
-    // unlock PPS
-    RPCONbits.IOLOCK = 0;
-    // Mapeo de UART2
-    RPOR4bits.RP18R = 0x0004;    // UART2:U2TX -> RP9
-    //RPINR9bits.U2RXR = 3;     // RP3 -> UART2:U2RX
-    // lock   PPS
-    RPCONbits.IOLOCK = 1; 
-
-    // Config serial port
-    // Sin interrupciones para la UART2
-    IEC1bits.U2TXIE = 0;
-    IEC1bits.U2RXIE = 0;
-    // STSEL 1; PDSEL 8N; RTSMD disabled; OVFDIS disabled; ACTIVE disabled; RXINV disabled; WAKE disabled; BRGH enabled; IREN disabled; ON enabled; SLPEN disabled; SIDL disabled; ABAUD disabled; LPBACK disabled; UEN TX_RX; CLKSEL PBCLK; 
-    U2MODE = (0x8008 & ~(1<<15));  // disabling UART
-    // UTXISEL TX_ONE_CHAR; UTXINV disabled; ADDR 0; MASK 0; URXEN disabled; OERR disabled; URXISEL RX_ONE_CHAR; UTXBRK disabled; UTXEN disabled; ADDEN disabled; 
-    U2STA = 0x0;
-    // BaudRate = 115200; Frequency = 24000000 Hz; BRG 51; 
-    U2BRG = 0x33;
-     //Make sure to set LAT bit corresponding to TxPin as high before UART initialization
-    U2STASET = _U2STA_UTXEN_MASK;
-    U2MODESET = _U2MODE_ON_MASK;  // enabling UART ON bit
-    U2STASET = _U2STA_URXEN_MASK; 
-    /* ************************************************************************** */
-    // System Reg Lock
-    SYSKEY = 0x00000000; 
-    /* ************************************************************************** */
-#else
-    /* ************************************************************************** */
-    // System Reg Unlock
-    SYSKEY = 0x00000000; 
-    SYSKEY = 0xAA996655; //write Key1 to SYSKEY
-    SYSKEY = 0x556699AA; //write Key2 to SYSKEY
-    /* ************************************************************************** */
-    /* UART2 */
-    // Config PPS
-    // unlock PPS
-    RPCONbits.IOLOCK = 0;
-    // Mapeo de UART2 a nada
-    RPOR4bits.RP18R = 0;
-    // lock   PPS
-    RPCONbits.IOLOCK = 1; 
-    /* ************************************************************************** */
-    // System Reg Lock
-    SYSKEY = 0x00000000; 
-    /* ************************************************************************** */
-#endif /*  DEBUG_ON */
     if(g_wifi_info.status.flag_sd_ok)
     {
         FSremove(LOG_FILE_NAME);
@@ -98,23 +43,22 @@ void LogMessage(const char* msg, ...)
 #endif
     va_list arg;
     char str[2048];
-#ifdef  DEBUG_ON
     char *p;
-#endif /*  DEBUG_ON */
     
     va_start(arg, msg);
     vsnprintf(str, 1021, msg, arg);
     va_end(arg);
     strcat(str, "\r\n");
     
-#ifdef  DEBUG_ON
-    p = &str[0];
-    while(*p)
+    if(g_wifi_info.f.config.debug)
     {
-        while(U2STAbits.UTXBF);
-        U2TXREG = *p++;
+        p = &str[0];
+        while(*p)
+        {
+            while(U2STAbits.UTXBF);
+            U2TXREG = *p++;
+        }
     }
-#endif /*  DEBUG_ON */
     
 #ifdef LOG_TO_FILE
     if(g_wifi_info.status.flag_sd_ok)
