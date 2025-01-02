@@ -165,20 +165,14 @@ void BotonDraw( void )
             /* Centrado vertical del texto */
             text_y = (array_botones[i].y + (array_botones[i].h / 2) - (BOTON_TEXT_SIZE * BOTON_FONT_H / 2));
             /* Posición horizontal del texto */
+            /* Texto centrado en el boton */
+            text_x = (array_botones[i].x 
+                    + (array_botones[i].w/2) 
+                    - (strlen(array_botones[i].text) * BOTON_FONT_W * BOTON_TEXT_SIZE / 2) );
             if(array_botones[i].icon[0])
             {
                 /* Texto centrado entre el icono y el final del boton */
-                text_x = (array_botones[i].x 
-                        + ( (GetBitmapW(array_botones[i].icon)+(array_botones[i].h/5))/2)
-                        + (array_botones[i].w/2)
-                        - (strlen(array_botones[i].text) * BOTON_FONT_W * BOTON_TEXT_SIZE / 2) );
-            }
-            else
-            {
-                /* Texto centrado en el boton */
-                text_x = (array_botones[i].x 
-                        + (array_botones[i].w/2) 
-                        - (strlen(array_botones[i].text) * BOTON_FONT_W * BOTON_TEXT_SIZE / 2) );
+                text_x += (GetBitmapW(array_botones[i].icon) + 5) / 2;
             }
             DrawText(array_botones[i].text,
                     /* Posisión X del texto */
@@ -195,7 +189,7 @@ void BotonDraw( void )
             icon_offset_y = array_botones[i].y + (array_botones[i].h/2) - (GetBitmapH(array_botones[i].icon)/2);
             if(array_botones[i].text[0])
             {
-                icon_offset_x = array_botones[i].x + (array_botones[i].h/10);
+                icon_offset_x = array_botones[i].x + 5;
             }
             else
             {

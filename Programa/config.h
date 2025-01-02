@@ -21,8 +21,6 @@
 #include <xc.h>
 #include <stdbool.h>
 
-/* Activa el logueo a la UART */
-//#define DEBUG_ON
 /* Incrementa mensaje de logueo del modulo wifi */
 //#define DEBUG_WIFI
 /* Vuelca el log a tarjeta SD */
@@ -67,6 +65,7 @@ typedef struct _config_in_file_ /*  */
     unsigned char brillo_min;           /* brillo-min */
     unsigned char screen_saver_time;    /* screen-saver */
     unsigned long start_config_mode;
+    unsigned char debug;
 } config_in_file;
 
 typedef struct
