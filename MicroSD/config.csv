@@ -1,6 +1,7 @@
 # CONFIG ----------------------------------------------------------------------
-BOTON3,WiFi,WIFI,0,0,240,50,0,31,65535
-BOTON3,Upgrade,UPGRADE,0,60,240,50,31,30735,65535,gear.bmp
-BOTON3,Restart,RESET,0,120,240,50,3020,63488,65535
+FONDO,16
+BOTON3,WiFi,WIFI,5,5,230,60,0,31,65535,wifi1.bmp
+BOTON3,Upgrade,UPGRADE,5,75,230,60,31,30735,65535,download.bmp
+BOTON3,Restart,RESET,5,145,230,60,3020,63488,65535,restart.bmp
 
-BOTON1,,HOME,90,260,60,60,0,2016,0,home.bmp
+BOTON1,,HOME,90,260,60,60,16,16,0,home.bmp

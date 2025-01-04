@@ -1,8 +1,9 @@
 #SCREEN -----------------------------------------------------------------------
-BOTON5,Garaje,SWITCH:Luz Garage,0,0,240,80,14726,43338,65535,lamp1.bmp
-BOTON5,Palmera,SWITCH:Luz Palmera,0,85,240,80,14726,43338,65535,lamp1.bmp
-BOTON5,Puerta,SWITCH:Luz Puerta Living,0,170,240,80,14726,43338,65535,lamp1.bmp
+FONDO,16
+BOTON5,Garaje,SWITCH:Luz Garage,5,5,230,80,256,768,58624,lamp1.bmp
+BOTON5,Palmera,SWITCH:Luz Palmera,5,90,230,80,256,768,58624,lamp1.bmp
+BOTON5,Puerta,SWITCH:Luz Puerta Living,5,175,230,80,256,768,58624,lamp1.bmp
 
-BOTON0,,PREV,20,260,60,60,0,0,0,prev.bmp
-BOTON1,,HOME,90,260,60,60,0,2016,0,home.bmp
-BOTON0,,NEXT,160,260,60,60,0,0,0,next.bmp
+BOTON0,,PREV,20,260,60,60,16,16,0,prev.bmp
+BOTON1,,HOME,90,260,60,60,16,16,0,home.bmp
+BOTON0,,NEXT,160,260,60,60,16,16,0,next.bmp
