@@ -307,10 +307,18 @@ void HTTPProcessTmpFile(const char* tmpname, const char* filename)
                 }
             }
             FSfclose(fo);
+            LogMessage("[HTTPProcessTmpFile] %s recibido Ok", filename);
+        }
+        else
+        {
+            LogMessage("[HTTPProcessTmpFile] Error abriendo archivo final %s", filename);        
         }
         FSfclose(fi);
-        Beeps(3);
-    }        
+    }
+    else
+    {
+        LogMessage("[HTTPProcessTmpFile] Error abriendo archivo temporal %s", tmpname);        
+    }
 }
 
 int Convert2CharToHex(const char* h)

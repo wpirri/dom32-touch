@@ -207,6 +207,7 @@ int WifiWaitLine(const char *line1, const char *line2, const char *line3, const 
                     g_wifi_read_line_buffer_index);
             g_wifi_wait_more_data = false;
             g_wifi_read_line_buffer_index = 0;
+            g_wifi_read_line_wait_crlf = true;
             http_buffer_input.download = false;
         }
         else if(g_wifi_read_line_buffer_index == WIFI_READ_LINE_BUFFER_LEN)
