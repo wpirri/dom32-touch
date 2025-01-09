@@ -135,7 +135,7 @@ void ConfigLoadDefault( void)
     g_wifi_info.f.config.brillo_max = 100;
     g_wifi_info.f.config.brillo_med = 30;
     g_wifi_info.f.config.brillo_min = 0;
-    g_wifi_info.f.config.screen_saver_time = 250;
+    g_wifi_info.f.config.screen_saver_time = 25;
     g_wifi_info.f.config.start_config_mode = true;
 
     g_wifi_info.status.save_config = 10;
@@ -258,6 +258,10 @@ void ConfigLoad( void )
 {
     FSFILE* f;
     int rc;
+
+
+
+
 
     LogMessage("[ConfigLoad] Leyendo configuracion de %s.", CONFIG_FILENAME);
     /* Lectura de configuración em tarjeta SD */
