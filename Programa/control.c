@@ -40,6 +40,11 @@
 #include "beep.h"
 
 #define TOUCH_DELAY 100
+#define RETURN_TO_HOME 600
+#define HOME_SCREEN_CSV "home.csv"
+#define INIT_SCREEN_BMP "power.bmp"
+#define OFFLINE_SCREEN_CSV "offline.csv"
+#define WIFI_SCREEN_BMP "wifi.bmp"
 
 typedef enum
 {
@@ -47,11 +52,11 @@ typedef enum
     SHOW_POWER,
     WAIT_WIFI,
     SHOW_PAGE,
-    LOOP,
+    SHOW_PAGE_LOOP,
     WIFI_CONFIG,
-    LOAD_SCREEN_SAVER,
     SCREEN_SAVER,
-    OFFLINE_SCREEN,
+    SCREEN_SAVER_LOOP,
+    OFFLINE,
     OFFLINE_LOOP,
     ERROR
 } control_stm;
@@ -59,9 +64,11 @@ typedef enum
 unsigned int g_control_init_complete;
 unsigned int g_control_update_firmware;
 unsigned int g_ctrl_count_reset;
+unsigned int g_ctrl_count_return_to_home;
 
 unsigned int g_ctrl_current_screen;
 control_stm g_ctrl_stm;
+control_stm g_ctrl_stm_ant;
 unsigned int g_ctrl_stm_delay;
 unsigned int g_screen_saver_count;
 char g_show_filename[FILE_NAME_SIZE+1];
@@ -90,10 +97,12 @@ void CTRLInit( void )
     g_ctrl_count_reset = 0;
     g_control_update_firmware = 0;
     g_ctrl_stm = INIT;
+    g_ctrl_stm_ant = ERROR;
     g_ctrl_stm_delay = 0;
     g_ctrl_current_screen = 0;
     g_screen_saver_count = 0;
-    strcpy(g_show_filename, "home.csv");
+    strcpy(g_show_filename, HOME_SCREEN_CSV);
+    g_ctrl_count_return_to_home = 0;
     
 /* Primer notificacion */
     CTRLNotificarStatus(100);
@@ -104,6 +113,13 @@ void CTRLTask( void )
     static int x = 0;
     
     if(g_ctrl_stm_delay) return;
+    
+    if(g_ctrl_stm != g_ctrl_stm_ant)
+    {
+        LogMessage("[CTRLTask] STM %i -> %i", g_ctrl_stm_ant, g_ctrl_stm);
+        g_ctrl_stm_ant = g_ctrl_stm;
+    }
+    
     switch(g_ctrl_stm)
     {
         case INIT:
@@ -114,9 +130,9 @@ void CTRLTask( void )
             break;
         case SHOW_POWER:
             /* Imagen centrada */
-            DrawBitmap("power.bmp", 
-                    ((DISPLAY_X_SIZE/2)-(GetBitmapW("power.bmp")/2)), 
-                    ((DISPLAY_Y_SIZE/2)-(GetBitmapH("power.bmp")/2)) );
+            DrawBitmap(INIT_SCREEN_BMP, 
+                    ((DISPLAY_X_SIZE/2)-(GetBitmapW(INIT_SCREEN_BMP)/2)), 
+                    ((DISPLAY_Y_SIZE/2)-(GetBitmapH(INIT_SCREEN_BMP)/2)) );
             g_wifi_info.status.brillo = g_wifi_info.f.config.brillo_max;
             if(g_wifi_info.status.flag_sd_ok)
             {
@@ -133,20 +149,23 @@ void CTRLTask( void )
         case WAIT_WIFI:
             if(g_wifi_info.status.wifi_mode == 1)
             {
+                /* Modo Normal */
                 if(g_wifi_info.status.host_conectado)
                 {
-                    strcpy(g_show_filename, "home.csv");
+                    strcpy(g_show_filename, HOME_SCREEN_CSV);
                     g_ctrl_current_screen = 0;
                     g_ctrl_stm = SHOW_PAGE;
                 }
                 else
                 {
-                    g_ctrl_stm = OFFLINE_SCREEN;
+                    strcpy(g_show_filename, OFFLINE_SCREEN_CSV);
+                    g_ctrl_stm = OFFLINE;
                 }
                 Beeps(3);
             }
-            if(g_wifi_info.status.wifi_mode == 3)
+            else if(g_wifi_info.status.wifi_mode == 3)
             {
+                /* Modo Configuracion */
                 g_ctrl_stm = WIFI_CONFIG;
             }
             else if(x < DISPLAY_X_SIZE)
@@ -167,7 +186,7 @@ void CTRLTask( void )
             ShowScreen(g_show_filename);
             g_ctrl_stm++;
             break;
-        case LOOP:
+        case SHOW_PAGE_LOOP:
             if(g_wifi_info.status.wifi_mode == 1)
             {
                 if(g_wifi_info.status.host_conectado)
@@ -176,7 +195,8 @@ void CTRLTask( void )
                 }
                 else
                 {
-                    g_ctrl_stm = OFFLINE_SCREEN;
+                    strcpy(g_show_filename, OFFLINE_SCREEN_CSV);
+                    g_ctrl_stm = OFFLINE;
                 }
             }
             else if(g_wifi_info.status.wifi_mode == 3)
@@ -188,7 +208,7 @@ void CTRLTask( void )
             if(g_wifi_info.status.wifi_mode == 3)
             {
                 Clear(0);
-                strcpy(g_show_filename, "wifi.bmp");
+                strcpy(g_show_filename, WIFI_SCREEN_BMP);
                 DrawBitmap(g_show_filename, 
                         ((DISPLAY_X_SIZE/2)-(GetBitmapW(g_show_filename)/2)), 
                         ((DISPLAY_Y_SIZE/2)-(GetBitmapH(g_show_filename)/2)) );
@@ -198,50 +218,60 @@ void CTRLTask( void )
             }
             else
             {
-                strcpy(g_show_filename, "home.csv");
+                if(g_wifi_info.status.host_conectado)
+                {
+                    strcpy(g_show_filename, HOME_SCREEN_CSV);
+                    g_ctrl_stm = SHOW_PAGE;
+                }
+                else
+                {
+                    strcpy(g_show_filename, OFFLINE_SCREEN_CSV);
+                    g_ctrl_stm = OFFLINE;
+                }
                 g_ctrl_current_screen = 0;
-                g_ctrl_stm = SHOW_PAGE;
             }
             break;
-        case LOAD_SCREEN_SAVER:
+        case SCREEN_SAVER:
             g_wifi_info.status.brillo = 0;
             Clear(0);
-            DrawBitmap("power.bmp", 
-                    ((DISPLAY_X_SIZE/2)-(GetBitmapW("power.bmp")/2)), 
-                    ((DISPLAY_Y_SIZE/2)-(GetBitmapH("power.bmp")/2)) );
+            DrawBitmap(INIT_SCREEN_BMP, 
+                    ((DISPLAY_X_SIZE/2)-(GetBitmapW(INIT_SCREEN_BMP)/2)), 
+                    ((DISPLAY_Y_SIZE/2)-(GetBitmapH(INIT_SCREEN_BMP)/2)) );
             g_wifi_info.status.brillo = g_wifi_info.f.config.brillo_min;
             g_ctrl_stm++;
             break;
-        case SCREEN_SAVER:
+        case SCREEN_SAVER_LOOP:
             if(TouchIsPressed( NULL, NULL, NULL ))
             {
-                strcpy(g_show_filename, "home.csv");
+                strcpy(g_show_filename, HOME_SCREEN_CSV);
                 g_ctrl_current_screen = 0;
                 g_ctrl_stm = SHOW_PAGE;
             }
             else if(g_wifi_info.status.host_conectado == 0)
             {
-                g_ctrl_stm = OFFLINE_SCREEN;
+                strcpy(g_show_filename, OFFLINE_SCREEN_CSV);
+                g_ctrl_stm = OFFLINE;
             }
             break;
-        case OFFLINE_SCREEN:
-            g_wifi_info.status.brillo = 0;
-            Clear(0);
-            DrawRoundRectangleEmpty(0, 0, DISPLAY_X_SIZE, DISPLAY_Y_SIZE, 10, RED);
-            DrawRoundRectangleEmpty(1, 1, DISPLAY_X_SIZE-1, DISPLAY_Y_SIZE-1, 10, RED);
-            DrawRoundRectangleEmpty(2, 2, DISPLAY_X_SIZE-2, DISPLAY_Y_SIZE-2, 10, RED);
-            DrawBitmap("power.bmp", 
-                    ((DISPLAY_X_SIZE/2)-(GetBitmapW("power.bmp")/2)), 
-                    ((DISPLAY_Y_SIZE/2)-(GetBitmapH("power.bmp")/2)) );
+        case OFFLINE:
+            ShowScreen(g_show_filename);
             g_wifi_info.status.brillo = g_wifi_info.f.config.brillo_med;
             g_ctrl_stm++;
             break;
         case OFFLINE_LOOP:
-            if(g_wifi_info.status.host_conectado)
+            if(g_wifi_info.status.wifi_mode == 3)
             {
-                strcpy(g_show_filename, "home.csv");
+                g_ctrl_stm = WIFI_CONFIG;
+            }
+            else if(g_wifi_info.status.host_conectado)
+            {
+                strcpy(g_show_filename, HOME_SCREEN_CSV);
                 g_ctrl_current_screen = 0;
                 g_ctrl_stm = SHOW_PAGE;
+            }
+            else
+            {
+                TouchTask();
             }
             break;
         case ERROR:
@@ -255,6 +285,24 @@ void CTRLTask( void )
 /* Se llama 10 veces por segundo - 100ms */
 void CTRLTimer( void )
 {
+    if( !strcmp(g_show_filename, HOME_SCREEN_CSV))
+    {
+        g_ctrl_count_return_to_home = 0;
+    }
+    else if( g_wifi_info.status.host_conectado && (g_ctrl_stm == SHOW_PAGE_LOOP) )
+    {
+        if(g_ctrl_count_return_to_home < RETURN_TO_HOME)
+        {
+            g_ctrl_count_return_to_home++;
+            if(g_ctrl_count_return_to_home == RETURN_TO_HOME)
+            {
+                strcpy(g_show_filename, HOME_SCREEN_CSV);
+                g_ctrl_current_screen = 0;
+                g_ctrl_stm = SHOW_PAGE;
+            }
+        }
+    }
+    
     if(g_wifi_info.status.host_conectado == 0 && g_wifi_info.status.control_notificar > (g_wifi_info.f.config.report/10))
     {
         g_wifi_info.status.control_notificar = (g_wifi_info.f.config.report/10);
@@ -282,7 +330,7 @@ void CTRLTimer( void )
     }
     
     /* Control de reset */
-    if(g_ctrl_count_reset && (g_ctrl_stm == LOOP) )
+    if(g_ctrl_count_reset && (g_ctrl_stm == SHOW_PAGE_LOOP) )
     {
         g_ctrl_count_reset--;
         if(g_ctrl_count_reset == 0)
@@ -324,12 +372,12 @@ void CTRLTimer( void )
     /* Screen saver */
     if( g_wifi_info.f.config.screen_saver_time > 0 && 
         g_screen_saver_count < (g_wifi_info.f.config.screen_saver_time * 10) &&
-        g_ctrl_stm == LOOP )
+        g_ctrl_stm == SHOW_PAGE_LOOP )
     {
         g_screen_saver_count++;
         if(g_screen_saver_count >= (g_wifi_info.f.config.screen_saver_time * 10) )
         {
-            g_ctrl_stm = LOAD_SCREEN_SAVER;
+            g_ctrl_stm = SCREEN_SAVER;
         }
     }
 }
@@ -417,10 +465,6 @@ void CTRLReset( void )
     g_ctrl_count_reset = 30;
 }
 
-
-
-
-
 void BotonPressed(const char* cmd)
 {
     LogMessage("[BotonPressed] CMD: %s", cmd);
@@ -429,8 +473,17 @@ void BotonPressed(const char* cmd)
     
     if( !memcmp(cmd, "HOME", 4))
     {
-        strcpy(g_show_filename, "home.csv");
-        g_ctrl_stm = SHOW_PAGE;
+        if(g_wifi_info.status.host_conectado)
+        {
+            strcpy(g_show_filename, HOME_SCREEN_CSV);
+            g_ctrl_stm = SHOW_PAGE;
+        }
+        else
+        {
+            strcpy(g_show_filename, OFFLINE_SCREEN_CSV);
+            g_ctrl_stm = OFFLINE;
+        }
+        g_ctrl_current_screen = 0;
     }
     else if( !memcmp(cmd, "MENU", 4))
     {
@@ -441,7 +494,15 @@ void BotonPressed(const char* cmd)
     else if( !memcmp(cmd, "CONFIG", 6))
     {
         strcpy(g_show_filename, "config.csv");
-        g_ctrl_stm = SHOW_PAGE;
+        g_ctrl_current_screen = 0;
+        if(g_wifi_info.status.host_conectado)
+        {
+            g_ctrl_stm = SHOW_PAGE;
+        }
+        else
+        {
+            g_ctrl_stm = OFFLINE;
+        }
     }
     else if( !memcmp(cmd, "NEXT", 4))
     {
@@ -481,13 +542,19 @@ void BotonPressed(const char* cmd)
     }
     else if( !memcmp(cmd, "SWITCH:", 7))
     {
-        g_wifi_info.status.sombra = 10;
-        HTTPCommandSwitch(&cmd[7]);
+        if(g_wifi_info.status.host_conectado)
+        {
+            g_wifi_info.status.sombra = 10;
+            HTTPCommandSwitch(&cmd[7]);
+        }
     }
     else if( !memcmp(cmd, "PULSE:", 6))
     {
-        g_wifi_info.status.sombra = 10;
-        HTTPCommandPulse(&cmd[6]);
+        if(g_wifi_info.status.host_conectado)
+        {
+            g_wifi_info.status.sombra = 10;
+            HTTPCommandPulse(&cmd[6]);
+        }
     }
 }
 
@@ -567,29 +634,23 @@ void ShowScreen(const char* filename)
                 if( !memcmp(line, "BOTON", 5) )
                 {
                     /* Boton con texto o sin y con o sin icono */
-                    if(str_section(line, ',', 1, btn_text) == 0)
-                    {
-                        btn_text[0] = 0;
-                    }
-                    if(str_section(line, ',', 2, btn_cmd) == 0) break;
-                    if(str_section(line, ',', 3, str_tmp) == 0) break;
-                    btn_x = atoi(str_tmp);
-                    if(str_section(line, ',', 4, str_tmp) == 0) break;
-                    btn_y = atoi(str_tmp);
-                    if(str_section(line, ',', 5, str_tmp) == 0) break;
-                    btn_w = atoi(str_tmp);
-                    if(str_section(line, ',', 6, str_tmp) == 0) break;
-                    btn_h = atoi(str_tmp);
-                    if(str_section(line, ',', 7, str_tmp) == 0) break;
-                    btn_color_f = atoi(str_tmp);
-                    if(str_section(line, ',', 8, str_tmp) == 0) break;
-                    btn_color_b = atoi(str_tmp);
-                    if(str_section(line, ',', 9, str_tmp) == 0) break;
-                    btn_color_n = atoi(str_tmp);
-                    if(str_section(line, ',', 10, btn_icono) == 0)
-                    {
-                        btn_icono[0] = 0;
-                    }
+                    if(str_section(line, ',', 1, btn_text) == 0) btn_text[0] = 0;
+                    if(str_section(line, ',', 2, btn_cmd) == 0) btn_cmd[0] = 0;
+                    if(str_section(line, ',', 3, str_tmp)) btn_x = atoi(str_tmp);
+                    else btn_x = 0;
+                    if(str_section(line, ',', 4, str_tmp)) btn_y = atoi(str_tmp);
+                    else btn_y = 0;
+                    if(str_section(line, ',', 5, str_tmp)) btn_w = atoi(str_tmp);
+                    else btn_w = 0;
+                    if(str_section(line, ',', 6, str_tmp)) btn_h = atoi(str_tmp);
+                    else btn_h = 0;
+                    if(str_section(line, ',', 7, str_tmp)) btn_color_f = atoi(str_tmp);
+                    else btn_color_f = 0;
+                    if(str_section(line, ',', 8, str_tmp)) btn_color_b = atoi(str_tmp);
+                    else btn_color_b = 0;
+                    if(str_section(line, ',', 9, str_tmp)) btn_color_n = atoi(str_tmp);
+                    else btn_color_n = 0;
+                    if(str_section(line, ',', 10, btn_icono) == 0) btn_icono[0] = 0;
                     
                     if(line[5] == '0')
                     {
