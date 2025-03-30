@@ -1,0 +1,26 @@
+# CONFIG ----------------------------------------------------------------------
+# FONDO,[color]
+# BOTONn,[etiqueta],[comando:objeto],[x],[y],[w],[h],[color fondo],[color borde],[color etiqueta],[icono]
+# Valores de n:
+#	0 - Botón cuadrado con borde fino
+#	1 - Botón redondo con borde fino
+#	2 - Botón cuadrado con borde medio
+#	3 - Botón redondo con borde medio
+#	4 - Botón cuadrado con borde grueso
+#	5 - Botón redondo con borde grueso
+# Valores de comando:
+#	SWITCH
+#	PULSE
+# x: posición X de la esquina superior derecha del botón
+# y: posición Y de la esquina superior derecha del botón
+# w: Ancho del botón
+# h: altura del botón
+# Valores de los colores: 0 a 65535
+# Valor de incolo: archivo BMP de 48x48 pixel
+# 
+FONDO,16
+BOTON3,WiFi,WIFI,5,5,230,60,0,31,65535,wifi1.bmp
+BOTON3,Upgrade,UPGRADE,5,75,230,60,31,30735,65535,download.bmp
+BOTON3,Restart,RESET,5,145,230,60,3020,63488,65535,restart.bmp
+
+BOTON1,,HOME,90,260,60,60,16,16,0,home.bmp
