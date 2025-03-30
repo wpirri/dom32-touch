@@ -19,6 +19,7 @@
 
 #include <string.h>
 
+#include "config.h"
 #include "display/display.h"
 #include "sd/fsio.h"
 #include "bitmap.h"
@@ -44,6 +45,7 @@ typedef struct _BOTON
     unsigned int f_color;
     unsigned int b_color;
     unsigned int n_color;
+    unsigned int orientacion;
 } BOTON;
 
 BOTON array_botones[MAX_BOTONES];
@@ -74,9 +76,15 @@ void BotonAdd(  const char *text, const char *cmd,
                 unsigned int w, unsigned int h,
                 unsigned int border, unsigned int radio, 
                 unsigned int f_color, unsigned int b_color, unsigned int n_color,
-                const char* icon_file)
+                const char* icon_file, unsigned int orientacion)
 {
     int i;
+
+    if(g_wifi_info.f.config.debug)
+    {
+        LogMessage("[BotonAdd] texto: %s com: %s pos: %ui,%ui tam: %ui,%ui borde: %ui esq: %ui color: %ui,%ui,%ui icono: %s orient: %ui",
+                text,cmd,x,y,w,h,border,radio,f_color,b_color,n_color,icon_file,orientacion);
+    }
     
     for(i = 0; i < MAX_BOTONES; i++)
     {
@@ -94,6 +102,7 @@ void BotonAdd(  const char *text, const char *cmd,
             array_botones[i].f_color = f_color;
             array_botones[i].b_color = b_color;
             array_botones[i].n_color = n_color;
+            array_botones[i].orientacion = orientacion;
             if(icon_file && *icon_file)
             {
                 strcpy(array_botones[i].icon, icon_file);
@@ -162,17 +171,28 @@ void BotonDraw( void )
 
         if(array_botones[i].text[0])
         {
-            /* Centrado vertical del texto */
-            text_y = (array_botones[i].y + (array_botones[i].h / 2) - (BOTON_TEXT_SIZE * BOTON_FONT_H / 2));
-            /* Posición horizontal del texto */
-            /* Texto centrado en el boton */
-            text_x = (array_botones[i].x 
-                    + (array_botones[i].w/2) 
-                    - (strlen(array_botones[i].text) * BOTON_FONT_W * BOTON_TEXT_SIZE / 2) );
-            if(array_botones[i].icon[0])
+            if( array_botones[i].orientacion == 0 ||
+                array_botones[i].icon[0] == 0      )
+                /* Orientación horizontal. Icono a la derecha y texto a la izquierda */
             {
-                /* Texto centrado entre el icono y el final del boton */
-                text_x += (GetBitmapW(array_botones[i].icon) + 5) / 2;
+                /* Centrado vertical del texto */
+                text_y = (array_botones[i].y + (array_botones[i].h / 2) - (BOTON_TEXT_SIZE * BOTON_FONT_H / 2));
+                /* Posición horizontal del texto */
+                /* Texto centrado en el boton */
+                text_x = (array_botones[i].x 
+                        + (array_botones[i].w/2) 
+                        - (strlen(array_botones[i].text) * BOTON_FONT_W * BOTON_TEXT_SIZE / 2) );
+                if(array_botones[i].icon[0])
+                {
+                    /* Texto centrado entre el icono y el final del boton */
+                    text_x += (GetBitmapW(array_botones[i].icon) + 5) / 2;
+                }
+            }
+            else /* Orientación vertical. Icono arriba y texto abajo */
+            {
+
+                
+                
             }
             DrawText(array_botones[i].text,
                     /* Posisión X del texto */
@@ -186,16 +206,27 @@ void BotonDraw( void )
 
         if(array_botones[i].icon[0])
         {
-            icon_offset_y = array_botones[i].y + (array_botones[i].h/2) - (GetBitmapH(array_botones[i].icon)/2);
-            if(array_botones[i].text[0])
+            if( array_botones[i].orientacion == 0 ||
+                array_botones[i].text[0] == 0      )
+                /* Orientación horizontal. Icono a la derecha y texto a la izquierda */
             {
-                icon_offset_x = array_botones[i].x + 5;
+                icon_offset_y = array_botones[i].y + (array_botones[i].h/2) - (GetBitmapH(array_botones[i].icon)/2);
+                if(array_botones[i].text[0])
+                {
+                    icon_offset_x = array_botones[i].x + 5;
+                }
+                else
+                {
+                    icon_offset_x = array_botones[i].x 
+                            + (array_botones[i].w/2) 
+                            - (GetBitmapW(array_botones[i].icon)/2);
+                }
             }
-            else
+            else /* Orientación vertical. Icono arriba y texto abajo */
             {
-                icon_offset_x = array_botones[i].x 
-                        + (array_botones[i].w/2) 
-                        - (GetBitmapW(array_botones[i].icon)/2);
+
+                
+                
             }
             DrawBitmapTransparent(array_botones[i].icon, icon_offset_x, icon_offset_y);
         }

@@ -612,6 +612,7 @@ void ShowScreen(const char* filename)
     int btn_color_n;
     int color_fondo = 0;
     char btn_icono[FILE_NAME_SIZE+1];
+    int orientacion;
 
 
     g_wifi_info.status.brillo = 0;
@@ -630,8 +631,12 @@ void ShowScreen(const char* filename)
             line[--line_len] = 0;
             if(line_len > 0 && line[0] != '#')
             {
+                if(g_wifi_info.f.config.debug)
+                {
+                    LogMessage("[ShowScreen] Leido: %s", line);
+                }
                 /* Analizo la línea */
-                if( !memcmp(line, "BOTON", 5) )
+                if( memcmp(line, "BOTON_REDONDO,", 14) == 0 )
                 {
                     /* Boton con texto o sin y con o sin icono */
                     if(str_section(line, ',', 1, btn_text) == 0) btn_text[0] = 0;
@@ -651,63 +656,47 @@ void ShowScreen(const char* filename)
                     if(str_section(line, ',', 9, str_tmp)) btn_color_n = atoi(str_tmp);
                     else btn_color_n = 0;
                     if(str_section(line, ',', 10, btn_icono) == 0) btn_icono[0] = 0;
+                    if(str_section(line, ',', 11, str_tmp)) orientacion = atoi(str_tmp);
+                    else orientacion = 0;
                     
-                    if(line[5] == '0')
-                    {
-                        BotonAdd(btn_text,
-                                btn_cmd,
-                                btn_x,btn_y,btn_w,btn_h, 
-                                1, 0,
-                                btn_color_f, btn_color_b, btn_color_n,
-                                ((btn_icono[0])?btn_icono: NULL) );
-                    }
-                    else if(line[5] == '1')
-                    {
-                        BotonAdd(btn_text,
-                                btn_cmd,
-                                btn_x,btn_y,btn_w,btn_h, 
-                                1, btn_h/5,
-                                btn_color_f, btn_color_b, btn_color_n,
-                                ((btn_icono[0])?btn_icono: NULL) );
-                    }
-                    else if(line[5] == '2')
-                    {
-                        BotonAdd(btn_text,
-                                btn_cmd,
-                                btn_x,btn_y,btn_w,btn_h, 
-                                2, 0,
-                                btn_color_f, btn_color_b, btn_color_n,
-                                ((btn_icono[0])?btn_icono: NULL) );
-                    }
-                    else if(line[5] == '3')
-                    {
-                        BotonAdd(btn_text,
-                                btn_cmd,
-                                btn_x,btn_y,btn_w,btn_h, 
-                                2, btn_h/5,
-                                btn_color_f, btn_color_b, btn_color_n,
-                                ((btn_icono[0])?btn_icono: NULL) );
-                    }
-                    else if(line[5] == '4')
-                    {
-                        BotonAdd(btn_text,
-                                btn_cmd,
-                                btn_x,btn_y,btn_w,btn_h, 
-                                3, 0,
-                                btn_color_f, btn_color_b, btn_color_n,
-                                ((btn_icono[0])?btn_icono: NULL) );
-                    }
-                    else if(line[5] == '5')
-                    {
-                        BotonAdd(btn_text,
-                                btn_cmd,
-                                btn_x,btn_y,btn_w,btn_h, 
-                                3, btn_h/5,
-                                btn_color_f, btn_color_b, btn_color_n,
-                                ((btn_icono[0])?btn_icono: NULL) );
-                    }
+                    BotonAdd(btn_text,
+                            btn_cmd,
+                            btn_x,btn_y,btn_w,btn_h, 
+                            3, 15,
+                            btn_color_f, btn_color_b, btn_color_n,
+                            ((btn_icono[0])?btn_icono: NULL), orientacion);
                 }
-                else if( !memcmp(line, "FONDO", 5) )
+                else if( memcmp(line, "BOTON_CUADRADO,", 15) == 0 )
+                {
+                    /* Boton con texto o sin y con o sin icono */
+                    if(str_section(line, ',', 1, btn_text) == 0) btn_text[0] = 0;
+                    if(str_section(line, ',', 2, btn_cmd) == 0) btn_cmd[0] = 0;
+                    if(str_section(line, ',', 3, str_tmp)) btn_x = atoi(str_tmp);
+                    else btn_x = 0;
+                    if(str_section(line, ',', 4, str_tmp)) btn_y = atoi(str_tmp);
+                    else btn_y = 0;
+                    if(str_section(line, ',', 5, str_tmp)) btn_w = atoi(str_tmp);
+                    else btn_w = 0;
+                    if(str_section(line, ',', 6, str_tmp)) btn_h = atoi(str_tmp);
+                    else btn_h = 0;
+                    if(str_section(line, ',', 7, str_tmp)) btn_color_f = atoi(str_tmp);
+                    else btn_color_f = 0;
+                    if(str_section(line, ',', 8, str_tmp)) btn_color_b = atoi(str_tmp);
+                    else btn_color_b = 0;
+                    if(str_section(line, ',', 9, str_tmp)) btn_color_n = atoi(str_tmp);
+                    else btn_color_n = 0;
+                    if(str_section(line, ',', 10, btn_icono) == 0) btn_icono[0] = 0;
+                    if(str_section(line, ',', 11, str_tmp)) orientacion = atoi(str_tmp);
+                    else orientacion = 0;
+                    
+                    BotonAdd(btn_text,
+                            btn_cmd,
+                            btn_x,btn_y,btn_w,btn_h, 
+                            3, 0,
+                            btn_color_f, btn_color_b, btn_color_n,
+                            ((btn_icono[0])?btn_icono: NULL), orientacion);
+                }
+                else if( memcmp(line, "FONDO,", 6) == 0 )
                 {
                     if(str_section(line, ',', 1, str_tmp) == 0) break;
                     color_fondo = atoi(str_tmp);
