@@ -188,8 +188,10 @@ void BotonDraw( void )
                     text_x += (GetBitmapW(array_botones[i].icon) + 5) / 2;
                 }
             }
-            else /* Orientación vertical. Icono arriba y texto abajo */
+            else /* TODO: Orientación vertical. Icono arriba y texto abajo */
             {
+                text_x = 0;
+                text_y = 0;
 
                 
                 
@@ -222,8 +224,10 @@ void BotonDraw( void )
                             - (GetBitmapW(array_botones[i].icon)/2);
                 }
             }
-            else /* Orientación vertical. Icono arriba y texto abajo */
+            else /* TODO: Orientación vertical. Icono arriba y texto abajo */
             {
+                icon_offset_x = 0;
+                icon_offset_y = 0;
 
                 
                 

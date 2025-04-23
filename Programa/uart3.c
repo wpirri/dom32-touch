@@ -185,6 +185,7 @@ bool UART3_Overflow()
         rxHead = rxQueue;
         rxTail = rxQueue;
         while((U3STAbits.URXDA == 1)) { c = U3RXREG; }
+        c = c;
         rxOverflowed = false;
         return true;
     }
@@ -203,6 +204,6 @@ void __attribute__ ((vector(_UART3_ERR_VECTOR), interrupt(IPL1SOFT))) _UART3_ERR
     rxHead = rxQueue;
     rxTail = rxQueue;
     while((U3STAbits.URXDA == 1)) { c = U3RXREG; }
-
+    c = c;
     IFS1CLR= 1 << _IFS1_U3EIF_POSITION;
 }

@@ -310,7 +310,7 @@ void CTRLTimer( void )
 
     if( g_wifi_info.status.control_notificar > 0 &&
         g_wifi_info.status.wifi_mode == 1 &&
-        g_wifi_info.status.wifi_conectado != 0 )
+        g_wifi_info.status.wifi_conectado_ok != 0 )
     {
         g_wifi_info.status.control_notificar--;
         if(g_wifi_info.status.control_notificar == 0)
