@@ -1,0 +1,24 @@
+Producto: Pantalla Display LCD TFT Color 3.2" 240*320 SPI
+
+CODIGO DE PRODUCTO: 2516
+
+Pantalla LCD TFT ILI9341 de 3.2" con resolución 240x320. Ideal para proyectos de microcontroladores y Raspberry Pi. Ofrece colores vibrantes, ángulo de visión amplio y excelente claridad. Compatible con SPI. Perfecta para mostrar gráficos, textos y datos en aplicaciones electrónicas y DIY. Fácil de integrar y programar.
+
+Especificaciones:
+- Marca: HobbyTronica
+- Tensión de Funcionamiento: 3.3V a 5V
+- Modelo: TFT LCD 3.2"
+- Resolución: 240*320 (RGB)
+- Backlight: Blanco
+- Medida: 3.2"
+- Colores Máximos: 262.000 (18 bits por Pixel)
+- Driver: ILI9341
+- Zócalo SD en su parte posterior
+- Interfaz: SPI
+- Peso: 47g
+
+Modos de Color:
+- Full: 262000 Colores (Idle Off)
+- Reducido: 8 Colores (Idle On)
+
+
