@@ -644,6 +644,12 @@ void HttpProcessGeneralConfig(char* in)
     {
         g_wifi_info.f.config.debug = atoi(s);
     }
+    if(HTTPGetFormData(in, "display", s))
+    {
+        g_wifi_info.f.config.display_type = atoi(s);
+    }
+    
+    CTRLConfSys(in);
     
     g_wifi_info.status.save_config = 50;
 }
@@ -759,6 +765,7 @@ void HTTPTask( void )
             /* Ok */
             g_wifi_info.status.host_conectado = 1;
             CTRLNotificarStatus(0);
+            CTRLConfSys(http_buffer_input.data);
             
             /* En el proximo arranque inicia en modo normal */
             if(g_wifi_info.f.config.start_config_mode)
@@ -828,10 +835,14 @@ void HTTPTimer( void )
         if(http_process_tmp_file == 0)
         {
             HTTPProcessTmpFile(DOWNLOAD_TEMP_FILE_NAME, http_process_tmp_file_to_name);
-            //FSremove(DOWNLOAD_TEMP_FILE_NAME);
+            FSremove(DOWNLOAD_TEMP_FILE_NAME);
             if( !strcmp(http_process_tmp_file_to_name, FIRMWARE_FILENAME))
             {
                 CTRLReset();
+            }
+            else
+            {
+                UpdateEndDownload();
             }
         }
     }

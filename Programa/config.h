@@ -44,6 +44,7 @@
 #define DOWNLOAD_PATH           "/download"
 #define FIRMWARE_FILENAME       "domtouch.hex"
 #define CONFIG_FILENAME         "d32touch.cfg"
+#define SCREEN_FILENAME         "screen.lst"
 
 typedef struct _config_in_file_ /*  */
 {
@@ -67,6 +68,7 @@ typedef struct _config_in_file_ /*  */
     unsigned long start_config_mode;
     unsigned char debug;
     char wifi_sta_last_ip[16];
+    unsigned char display_type;         /* 0 = MCU 1 = SPI */
 } config_in_file;
 
 typedef struct
@@ -98,6 +100,8 @@ typedef struct
         char up_fw[65];
         unsigned char brillo;
         unsigned char sombra;
+        unsigned char debug;
+        unsigned char display_type;
     } status;
 } wifi_info;
 

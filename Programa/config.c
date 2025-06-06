@@ -65,62 +65,7 @@
 #pragma config CP = OFF                 // Code Protection Enable bit (Code protection is disabled)
 /* ************************************************************************** */
 
-
-/* * Manejo de excepciones ************************************************** */
-static enum {
-    EXCEP_IRQ = 0,            // interrupt
-    EXCEP_AdEL = 4,            // address error exception (load or ifetch)
-    EXCEP_AdES,                // address error exception (store)
-    EXCEP_IBE,                // bus error (ifetch)
-    EXCEP_DBE,                // bus error (load/store)
-    EXCEP_Sys,                // syscall
-    EXCEP_Bp,                // breakpoint
-    EXCEP_RI,                // reserved instruction
-    EXCEP_CpU,                // coprocessor unusable
-    EXCEP_Overflow,            // arithmetic overflow
-    EXCEP_Trap,                // trap (possible divide by zero)
-    EXCEP_IS1 = 16,            // implementation specfic 1
-    EXCEP_CEU,                // CorExtend Unuseable
-    EXCEP_C2E                // coprocessor 2
-} _excep_code;
-
-void __attribute__((weak, nomips16)) _general_exception_handler (void)
-{
-    static unsigned int _excep_addr;
-    static char* _except_str;
-    
-    asm volatile("mfc0 %0,$13" : "=r" (_excep_code));
-    asm volatile("mfc0 %0,$14" : "=r" (_excep_addr));
-
-    _excep_code = (_excep_code & 0x0000007C) >> 2;
-
-    switch(_excep_code){
-        case EXCEP_IRQ: _except_str = "interrupt"; break;
-        case EXCEP_AdEL: _except_str = "address error exception (load or ifetch)"; break;
-        case EXCEP_AdES: _except_str = "address error exception (store)"; break;
-        case EXCEP_IBE: _except_str = "bus error (ifetch)"; break;
-        case EXCEP_DBE: _except_str = "bus error (load/store)"; break;
-        case EXCEP_Sys: _except_str = "syscall"; break;
-        case EXCEP_Bp: _except_str = "breakpoint"; break;
-        case EXCEP_RI: _except_str = "reserved instruction"; break;
-        case EXCEP_CpU: _except_str = "coprocessor unusable"; break;
-        case EXCEP_Overflow: _except_str = "arithmetic overflow"; break;
-        case EXCEP_Trap: _except_str = "trap (possible divide by zero)"; break;
-        case EXCEP_IS1: _except_str = "implementation specfic 1"; break;
-        case EXCEP_CEU: _except_str = "CorExtend Unuseable"; break;
-        case EXCEP_C2E: _except_str = "coprocessor 2"; break;
-    }
-
-    LogMessage("[Exception] Compilacion " __DATE__ " " __TIME__ ".");
-    LogMessage("[Exception] Compilador " __VERSION__ ".");
-    LogMessage("[Exception] %s.", _except_str);
-    LogMessage("[Exception] Cde: 0x%04X Addr: 0x%08X.", _excep_code, _excep_addr);
-
-    while(1);
-}
-
 void DumpConfig( void );
-
 
 void ConfigLoadDefault( void)
 {
@@ -354,4 +299,5 @@ void DumpConfig( void )
     LogMessage("[DumpConfig] Brillo medio:     %d", g_wifi_info.f.config.brillo_med);
     LogMessage("[DumpConfig] Brillo minimo:    %d", g_wifi_info.f.config.brillo_min);
     LogMessage("[DumpConfig] Screen Saver:     %d", g_wifi_info.f.config.screen_saver_time);
+    LogMessage("[DumpConfig] Display:          %d", g_wifi_info.f.config.display_type);
 }

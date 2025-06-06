@@ -50,7 +50,7 @@ void LogMessage(const char* msg, ...)
     va_end(arg);
     strcat(str, "\r\n");
     
-    if(g_wifi_info.f.config.debug)
+    if(g_wifi_info.status.debug)
     {
         p = &str[0];
         while(*p)

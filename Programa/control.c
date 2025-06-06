@@ -61,6 +61,21 @@ typedef enum
     ERROR
 } control_stm;
 
+typedef enum
+{
+    US_INIT = 0,
+    US_WAITH,
+    US_GET_LIST,
+    US_GET_LIST_WAITH,
+    US_GET_LIST_END,
+    US_OPEN_LIST_FILES,
+    US_GET_LIST_FILES,
+    US_GET_LIST_FILES_WAITH,
+    US_GET_LIST_FILES_NEXT,
+    US_GET_LIST_FILES_END,
+    US_ERROR
+} update_screen_stm;
+
 unsigned int g_control_init_complete;
 unsigned int g_control_update_firmware;
 unsigned int g_ctrl_count_reset;
@@ -72,6 +87,10 @@ control_stm g_ctrl_stm_ant;
 unsigned int g_ctrl_stm_delay;
 unsigned int g_screen_saver_count;
 char g_show_filename[FILE_NAME_SIZE+1];
+update_screen_stm g_us_stm;
+unsigned int g_us_waith;
+unsigned char g_us_list_item;
+FSFILE* g_us_list_file;
 
 void ShowScreen(const char* filename);
 void TouchTask( void );
@@ -103,7 +122,10 @@ void CTRLInit( void )
     g_screen_saver_count = 0;
     strcpy(g_show_filename, HOME_SCREEN_CSV);
     g_ctrl_count_return_to_home = 0;
-    
+    g_us_stm = US_INIT;
+    g_us_waith = 0;
+    g_us_list_item = 0;
+    g_us_list_file = NULL;
 /* Primer notificacion */
     CTRLNotificarStatus(100);
 }
@@ -280,6 +302,8 @@ void CTRLTask( void )
             DrawText("Error", CENTER, DISPLAY_Y_SIZE/2, 4, RED, BLACK);
             break;
     }
+    
+    UdateScreenTask();
 }
 
 /* Se llama 10 veces por segundo - 100ms */
@@ -330,7 +354,7 @@ void CTRLTimer( void )
     }
     
     /* Control de reset */
-    if(g_ctrl_count_reset && (g_ctrl_stm == SHOW_PAGE_LOOP) )
+    if(g_ctrl_count_reset && (g_ctrl_stm == SHOW_PAGE_LOOP || g_ctrl_stm == SCREEN_SAVER_LOOP) )
     {
         g_ctrl_count_reset--;
         if(g_ctrl_count_reset == 0)
@@ -379,6 +403,11 @@ void CTRLTimer( void )
         {
             g_ctrl_stm = SCREEN_SAVER;
         }
+    }
+    
+    if(g_us_waith > 0)
+    {
+        g_us_waith--;
     }
 }
 
@@ -631,7 +660,7 @@ void ShowScreen(const char* filename)
             line[--line_len] = 0;
             if(line_len > 0 && line[0] != '#')
             {
-                if(g_wifi_info.f.config.debug)
+                if(g_wifi_info.status.debug)
                 {
                     LogMessage("[ShowScreen] Leido: %s", line);
                 }
@@ -709,4 +738,106 @@ void ShowScreen(const char* filename)
     BotonDraw();
     g_wifi_info.status.brillo = g_wifi_info.f.config.brillo_max;
 
+}
+
+void UdateScreenTask( void )
+{
+    int rc;
+    char download_filename[256];
+    char line[256];
+    unsigned char line_len;
+    
+    if(g_us_waith) return;
+    
+    switch(g_us_stm)
+    {
+        case US_INIT:
+            if(g_us_list_file) FSfclose(g_us_list_file);
+            g_us_stm++;
+            break;
+        case US_WAITH:
+            break;
+        case US_GET_LIST:
+            /* Pido el listado de archivos */
+            sprintf(download_filename, "%s/$s/%s", DOWNLOAD_PATH, g_wifi_info.status.hw_mac, SCREEN_FILENAME);
+            if(HTTPGetFile(download_filename, NULL) > 0 )
+            {
+                g_us_stm++;
+            }
+            else
+            {
+                g_us_waith = 600;
+            }
+            break;
+        case US_GET_LIST_WAITH:
+            break;
+        case US_GET_LIST_END:
+            g_us_waith = 50;
+            g_us_stm++;
+            break;
+        case US_OPEN_LIST_FILES:
+            g_us_list_file = FSfopen(SCREEN_FILENAME, FS_READ);
+            if(g_us_list_file)
+            {
+                g_us_stm++;
+            }
+            else
+            {
+                g_us_stm = US_ERROR;
+            }
+            break;
+        case US_GET_LIST_FILES:
+            /* Leo una línea */
+            line_len = 0;
+            do {
+                rc = FSfread(&line[line_len++], 1, 1, g_us_list_file);
+            } while(line[line_len-1] != 0x0d && line[line_len-1] != 0x0a && line_len < 255 && rc == 1);
+            line[--line_len] = 0;
+            if(line_len)
+            {
+                /* Me traigo el archivo */
+                sprintf(download_filename, "%s/$s/%s", DOWNLOAD_PATH, g_wifi_info.status.hw_mac, SCREEN_FILENAME);
+                if(HTTPGetFile(download_filename, NULL) > 0 )
+                {
+                    g_us_stm++;
+                }
+                else
+                {
+                    g_us_waith = 600;
+                }
+            }
+            else
+            {
+                g_us_waith = US_GET_LIST_FILES_END;
+            }
+            break;
+        case US_GET_LIST_FILES_WAITH:
+            break;
+        case US_GET_LIST_FILES_NEXT:
+            g_us_waith = US_GET_LIST_FILES;
+            g_us_waith = 50;
+            break;
+        case US_GET_LIST_FILES_END:
+            FSfclose(g_us_list_file);
+            g_us_list_file = NULL;
+            g_us_stm = US_INIT;
+            break;
+        case US_ERROR:
+            g_us_stm = US_INIT;
+            break;
+    }
+    
+    
+    
+}
+
+void UpdateScreens( void )
+{
+    if(g_us_stm == US_WAITH) g_us_stm++;
+}
+
+void UpdateEndDownload( void )
+{
+    if(g_us_stm == US_GET_LIST_WAITH ||
+       g_us_stm == US_GET_LIST_FILES_WAITH ) g_us_stm++;
 }

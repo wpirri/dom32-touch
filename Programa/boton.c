@@ -80,7 +80,7 @@ void BotonAdd(  const char *text, const char *cmd,
 {
     int i;
 
-    if(g_wifi_info.f.config.debug)
+    if(g_wifi_info.status.debug)
     {
         LogMessage("[BotonAdd] texto: %s com: %s pos: %ui,%ui tam: %ui,%ui borde: %ui esq: %ui color: %ui,%ui,%ui icono: %s orient: %ui",
                 text,cmd,x,y,w,h,border,radio,f_color,b_color,n_color,icon_file,orientacion);

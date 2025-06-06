@@ -26,6 +26,25 @@
 
 #include "font.h"
 
+// Description: The main SPI control register
+#define SPIxCON              SPI2CON
+// Description: The SPI status register
+#define SPIxSTAT             SPI2STAT
+// Description: The SPI Buffer
+#define SPIxBUF              SPI2BUF
+// Description: The bitwise define for the SPI control register (i.e. _____bits)
+#define SPIxCONbits         SPI2CONbits
+// Description: The bitwise define for the SPI status register (i.e. _____bits)
+#define SPIRBF              SPI2STATbits.SPIRBF
+//
+#define SPITBE              SPI2STATbits.SPITBE
+//
+#define __SPIxCONbits_t     __SPI2CONbits_t
+// Description: The enable bit for the SPI module
+#define SPIENABLE           SPI2CONbits.ON
+// Description: The definition for the SPI baud rate generator register (PIC32)
+#define SPIBRG			    SPI2BRG
+
 #define swap(a, b) { int t = a; a = b; b = t; }
 
 void DisplayWriteData(unsigned char data);
@@ -520,33 +539,85 @@ void VertScroll(unsigned int top, unsigned int scrollines, int offset)
 /* ************************************************************************* */
 void DisplayWriteData(unsigned char data)
 {
-    DI_PORT_OUT = ( (DI_PORT_IN & 0xFF00) | (data & 0x00FF) );
-    CLR_DI_WR;
-    SET_DI_WR;
+    unsigned char ch;
+    
+    if(g_wifi_info.status.display_type == 0)
+    {
+        /* MCU */
+        DI_PORT_OUT = ( (DI_PORT_IN & 0xFF00) | (data & 0x00FF) );
+        CLR_DI_WR;
+        SET_DI_WR;
+    }
+    else if(g_wifi_info.status.display_type == 1)
+    {
+        /* SPI */
+        CLR_DI_WR;
+        while( !SPITBE );
+        SPIxBUF = (data & 0x00FF);
+        while( !SPIRBF );		// wait receive data available
+        ch = (SPIxBUF);
+        SET_DI_WR;
+    }
 }
 
 void DisplayWriteCommand(unsigned char cmd)
 {
+    unsigned char ch;
+
     CLR_DI_RS;
 
-    DI_PORT_OUT = ( (DI_PORT_IN & 0xFF00) | (cmd & 0x00FF) );
-    CLR_DI_WR;
-    SET_DI_WR;
+    if(g_wifi_info.status.display_type == 0)
+    {
+        /* MCU */
+        DI_PORT_OUT = ( (DI_PORT_IN & 0xFF00) | (cmd & 0x00FF) );
+        CLR_DI_WR;
+        SET_DI_WR;
+    }
+    else if(g_wifi_info.status.display_type == 1)
+    {
+        /* SPI */
+        CLR_DI_WR;
+        while( !SPITBE );
+        SPIxBUF = (cmd & 0x00FF);
+        while( !SPIRBF );		// wait receive data available
+        ch = (SPIxBUF);
+        SET_DI_WR;
+    }
 
     SET_DI_RS;
 }
 
 void DisplayWriteLongCommand(unsigned int cmd)
 {
+    unsigned char ch;
+
     CLR_DI_RS;
 
-    DI_PORT_OUT = ( (DI_PORT_IN & 0xFF00) | ((cmd>>8) & 0x00FF) );
-    CLR_DI_WR;
-    SET_DI_WR;
+    if(g_wifi_info.status.display_type == 0)
+    {
+        /* MCU */
+        DI_PORT_OUT = ( (DI_PORT_IN & 0xFF00) | ((cmd>>8) & 0x00FF) );
+        CLR_DI_WR;
+        SET_DI_WR;
 
-    DI_PORT_OUT = ( (DI_PORT_IN & 0xFF00) | (cmd & 0x00FF) );
-    CLR_DI_WR;
-    SET_DI_WR;
+        DI_PORT_OUT = ( (DI_PORT_IN & 0xFF00) | (cmd & 0x00FF) );
+        CLR_DI_WR;
+        SET_DI_WR;
+    }
+    else if(g_wifi_info.status.display_type == 1)
+    {
+        /* SPI */
+        CLR_DI_WR;
+        while( !SPITBE );
+        SPIxBUF = ((cmd>>8) & 0x00FF);
+        while( !SPIRBF );		// wait receive data available
+        ch = (SPIxBUF);
+        while( !SPITBE );
+        SPIxBUF = (cmd & 0x00FF);
+        while( !SPIRBF );		// wait receive data available
+        ch = (SPIxBUF);
+        SET_DI_WR;
+    }
 
     SET_DI_RS;
 }

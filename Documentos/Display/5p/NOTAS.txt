@@ -1,0 +1,24 @@
+
+Diagonal: 3.2''
+Bus: 24 Bit
+Touch: resistivo
+
+COM-28380
+ILI9341
+https://www.digikey.com/en/products/detail/sparkfun-electronics/COM-28380/26523962
+
+
+
+============================
+Diagonal: 5''
+Bus: 24 Bit
+Touch: resistivo
+
+ATM0500D27K-T
+ILI6137A
+https://www.digikey.com/en/products/detail/az-displays/ATM0500D27K-T/13984914
+
+NHD-5.0-800480TF-ATXL#-T
+https://www.digikey.com/en/products/detail/newhaven-display-intl/NHD-5-0-800480TF-ATXL-T/4429441
+
+

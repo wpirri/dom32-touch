@@ -27,4 +27,7 @@ void CTRLConfSys(char* in);
 void CTRLReset( void );
 void CTRLNotificarStatus( int time );
 
+void UpdateScreens( void );
+void UpdateEndDownload( void );
+
 #endif /* _CONTROL_H_ */

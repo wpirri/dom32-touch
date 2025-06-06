@@ -170,6 +170,7 @@ int main(void)
     g_wifi_info.status.sombra = 0;
     
     ConfigInit();
+    
     LogInit();
     if(FSInit())
     {
@@ -180,7 +181,9 @@ int main(void)
     //DrawSampleScreen();
     Clear(0);
     ConfigLoad();
-    if(g_wifi_info.f.config.debug)
+    g_wifi_info.status.debug = g_wifi_info.f.config.debug;
+    g_wifi_info.status.display_type = g_wifi_info.f.config.display_type;
+    if(g_wifi_info.status.debug)
     {
         /* Configuro UART2 */
         /* ************************************************************************** */
@@ -345,7 +348,7 @@ void __attribute__ ( ( vector(_TIMER_1_VECTOR) , interrupt(IPL7SOFT) ) ) _TIMER1
 {
     IFS0CLR = _IFS0_T1IF_MASK; //Clear T1IF
 
-    if(g_beep_flag && g_wifi_info.f.config.debug == 0)
+    if(g_beep_flag && g_wifi_info.status.debug == 0)
     {
         LATCINV = (1 << 9);
     }
