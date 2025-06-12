@@ -1,4 +1,4 @@
-# HOME ------------------------------------------------------------------------
+# SCREEN0 ---------------------------------------------------------------------
 # FONDO,[color]
 # BOTON_CUADRADO,[etiqueta],[comando:objeto],[x],[y],[w],[h],[color fondo],[color borde],[color etiqueta],[icono],[orientacion]
 # BOTON_REDONDO,[etiqueta],[comando:objeto],[x],[y],[w],[h],[color fondo],[color borde],[color etiqueta],[icono],[orientacion]
@@ -17,9 +17,5 @@
 # orientacion: 0 = Horizontal, 1 = Vertical
 # 
 FONDO,0
-BOTON_REDONDO,,SWITCH:Luz Comedor,5,5,230,250,0,768,58624,power.bmp,0
-# -----------------------------------------------------------------------------
-#BOTON_CUADRADO,,PREV,20,260,60,60,0,0,0,prev.bmp,0
 BOTON_CUADRADO,,CONFIG,20,260,60,60,0,0,0,gear.bmp,0
-#BOTON_CUADRADO,,HOME,90,260,60,60,0,0,0,home.bmp,0
 BOTON_CUADRADO,,NEXT,160,260,60,60,0,0,0,next.bmp,0

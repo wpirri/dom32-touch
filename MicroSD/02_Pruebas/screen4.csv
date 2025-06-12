@@ -1,8 +1,4 @@
-#SCREEN -----------------------------------------------------------------------
+# SCREEN4 ---------------------------------------------------------------------
 FONDO,16
-BOTON_REDONDO,Extractor,SWITCH:Extractor Cocina,5,5,230,80,0,768,57344,extract.bmp,0
-# -----------------------------------------------------------------------------
 BOTON_CUADRADO,,PREV,20,260,60,60,16,16,0,prev.bmp,0
-#BOTON_CUADRADO,,CONFIG,20,260,60,60,16,16,0,gear.bmp,0
 BOTON_CUADRADO,,HOME,90,260,60,60,16,16,0,home.bmp,0
-#BOTON_CUADRADO,,NEXT,160,260,60,60,16,16,0,next.bmp,0

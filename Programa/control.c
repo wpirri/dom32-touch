@@ -310,7 +310,7 @@ void CTRLTask( void )
 /* Se llama 10 veces por segundo - 100ms */
 void CTRLTimer( void )
 {
-    if( !strcmp(g_show_filename, 23))
+    if( !strcmp(g_show_filename, HOME_SCREEN_CSV))
     {
         g_ctrl_count_return_to_home = 0;
     }
