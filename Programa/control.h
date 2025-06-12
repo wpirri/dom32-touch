@@ -24,7 +24,7 @@ void CTRLTimer( void );
 
 void CTRLConfSys(char* in);
 
-void CTRLReset( void );
+void CTRLReset( int seg );
 void CTRLNotificarStatus( int time );
 
 void UpdateScreens( void );

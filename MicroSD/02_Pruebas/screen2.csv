@@ -1,8 +1,7 @@
 #SCREEN -----------------------------------------------------------------------
 FONDO,16
-BOTON_REDONDO,Garaje,SWITCH:Luz Garage,5,5,230,80,256,768,58624,lamp1.bmp,0
-BOTON_REDONDO,Palmera,SWITCH:Luz Palmera,5,90,230,80,256,768,58624,lamp1.bmp,0
-BOTON_REDONDO,Puerta,SWITCH:Luz Puerta Living,5,175,230,80,256,768,58624,lamp1.bmp,0
+BOTON_REDONDO,Ventana,SWITCH:Luz Ventana Living,5,5,230,80,256,768,58624,lamp1.bmp,0
+BOTON_REDONDO,Enchufe,SWITCH:Enchufe Living,5,90,230,80,256,768,58624,lamp1.bmp,0
 # -----------------------------------------------------------------------------
 BOTON_CUADRADO,,PREV,20,260,60,60,16,16,0,prev.bmp,0
 #BOTON_CUADRADO,,CONFIG,20,260,60,60,16,16,0,gear.bmp,0

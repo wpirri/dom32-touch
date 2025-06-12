@@ -648,6 +648,10 @@ void HttpProcessGeneralConfig(char* in)
     {
         g_wifi_info.f.config.display_type = atoi(s);
     }
+    if(HTTPGetFormData(in, "reset", s))
+    {
+        CTRLReset(atoi(s));
+    }
     
     CTRLConfSys(in);
     
@@ -709,7 +713,7 @@ void HTTPTask( void )
         }
         else if( !strcmp(http_buffer_input.uri, "/reset.htm"))
         {
-            CTRLReset();
+            CTRLReset(0);
             HttpReturnResult(http_buffer_response.data, "Ok", MAX_HTTP_DATA);
         }
         else
@@ -838,7 +842,7 @@ void HTTPTimer( void )
             FSremove(DOWNLOAD_TEMP_FILE_NAME);
             if( !strcmp(http_process_tmp_file_to_name, FIRMWARE_FILENAME))
             {
-                CTRLReset();
+                CTRLReset(0);
             }
             else
             {

@@ -41,10 +41,11 @@
 
 #define TOUCH_DELAY 100
 #define RETURN_TO_HOME 600
-#define HOME_SCREEN_CSV "home.csv"
-#define INIT_SCREEN_BMP "power.bmp"
+#define HOME_SCREEN_CSV    "screen0.csv"
+#define CONFIG_SCREEN_CSV  "config.csv"
 #define OFFLINE_SCREEN_CSV "offline.csv"
-#define WIFI_SCREEN_BMP "wifi.bmp"
+#define INIT_SCREEN_BMP    "power.bmp"
+#define WIFI_SCREEN_BMP    "wifi.bmp"
 
 typedef enum
 {
@@ -303,13 +304,13 @@ void CTRLTask( void )
             break;
     }
     
-    UdateScreenTask();
+    UpdateScreenTask();
 }
 
 /* Se llama 10 veces por segundo - 100ms */
 void CTRLTimer( void )
 {
-    if( !strcmp(g_show_filename, HOME_SCREEN_CSV))
+    if( !strcmp(g_show_filename, 23))
     {
         g_ctrl_count_return_to_home = 0;
     }
@@ -487,11 +488,12 @@ void CTRLConfSys(char* in)
     }
 }
 
-void CTRLReset( void )
+void CTRLReset( int seg )
 {
-    /* reset en 10 seg */
+    /* reset en 3 seg */
     LogMessage("[CTRL] RESET solicitado.");
-    g_ctrl_count_reset = 30;
+    if(seg == 0) seg = 3;
+    g_ctrl_count_reset = seg * 10;
 }
 
 void BotonPressed(const char* cmd)
@@ -514,15 +516,9 @@ void BotonPressed(const char* cmd)
         }
         g_ctrl_current_screen = 0;
     }
-    else if( !memcmp(cmd, "MENU", 4))
-    {
-        strcpy(g_show_filename, "menu.csv");
-        g_ctrl_current_screen = 0;
-        g_ctrl_stm = SHOW_PAGE;
-    }
     else if( !memcmp(cmd, "CONFIG", 6))
     {
-        strcpy(g_show_filename, "config.csv");
+        strcpy(g_show_filename, CONFIG_SCREEN_CSV);
         g_ctrl_current_screen = 0;
         if(g_wifi_info.status.host_conectado)
         {
@@ -537,10 +533,7 @@ void BotonPressed(const char* cmd)
     {
         if(g_ctrl_current_screen < 9)
         {
-            if( !memcmp(g_show_filename, "screen", 6))
-            {
-                g_ctrl_current_screen++;
-            }
+            g_ctrl_current_screen++;
             sprintf(g_show_filename, "screen%u.csv", g_ctrl_current_screen);
             g_ctrl_stm = SHOW_PAGE;
         }
@@ -562,7 +555,7 @@ void BotonPressed(const char* cmd)
     else if( !memcmp(cmd, "RESET", 5))
     {
         Clear(0);
-        CTRLReset();
+        CTRLReset(0);
     }
     else if( !memcmp(cmd, "UPGRADE", 7))
     {
@@ -740,7 +733,7 @@ void ShowScreen(const char* filename)
 
 }
 
-void UdateScreenTask( void )
+void UpdateScreenTask( void )
 {
     int rc;
     char download_filename[256];
@@ -759,7 +752,7 @@ void UdateScreenTask( void )
             break;
         case US_GET_LIST:
             /* Pido el listado de archivos */
-            sprintf(download_filename, "%s/$s/%s", DOWNLOAD_PATH, g_wifi_info.status.hw_mac, SCREEN_FILENAME);
+            sprintf(download_filename, "%s/%s/%s", DOWNLOAD_PATH, g_wifi_info.status.hw_mac, SCREEN_FILENAME);
             if(HTTPGetFile(download_filename, NULL) > 0 )
             {
                 g_us_stm++;
@@ -796,7 +789,7 @@ void UdateScreenTask( void )
             if(line_len)
             {
                 /* Me traigo el archivo */
-                sprintf(download_filename, "%s/$s/%s", DOWNLOAD_PATH, g_wifi_info.status.hw_mac, SCREEN_FILENAME);
+                sprintf(download_filename, "%s/%s/%s", DOWNLOAD_PATH, g_wifi_info.status.hw_mac, SCREEN_FILENAME);
                 if(HTTPGetFile(download_filename, NULL) > 0 )
                 {
                     g_us_stm++;
