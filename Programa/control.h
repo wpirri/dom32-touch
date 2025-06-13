@@ -27,6 +27,7 @@ void CTRLConfSys(char* in);
 void CTRLReset( int seg );
 void CTRLNotificarStatus( int time );
 
+void UpdateFirmware( void );
 void UpdateScreens( void );
 void UpdateEndDownload( void );
 

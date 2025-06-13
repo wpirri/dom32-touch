@@ -87,7 +87,9 @@ control_stm g_ctrl_stm;
 control_stm g_ctrl_stm_ant;
 unsigned int g_ctrl_stm_delay;
 unsigned int g_screen_saver_count;
+unsigned int g_update_screen_timeout_count;
 char g_show_filename[FILE_NAME_SIZE+1];
+update_screen_stm g_us_last_stm;
 update_screen_stm g_us_stm;
 unsigned int g_us_waith;
 unsigned char g_us_list_item;
@@ -121,9 +123,11 @@ void CTRLInit( void )
     g_ctrl_stm_delay = 0;
     g_ctrl_current_screen = 0;
     g_screen_saver_count = 0;
+    g_update_screen_timeout_count = 0;
     strcpy(g_show_filename, HOME_SCREEN_CSV);
     g_ctrl_count_return_to_home = 0;
     g_us_stm = US_INIT;
+    g_us_last_stm = US_ERROR;
     g_us_waith = 0;
     g_us_list_item = 0;
     g_us_list_file = NULL;
@@ -387,7 +391,7 @@ void CTRLTimer( void )
         {
             if(HTTPGetFile(DOWNLOAD_PATH"/"FIRMWARE_FILENAME, NULL) <= 0 )
             {
-                g_control_update_firmware = 10;
+                UpdateFirmware();
             }
         }
     }
@@ -403,6 +407,16 @@ void CTRLTimer( void )
         if(g_screen_saver_count >= (g_wifi_info.f.config.screen_saver_time * 10) )
         {
             g_ctrl_stm = SCREEN_SAVER;
+        }
+    }
+    
+    if(g_update_screen_timeout_count)
+    {
+        g_update_screen_timeout_count--;
+        if(g_update_screen_timeout_count == 0)
+        {
+            LogMessage("TIME-OUT procesando listado de archivos para download");
+            g_us_stm = US_ERROR;
         }
     }
     
@@ -423,8 +437,7 @@ void CTRLConfSys(char* in)
     if(HTTPGetFormData(in, "UPDATE-FW", tmp))
     {
         LogMessage("********** Actualizar Firmware **********");
-        /* Actualizar firmware en 5 seg */
-        g_control_update_firmware = 50;
+        UpdateFirmware();
     }
     
     if(HTTPGetFormData(in, "report", tmp))
@@ -560,7 +573,7 @@ void BotonPressed(const char* cmd)
     else if( !memcmp(cmd, "UPGRADE", 7))
     {
         Clear(0);
-        g_control_update_firmware = 50;
+        UpdateFirmware();
     }
     else if( !memcmp(cmd, "SWITCH:", 7))
     {
@@ -741,20 +754,30 @@ void UpdateScreenTask( void )
     unsigned char line_len;
     
     if(g_us_waith) return;
+
+    if(g_us_last_stm != g_us_stm)
+    {
+        LogMessage("[UpdateScreenTask] STM: %d -> %d", g_us_last_stm, g_us_stm);
+        g_us_last_stm = g_us_stm;
+    }
     
     switch(g_us_stm)
     {
         case US_INIT:
             if(g_us_list_file) FSfclose(g_us_list_file);
+            g_update_screen_timeout_count = 0;
             g_us_stm++;
             break;
         case US_WAITH:
             break;
         case US_GET_LIST:
             /* Pido el listado de archivos */
-            sprintf(download_filename, "%s/%s/%s", DOWNLOAD_PATH, g_wifi_info.status.hw_mac, SCREEN_FILENAME);
+            
+            sprintf(download_filename, "%s/touch/%s/%s", DOWNLOAD_PATH, g_wifi_info.status.hw_mac, SCREEN_FILENAME);
+            LogMessage("[UpdateScreenTask] Solicitando listado de archivos [%s]", download_filename);
             if(HTTPGetFile(download_filename, NULL) > 0 )
             {
+                g_update_screen_timeout_count = 600;
                 g_us_stm++;
             }
             else
@@ -765,13 +788,16 @@ void UpdateScreenTask( void )
         case US_GET_LIST_WAITH:
             break;
         case US_GET_LIST_END:
+            LogMessage("[UpdateScreenTask] Listado de archivos Ok");
             g_us_waith = 50;
             g_us_stm++;
             break;
         case US_OPEN_LIST_FILES:
+            LogMessage("[UpdateScreenTask] Analizando el listado de archivos");
             g_us_list_file = FSfopen(SCREEN_FILENAME, FS_READ);
             if(g_us_list_file)
             {
+                g_update_screen_timeout_count = 600;
                 g_us_stm++;
             }
             else
@@ -789,9 +815,11 @@ void UpdateScreenTask( void )
             if(line_len)
             {
                 /* Me traigo el archivo */
-                sprintf(download_filename, "%s/%s/%s", DOWNLOAD_PATH, g_wifi_info.status.hw_mac, SCREEN_FILENAME);
+                LogMessage("[UpdateScreenTask] Solicitando [%s] del listado de archivos", download_filename);
+                sprintf(download_filename, "%s/touch/%s/%s", DOWNLOAD_PATH, g_wifi_info.status.hw_mac, line);
                 if(HTTPGetFile(download_filename, NULL) > 0 )
                 {
+                    g_update_screen_timeout_count = 600;
                     g_us_stm++;
                 }
                 else
@@ -801,27 +829,36 @@ void UpdateScreenTask( void )
             }
             else
             {
-                g_us_waith = US_GET_LIST_FILES_END;
+                g_us_stm = US_GET_LIST_FILES_END;
             }
             break;
         case US_GET_LIST_FILES_WAITH:
             break;
         case US_GET_LIST_FILES_NEXT:
-            g_us_waith = US_GET_LIST_FILES;
+            LogMessage("[UpdateScreenTask] Archivo del listado Ok");
+            g_us_stm = US_GET_LIST_FILES;
             g_us_waith = 50;
             break;
         case US_GET_LIST_FILES_END:
+            LogMessage("[UpdateScreenTask] Final del listado de archivos");
             FSfclose(g_us_list_file);
             g_us_list_file = NULL;
             g_us_stm = US_INIT;
             break;
         case US_ERROR:
+            LogMessage("[UpdateScreenTask] ERROR. Volviendo a INIT");
             g_us_stm = US_INIT;
             break;
     }
     
     
     
+}
+
+void UpdateFirmware( void )
+{
+    /* Actualizar firmware en 5 seg */
+    g_control_update_firmware = 50;
 }
 
 void UpdateScreens( void )

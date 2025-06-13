@@ -166,7 +166,7 @@ int WifiWaitLine(const char *line1, const char *line2, const char *line3, const 
             g_wifi_read_line_buffer_index < WIFI_READ_LINE_BUFFER_LEN )
     {
         c = UART_READ();
-        g_wifi_read_line_buffer_timer = 5;
+        g_wifi_read_line_buffer_timer = 10;
 
         /* Si estoy esperando fin de linea ... */
         if(g_wifi_read_line_wait_crlf)
@@ -360,10 +360,12 @@ void WifiCheckUnsol( void )
         p = strchr(g_wifi_read_line_buffer, ':');
         if(p)
         {
-            if( g_wifi_read_line_buffer_index == WIFI_READ_LINE_BUFFER_LEN ||
+            if( g_wifi_read_line_buffer_index == WIFI_READ_LINE_BUFFER_LEN || http_buffer_output.download )
+                /*
                 ( http_buffer_output.download && 
-                  (strstr(g_wifi_read_line_buffer, "Content-Type: text/csv") ||
-                   strstr(g_wifi_read_line_buffer, "Content-Type: image/bmp"))) )
+                  (strstr(g_wifi_read_line_buffer, "Content-Type: text/") ||
+                   strstr(g_wifi_read_line_buffer, "Content-Type: image/"))) )
+                */
             {
                 /* Si el buffer está lleno debe ser un download */
                 if(HTTPInitTmpFile(g_wifi_read_line_buffer, g_wifi_read_line_buffer_index) < 0)

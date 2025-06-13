@@ -603,7 +603,7 @@ void HttpProcessWiFiFormConfig(char* in)
 
 void HttpProcessGeneralConfig(char* in)
 {
-    char s[16];
+    char s[32];
     HTTPGetFormData(in, "ap1", g_wifi_info.f.config.wifi_ap1);
     HTTPGetFormData(in, "ap1p", g_wifi_info.f.config.wifi_ap1_pass);
     HTTPGetFormData(in, "ap2", g_wifi_info.f.config.wifi_ap2);
@@ -651,6 +651,17 @@ void HttpProcessGeneralConfig(char* in)
     if(HTTPGetFormData(in, "reset", s))
     {
         CTRLReset(atoi(s));
+    }
+    if(HTTPGetFormData(in, "update", s))
+    {
+        if( !strcmp(s, "screen"))
+        {
+            UpdateScreens();
+        }
+        else if( !strcmp(s, "firmware"))
+        {
+            UpdateFirmware();
+        }
     }
     
     CTRLConfSys(in);
