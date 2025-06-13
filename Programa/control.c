@@ -59,6 +59,9 @@ typedef enum
     SCREEN_SAVER_LOOP,
     OFFLINE,
     OFFLINE_LOOP,
+    DISPLAY_DISABLE,
+    DISPLAY_DISABLE_LOOP,
+    DISPLAY_ENABLE,
     ERROR
 } control_stm;
 
@@ -276,11 +279,11 @@ void CTRLTask( void )
             }
             else if(g_wifi_info.status.host_conectado == 0)
             {
-                strcpy(g_show_filename, OFFLINE_SCREEN_CSV);
                 g_ctrl_stm = OFFLINE;
             }
             break;
         case OFFLINE:
+            strcpy(g_show_filename, OFFLINE_SCREEN_CSV);
             ShowScreen(g_show_filename);
             g_wifi_info.status.brillo = g_wifi_info.f.config.brillo_med;
             g_ctrl_stm++;
@@ -300,6 +303,17 @@ void CTRLTask( void )
             {
                 TouchTask();
             }
+            break;
+        case DISPLAY_DISABLE:
+            strcpy(g_show_filename, OFFLINE_SCREEN_CSV);
+            ShowScreen(g_show_filename);
+            g_wifi_info.status.brillo = g_wifi_info.f.config.brillo_med;
+            g_ctrl_stm++;
+            break;
+        case DISPLAY_DISABLE_LOOP:
+            break;
+        case DISPLAY_ENABLE:
+            g_ctrl_stm = OFFLINE;
             break;
         case ERROR:
         default:
@@ -764,6 +778,7 @@ void UpdateScreenTask( void )
     switch(g_us_stm)
     {
         case US_INIT:
+            EnableDisplay();
             if(g_us_list_file) FSfclose(g_us_list_file);
             g_update_screen_timeout_count = 0;
             g_us_stm++;
@@ -771,8 +786,8 @@ void UpdateScreenTask( void )
         case US_WAITH:
             break;
         case US_GET_LIST:
+            DisableDisplay();
             /* Pido el listado de archivos */
-            
             sprintf(download_filename, "%s/touch/%s/%s", DOWNLOAD_PATH, g_wifi_info.status.hw_mac, SCREEN_FILENAME);
             LogMessage("[UpdateScreenTask] Solicitando listado de archivos [%s]", download_filename);
             if(HTTPGetFile(download_filename, NULL) > 0 )
@@ -870,4 +885,17 @@ void UpdateEndDownload( void )
 {
     if(g_us_stm == US_GET_LIST_WAITH ||
        g_us_stm == US_GET_LIST_FILES_WAITH ) g_us_stm++;
+}
+
+void DisableDisplay()
+{
+    g_ctrl_stm = DISPLAY_DISABLE;
+}
+
+void EnableDisplay()
+{
+    if(g_ctrl_stm == DISPLAY_DISABLE_LOOP)
+    {
+        g_ctrl_stm = DISPLAY_ENABLE;
+    }
 }

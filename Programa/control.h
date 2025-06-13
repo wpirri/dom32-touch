@@ -31,4 +31,7 @@ void UpdateFirmware( void );
 void UpdateScreens( void );
 void UpdateEndDownload( void );
 
+void DisableDisplay();
+void EnableDisplay();
+
 #endif /* _CONTROL_H_ */
