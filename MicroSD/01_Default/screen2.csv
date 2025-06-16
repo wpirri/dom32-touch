@@ -1,9 +1,0 @@
-#SCREEN -----------------------------------------------------------------------
-FONDO,16
-BOTON5,Puerta,SWITCH:Puerta Entrada,5,5,230,80,256,768,58624,key.bmp
-BOTON5,Extractor,SWITCH:Extractor Cocina,5,90,230,80,256,768,58624
-#BOTON5,xxxx,SWITCH:XXXX,5,175,230,80,14726,2016,65535,lamp1.bmp
-
-BOTON0,,PREV,20,260,60,60,16,16,0,prev.bmp
-BOTON1,,HOME,90,260,60,60,16,16,0,home.bmp
-#BOTON0,,NEXT,160,260,60,60,16,16,0,next.bmp

@@ -6,26 +6,22 @@
 # 
 # <-- Línea en blanco y comenzada con # se ignora
 #
-# Línea que inicia con BOTON1 contiene parámetros de creación de un botón con texto y con o sin icono
-# Línea que inicia con BOTON2 contiene parámetros de creación de un botón con icono
+# FONDO,[color]
+# BOTON_CUADRADO,[etiqueta],[comando:objeto],[x],[y],[w],[h],[color fondo],[color borde],[color etiqueta],[icono],[orientacion]
+# BOTON_REDONDO,[etiqueta],[comando:objeto],[x],[y],[w],[h],[color fondo],[color borde],[color etiqueta],[icono],[orientacion]
 #
-# BOTON1,nombre,comando,x,y,ancho,alto,color fondo,color borde,color nombre,icono
-#    nombre - Texto que aparece en el frente del botón
-#    comando - Uno de los siguientes comandos locales o comando a enviar a la central
-#        HOME
-#        NEXT
-#        PREV
-#        MENU - 
-#        WIFI
-#        RESET
-#        UPGRADE
-#    x,y - coordenadas de la esquina superior izquierda del botón
-#    ancho
-#    alto
-#    color fondo - ver Colores
-#    color borde - ver Colores
-#    color nombre - ver Colores
-#    icono - nombre de un archivo bmp que debe estar en la MicroSD
+# etiqueta: Texto que aparece en el botón (opcopnal)
+# comando: SWITCH, PULSE, CONFIG, HOME, NEXT, PREV
+# objeto:
+# x: posición X de la esquina superior derecha del botón
+# y: posición Y de la esquina superior derecha del botón
+# w: Ancho del botón
+# h: altura del botón
+# color fondo: 0 a 65535
+# color borde: 0 a 65535
+# color etiqueta: 0 a 65535
+# icono: archivo BMP de 48x48 pixel (opcopnal)
+# orientacion: 0 = Horizontal, 1 = Vertical
 #
 # Colores
 # BLACK        0

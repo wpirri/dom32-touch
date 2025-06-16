@@ -1,7 +1,0 @@
-# CONFIG ----------------------------------------------------------------------
-FONDO,16
-BOTON_CUADRADO,WiFi,WIFI,5,5,230,60,0,31,65535,wifi1.bmp,0
-BOTON_CUADRADO,Upgrade,UPGRADE,5,75,230,60,31,30735,65535,download.bmp,0
-BOTON_CUADRADO,Restart,RESET,5,145,230,60,3020,63488,65535,restart.bmp,0
-# -----------------------------------------------------------------------------
-BOTON_CUADRADO,,HOME,90,260,60,60,16,16,0,home.bmp,0
