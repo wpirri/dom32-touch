@@ -219,14 +219,21 @@ void CTRLTask( void )
         case SHOW_PAGE_LOOP:
             if(g_wifi_info.status.wifi_mode == 1)
             {
-                if(g_wifi_info.status.host_conectado)
+                if( !strcmp(g_show_filename, CONFIG_SCREEN_CSV))
                 {
                     TouchTask();
                 }
                 else
                 {
-                    strcpy(g_show_filename, OFFLINE_SCREEN_CSV);
-                    g_ctrl_stm = OFFLINE;
+                    if(g_wifi_info.status.host_conectado)
+                    {
+                        TouchTask();
+                    }
+                    else
+                    {
+                        strcpy(g_show_filename, OFFLINE_SCREEN_CSV);
+                        g_ctrl_stm = OFFLINE;
+                    }
                 }
             }
             else if(g_wifi_info.status.wifi_mode == 3)
@@ -547,14 +554,7 @@ void BotonPressed(const char* cmd)
     {
         strcpy(g_show_filename, CONFIG_SCREEN_CSV);
         g_ctrl_current_screen = 0;
-        if(g_wifi_info.status.host_conectado)
-        {
-            g_ctrl_stm = SHOW_PAGE;
-        }
-        else
-        {
-            g_ctrl_stm = OFFLINE;
-        }
+        g_ctrl_stm = SHOW_PAGE;
     }
     else if( !memcmp(cmd, "NEXT", 4))
     {
