@@ -1,7 +1,0 @@
-#SCREEN -----------------------------------------------------------------------
-FONDO,16
-
-BOTON5,Extractor,SWITCH:Extractor Cocina,5,5,230,80,0,768,57344,extract.bmp
-
-BOTON0,,PREV,20,260,60,60,16,16,0,prev.bmp
-BOTON1,,HOME,90,260,60,60,16,16,0,home.bmp
