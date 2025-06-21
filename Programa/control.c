@@ -826,20 +826,32 @@ void UpdateScreenTask( void )
             do {
                 rc = FSfread(&line[line_len++], 1, 1, g_us_list_file);
             } while(line[line_len-1] != 0x0d && line[line_len-1] != 0x0a && line_len < 255 && rc == 1);
-            line[--line_len] = 0;
-            if(line_len)
+            
+            if(rc == 1)
             {
-                /* Me traigo el archivo */
-                LogMessage("[UpdateScreenTask] Solicitando [%s] del listado de archivos", download_filename);
-                sprintf(download_filename, "%s/touch/%s/%s", DOWNLOAD_PATH, g_wifi_info.status.hw_mac, line);
-                if(HTTPGetFile(download_filename, NULL) > 0 )
+                if(line[line_len-1] == 0x0d || line[line_len-1] == 0x0a)
                 {
-                    g_update_screen_timeout_count = 600;
-                    g_us_stm++;
+                    line_len--;
                 }
-                else
+
+                if(line_len > 0)
                 {
-                    g_us_waith = 600;
+                    line[line_len] = 0;
+                    if(line[0] != '#')
+                    {
+                        /* Me traigo el archivo */
+                        LogMessage("[UpdateScreenTask] Solicitando [%s] del listado de archivos", download_filename);
+                        sprintf(download_filename, "%s/touch/%s/%s", DOWNLOAD_PATH, g_wifi_info.status.hw_mac, line);
+                        if(HTTPGetFile(download_filename, NULL) > 0 )
+                        {
+                            g_update_screen_timeout_count = 600;
+                            g_us_stm++;
+                        }
+                        else
+                        {
+                            g_us_waith = 600;
+                        }
+                    }
                 }
             }
             else
