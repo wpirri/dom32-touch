@@ -41,6 +41,9 @@
 
 #define TOUCH_DELAY 100
 #define RETURN_TO_HOME 600
+#define BOTON_BORDE 6
+#define BOTON_REDONDO 15
+#define BOTON_CUADRADO 0
 #define HOME_SCREEN_CSV    "screen0.csv"
 #define CONFIG_SCREEN_CSV  "config.csv"
 #define OFFLINE_SCREEN_CSV "offline.csv"
@@ -711,7 +714,7 @@ void ShowScreen(const char* filename)
                     BotonAdd(btn_text,
                             btn_cmd,
                             btn_x,btn_y,btn_w,btn_h, 
-                            3, 15,
+                            BOTON_BORDE, BOTON_REDONDO,
                             btn_color_f, btn_color_b, btn_color_n,
                             ((btn_icono[0])?btn_icono: NULL), orientacion);
                 }
@@ -741,7 +744,7 @@ void ShowScreen(const char* filename)
                     BotonAdd(btn_text,
                             btn_cmd,
                             btn_x,btn_y,btn_w,btn_h, 
-                            3, 0,
+                            BOTON_BORDE, BOTON_CUADRADO,
                             btn_color_f, btn_color_b, btn_color_n,
                             ((btn_icono[0])?btn_icono: NULL), orientacion);
                 }
