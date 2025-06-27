@@ -1,53 +1,20 @@
+/***************************************************************************
+    Copyright (C) 2025   Walter Pirri
 
-/**
-  RTCC Generated Driver API Header File
+    This library is free software; you can redistribute it and/or
+    modify it under the terms of the GNU Lesser General Public
+    License as published by the Free Software Foundation; either
+    version 2.1 of the License, or (at your option) any later version.
 
-  @Company:
-    Microchip Technology Inc.
+    This library is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+    Lesser General Public License for more details.
 
-  @File Name:
-    rtcc.c
-
-  @Summary:
-    This is the generated header file for the RTCC driver using PIC24 / dsPIC33 / PIC32MM MCUs
-
-  @Description:
-    This header file provides APIs for driver for RTCC.
-    Generation Information :
-        Product Revision  :  PIC24 / dsPIC33 / PIC32MM MCUs - 1.170.0
-        Device            :  PIC32MM0256GPM028
-    The generated drivers are tested against the following:
-        Compiler          :  XC32 v2.50
-        MPLAB 	          :  MPLAB X v5.45
-*/
-
-/*
-    (c) 2020 Microchip Technology Inc. and its subsidiaries. You may use this
-    software and any derivatives exclusively with Microchip products.
-
-    THIS SOFTWARE IS SUPPLIED BY MICROCHIP "AS IS". NO WARRANTIES, WHETHER
-    EXPRESS, IMPLIED OR STATUTORY, APPLY TO THIS SOFTWARE, INCLUDING ANY IMPLIED
-    WARRANTIES OF NON-INFRINGEMENT, MERCHANTABILITY, AND FITNESS FOR A
-    PARTICULAR PURPOSE, OR ITS INTERACTION WITH MICROCHIP PRODUCTS, COMBINATION
-    WITH ANY OTHER PRODUCTS, OR USE IN ANY APPLICATION.
-
-    IN NO EVENT WILL MICROCHIP BE LIABLE FOR ANY INDIRECT, SPECIAL, PUNITIVE,
-    INCIDENTAL OR CONSEQUENTIAL LOSS, DAMAGE, COST OR EXPENSE OF ANY KIND
-    WHATSOEVER RELATED TO THE SOFTWARE, HOWEVER CAUSED, EVEN IF MICROCHIP HAS
-    BEEN ADVISED OF THE POSSIBILITY OR THE DAMAGES ARE FORESEEABLE. TO THE
-    FULLEST EXTENT ALLOWED BY LAW, MICROCHIP'S TOTAL LIABILITY ON ALL CLAIMS IN
-    ANY WAY RELATED TO THIS SOFTWARE WILL NOT EXCEED THE AMOUNT OF FEES, IF ANY,
-    THAT YOU HAVE PAID DIRECTLY TO MICROCHIP FOR THIS SOFTWARE.
-
-    MICROCHIP PROVIDES THIS SOFTWARE CONDITIONALLY UPON YOUR ACCEPTANCE OF THESE
-    TERMS.
-*/
-
-
-/**
- Section: Included Files
-*/
-
+    You should have received a copy of the GNU Lesser General Public
+    License along with this library; if not, write to the Free Software
+    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ ***************************************************************************/
 #include "rtcc.h"
 
 #include <xc.h>
@@ -55,19 +22,10 @@
 #include "config.h"
 #include "log.h"
 
-/**
-  Section: Static function
-*/
-
-
 static bool rtccTimeInitialized;
 static bool RTCCTimeInitialized(void);
 static uint8_t ConvertHexToBCD(uint8_t hexvalue);
 static uint8_t ConvertBCDToHex(uint8_t bcdvalue);
-
-/**
-   Section: Driver Interface Function Definitions
-*/
 
 int WeekDay(int year, int month, int day)
 {
@@ -95,53 +53,27 @@ void RTCC_Initialize(void)
     SYSKEY = 0xAA996655; //write Key1 to SYSKEY
     SYSKEY = 0x556699AA; //write Key2 to SYSKEY
 
+    RTCCON1 = 0x00000000;
+    RTCCON2 = 0x00000000;
+
     RTCCON1CLR = (1 << _RTCCON1_WRLOCK_POSITION);
     RTCCON1CLR = (1 << _RTCCON1_ON_POSITION);
 
-    if(!RTCCTimeInitialized())
+    if(RCONbits.POR || RCONbits.BOR)
     {
-        // set 2024-01-01 00-00-28
-        RTCDATE = 0x24010101; // Year/Month/Date/Wday
-        RTCTIME = 0x2800; //  hours/minutes/seconds
+        // set 2024/01/01 00:00:00
+        RTCDATE = 0x24010101; //  Year/Month/Date/Wday
+        RTCTIME = 0x000000;   //  hours/minutes/seconds
     }
-    // ON enabled; OUTSEL Alarm Event; WRLOCK disabled; AMASK Every Half Second; ALMRPT 0; RTCOE disabled; CHIME disabled; ALRMEN disabled; 
-    RTCCON1 = 0x8000;
+
     // DIV 15999; CLKSEL LPRC; FDIV 0; 
     RTCCON2 = 0x3E7F0001;
-    // Enable RTCC 
     RTCCON1SET = (1 << _RTCCON1_ON_POSITION);
     RTCCON1SET = (1 << _RTCCON1_WRLOCK_POSITION);
 
     SYSKEY = 0x00000000; //write invalid key to force lock
     
     g_rtcc_diferencia_anterior = 0;
-}
-
-void RTCC_AdjustClk(int diferencia)
-{
-    if(diferencia < 0)
-    {
-        LogMessage("[RTCC_AdjustClk] Diferencia %li (adelantar).", diferencia);
-        if(g_wifi_info.f.config.rtcc_clk_div_adj > 450000) g_wifi_info.f.config.rtcc_clk_div_adj--;
-        LogMessage("[RTCC_AdjustClk] Ajuste fino de reloj: %d.", g_wifi_info.f.config.rtcc_clk_div_adj);
-    }
-    else if(diferencia > 0)
-    {
-        LogMessage("[RTCC_AdjustClk] Diferencia %li (atrasar).", diferencia);
-        if(g_wifi_info.f.config.rtcc_clk_div_adj < 510000) g_wifi_info.f.config.rtcc_clk_div_adj++;
-        LogMessage("[RTCC_AdjustClk] Ajuste fino de reloj: %d.", g_wifi_info.f.config.rtcc_clk_div_adj);
-    }
-    else
-    {
-        LogMessage("[RTCC_AdjustClk] Ajuste fino de clock Ok.");
-        /*
-        if(g_rtcc_diferencia_anterior != 0)
-        {
-            g_wifi_info.status.save_config = 10;
-        }
-        */
-    }
-    g_rtcc_diferencia_anterior = diferencia;
 }
 
 bool RTCC_TimeGet(struct tm *currentTime)
@@ -152,8 +84,8 @@ bool RTCC_TimeGet(struct tm *currentTime)
     }
      
     register_value = RTCDATE;
-    currentTime->tm_year = ConvertBCDToHex((register_value & 0xFF000000) >> 24);
-    currentTime->tm_mon = ConvertBCDToHex((register_value & 0xFF0000) >> 16);
+    currentTime->tm_year = (ConvertBCDToHex((register_value & 0xFF000000) >> 24))+100;
+    currentTime->tm_mon = (ConvertBCDToHex((register_value & 0xFF0000) >> 16)-1);
     currentTime->tm_mday = ConvertBCDToHex((register_value & 0xFF00) >> 8);
     currentTime->tm_wday = ConvertBCDToHex(register_value & 0xF);
     
@@ -168,57 +100,40 @@ bool RTCC_TimeGet(struct tm *currentTime)
 void RTCC_TimeSet(struct tm *initialTime)
 {
     struct tm oldTime;
-    int diferencia;
 
     RTCC_TimeGet(&oldTime);
-    diferencia = (oldTime.tm_hour*3600 + oldTime.tm_min*60 + oldTime.tm_sec) - 
-            (initialTime->tm_hour*3600 + initialTime->tm_min*60 + initialTime->tm_sec);
-    RTCC_AdjustClk(diferencia);
     
-    if(diferencia != 0)
-    {
-        LogMessage("[RTCC_TimeSet] Cambio de hora [%i/%02i/%02i %02i:%02i:%02i] -> [%i/%02i/%02i %02i:%02i:%02i].",
-                oldTime.tm_year+1900, oldTime.tm_mon, oldTime.tm_mday, oldTime.tm_hour,
-                oldTime.tm_min, oldTime.tm_sec,initialTime->tm_year+1900, initialTime->tm_mon,
-                initialTime->tm_mday, initialTime->tm_hour, initialTime->tm_min, initialTime->tm_sec);
-        
-        initialTime->tm_wday = WeekDay(initialTime->tm_year, 
-                                        initialTime->tm_mon, 
-                                        initialTime->tm_mday);
+    LogMessage("[RTCC_TimeSet] Cambio de hora [%i/%02i/%02i %02i:%02i:%02i] -> [%i/%02i/%02i %02i:%02i:%02i].",
+            oldTime.tm_year+1900, oldTime.tm_mon+1, oldTime.tm_mday, oldTime.tm_hour,
+            oldTime.tm_min, oldTime.tm_sec,initialTime->tm_year+1900, initialTime->tm_mon+1,
+            initialTime->tm_mday, initialTime->tm_hour, initialTime->tm_min, initialTime->tm_sec);
 
-        // System Reg Unlock
-        SYSKEY = 0x00000000; 
-        SYSKEY = 0xAA996655; //write Key1 to SYSKEY
-        SYSKEY = 0x556699AA; //write Key2 to SYSKEY
+    initialTime->tm_wday = WeekDay(initialTime->tm_year+1900, 
+                                    initialTime->tm_mon+1, 
+                                    initialTime->tm_mday);
 
-        RTCCON1CLR = (1 << _RTCCON1_WRLOCK_POSITION);
-        RTCCON1CLR = (1 << _RTCCON1_ON_POSITION);
+    // System Reg Unlock
+    SYSKEY = 0x00000000; 
+    SYSKEY = 0xAA996655; //write Key1 to SYSKEY
+    SYSKEY = 0x556699AA; //write Key2 to SYSKEY
 
-        // set RTCC initial time
-        RTCDATE = (ConvertHexToBCD(initialTime->tm_year) << 24) | 
-                    (ConvertHexToBCD(initialTime->tm_mon) << 16 ) | 
-                    (ConvertHexToBCD(initialTime->tm_mday) << 8) | 
-                    ConvertHexToBCD(initialTime->tm_wday) ; // YEAR/MONTH-1/DAY-1/WEEKDAY
-        RTCTIME = (ConvertHexToBCD(initialTime->tm_hour) << 24) | 
-                    (ConvertHexToBCD(initialTime->tm_min) << 16 ) | 
-                    (ConvertHexToBCD(initialTime->tm_sec) << 8) ; // HOURS/MINUTES/SECOND
+    RTCCON1CLR = (1 << _RTCCON1_WRLOCK_POSITION);
+    RTCCON1CLR = (1 << _RTCCON1_ON_POSITION);
 
-        RTCCON2bits.DIV = (g_wifi_info.f.config.rtcc_clk_div_adj / 30);
-        RTCCON2bits.FDIV = (g_wifi_info.f.config.rtcc_clk_div_adj % 30);
+    // set RTCC initial time
+    RTCDATE = (ConvertHexToBCD(initialTime->tm_year-100) << 24) | 
+                (ConvertHexToBCD(initialTime->tm_mon+1) << 16 ) | 
+                (ConvertHexToBCD(initialTime->tm_mday) << 8) | 
+                ConvertHexToBCD(initialTime->tm_wday) ; // YEAR/MONTH/DAY/WEEKDAY
+    RTCTIME = (ConvertHexToBCD(initialTime->tm_hour) << 24) | 
+                (ConvertHexToBCD(initialTime->tm_min) << 16 ) | 
+                (ConvertHexToBCD(initialTime->tm_sec) << 8) ; // HOURS/MINUTES/SECOND
 
-        // Enable RTCC 
-        RTCCON1SET = (1 << _RTCCON1_ON_POSITION);
+    RTCCON1SET = (1 << _RTCCON1_ON_POSITION);
+    RTCCON1SET = (1 << _RTCCON1_WRLOCK_POSITION);
 
-         // SET WRLOCK
-        RTCCON1SET = (1 << _RTCCON1_WRLOCK_POSITION);
-
-        // System Reg Lock
-        SYSKEY = 0x00000000; 
-    }
-    else
-    {
-        LogMessage("[RTCC_TimeSet] No se cambia el horario");
-    }
+    // System Reg Lock
+    SYSKEY = 0x00000000; 
 }
 
 bool RTCC_BCDTimeGet(bcdTime_t *currentTime)
@@ -248,8 +163,6 @@ void RTCC_BCDTimeSet(bcdTime_t *initialTime)
     SYSKEY = 0x00000000; 
     SYSKEY = 0xAA996655; //write Key1 to SYSKEY
     SYSKEY = 0x556699AA; //write Key2 to SYSKEY
-
-    
     
     RTCCON1CLR = (1 << _RTCCON1_WRLOCK_POSITION);
     RTCCON1CLR = (1 << _RTCCON1_ON_POSITION);
@@ -268,20 +181,6 @@ void RTCC_BCDTimeSet(bcdTime_t *initialTime)
     SYSKEY = 0x00000000; 
 }
 
-/**
- This function implements RTCC_TimeReset.This function is used to
- used by application to reset the RTCC value and reinitialize RTCC value.
-*/
-void RTCC_TimeReset(bool reset)
-{
-    rtccTimeInitialized = reset;
-}
-
-static bool RTCCTimeInitialized(void)
-{
-    return(rtccTimeInitialized);
-}
-
 static uint8_t ConvertHexToBCD(uint8_t hexvalue)
 {
     uint8_t bcdvalue;
@@ -295,32 +194,4 @@ static uint8_t ConvertBCDToHex(uint8_t bcdvalue)
     uint8_t hexvalue;
     hexvalue = (((bcdvalue & 0xF0) >> 4)* 10) + (bcdvalue & 0x0F);
     return hexvalue;
-}
-
-void __attribute__ ((weak)) RTCC_CallBack(void)
-{
-    // Add your custom callback code here
-}
-
-/* Function:
-    bool RTCC_Task(void)
-
-  Summary:
-    Status function which returns the RTCC interrupt flag status
-
-  Description:
-    This is the status function for the RTCC peripheral. 
-*/
-bool RTCC_Task(void)
-{
-    bool status;
-    status = IFS1bits.RTCCIF;
-    if( IFS1bits.RTCCIF)
-    {
-		// RTCC callback function 
-		RTCC_CallBack();
-        
-		IFS1CLR= 1 << _IFS1_RTCCIF_POSITION;
-    }
-    return status;
 }

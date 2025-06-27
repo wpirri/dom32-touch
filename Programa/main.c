@@ -253,7 +253,17 @@ int main(void)
 
     strncpy(g_wifi_info.status.up_fw, __DATE__ " " __TIME__, 
             sizeof(g_wifi_info.status.up_fw)-1);
-    
+
+    /* Reset POR y BOR 
+       Se hace a lo último así las distintas inicializaciones pueden verificar
+       si vengo de un Power On */
+    if(RCONbits.POR || RCONbits.BOR)
+    {
+        LogMessage("[main] Power Up");
+    }
+    RCONbits.POR = 0;
+    RCONbits.BOR = 0;
+
     LogMessage("[main] Init Ok");
     
     while(1)

@@ -24,7 +24,6 @@
 /* Incrementa mensaje de logueo del modulo wifi */
 //#define DEBUG_WIFI
 /* Vuelca el log a tarjeta SD */
-//#define LOG_TO_FILE
 //#define DEBUG_TOUCH
 
 #define SLEEP_TIMER 30
