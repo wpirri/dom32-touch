@@ -1,0 +1,45 @@
+Reading PNG file pixels in C on embedded systems requires a lightweight approach due to resource constraints. Directly parsing the PNG format is complex, so using a dedicated library is recommended.
+Recommended Approach: LodePNG
+LodePNG is a single-file, header-only C/C++ library designed for simplicity and small footprint, making it suitable for embedded systems.
+Steps to read PNG pixels using LodePNG:
+Include LodePNG: Download lodepng.h and lodepng.c and include them in your project.
+
+    #include "lodepng.h"
+
+Decode the PNG: Use the lodepng_decode32 or lodepng_decode24 function to decode the PNG data into a raw pixel buffer. lodepng_decode32 decodes to RGBA (32-bit per pixel), while lodepng_decode24 decodes to RGB (24-bit per pixel), which might be more efficient if you don't need alpha.
+
+    unsigned char* image_data = 0;
+    unsigned width, height;
+    unsigned error = lodepng_decode32_file(&image_data, &width, &height, "image.png");
+
+    if (error) {
+        // Handle error
+        printf("LodePNG error %u: %s\n", error, lodepng_error_text(error));
+        return;
+    }
+    
+Access Pixel Data: The image_data pointer now points to a 1D array containing the pixel data in row-major order. For RGBA, each pixel occupies 4 bytes (Red, Green, Blue, Alpha). For RGB, each pixel occupies 3 bytes.
+
+    // Example: Accessing a pixel at (x, y)
+    int x = 10;
+    int y = 20;
+
+    // For RGBA (32-bit per pixel)
+    unsigned char r = image_data[y * width * 4 + x * 4 + 0]; // Red
+    unsigned char g = image_data[y * width * 4 + x * 4 + 1]; // Green
+    unsigned char b = image_data[y * width * 4 + x * 4 + 2]; // Blue
+    unsigned char a = image_data[y * width * 4 + x * 4 + 3]; // Alpha
+
+    // For RGB (24-bit per pixel)
+    // unsigned char r = image_data[y * width * 3 + x * 3 + 0]; // Red
+    // unsigned char g = image_data[y * width * 3 + x * 3 + 1]; // Green
+    // unsigned char b = image_data[y * width * 3 + x * 3 + 2]; // Blue
+    
+Free Memory: After processing, release the allocated memory.
+
+    free(image_data);
+    
+https://lodev.org/lodepng/
+
+https://github.com/lvandeve/lodepng
+
