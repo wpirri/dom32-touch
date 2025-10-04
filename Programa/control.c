@@ -100,11 +100,11 @@ update_screen_stm g_us_stm;
 unsigned int g_us_waith;
 unsigned char g_us_list_item;
 FSFILE* g_us_list_file;
-char g_str_last_time[10];
 
 void ShowScreen(const char* filename);
 void TouchTask( void );
 void BotonPressed(const char* name);
+void UpdateScreenTask( void );
 
 void CTRLNotificarStatus( int time )
 {
@@ -138,8 +138,6 @@ void CTRLInit( void )
     g_us_waith = 0;
     g_us_list_item = 0;
     g_us_list_file = NULL;
-    g_str_last_time[0] = 0;
-
 /* Primer notificacion */
     CTRLNotificarStatus(100);
 }
@@ -147,8 +145,6 @@ void CTRLInit( void )
 void CTRLTask( void )
 {
     static int x = 0;
-    struct tm stm;
-    char str_time[10];
     
     if(g_ctrl_stm_delay) return;
     
@@ -295,18 +291,6 @@ void CTRLTask( void )
             else if(g_wifi_info.status.host_conectado == 0)
             {
                 g_ctrl_stm = OFFLINE;
-            }
-            else
-            {
-                if(RTCC_TimeGet(&stm))
-                {
-                    sprintf(str_time, "  %02i:%02i  ", stm.tm_hour, stm.tm_min);
-                    if( strcmp(str_time, g_str_last_time))
-                    {
-                        strcpy(g_str_last_time, str_time);
-                        DrawText(str_time, CENTER, DISPLAY_Y_SIZE/4*3, 4, WHITE, BLACK);
-                    }
-                }
             }
             break;
         case OFFLINE:

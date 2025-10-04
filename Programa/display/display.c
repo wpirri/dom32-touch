@@ -557,6 +557,7 @@ void DisplayWriteData(unsigned char data)
         while( !SPIRBF );		// wait receive data available
         ch = (SPIxBUF);
         SET_DI_WR;
+        ch = ch;
     }
 }
 
@@ -582,6 +583,7 @@ void DisplayWriteCommand(unsigned char cmd)
         while( !SPIRBF );		// wait receive data available
         ch = (SPIxBUF);
         SET_DI_WR;
+        ch = ch;
     }
 
     SET_DI_RS;
@@ -617,6 +619,7 @@ void DisplayWriteLongCommand(unsigned int cmd)
         while( !SPIRBF );		// wait receive data available
         ch = (SPIxBUF);
         SET_DI_WR;
+        ch = ch;
     }
 
     SET_DI_RS;

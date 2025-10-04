@@ -148,8 +148,8 @@ void ConfigInit(void)
     RNMICON = 0x0;
     // SBOREN disabled; VREGS disabled; RETEN disabled; 
     PWRCON = 0x0;
-    // WDTO disabled; EXTR disabled; POR sin cambio; SLEEP disabled; BOR sin cambio; PORIO disabled; IDLE disabled; PORCORE disabled; BCFGERR disabled; CMR disabled; BCFGFAIL disabled; SWR disabled; 
-    RCON &= 0x00000003;
+    // WDTO disabled; EXTR disabled; POR disabled; SLEEP disabled; BOR disabled; PORIO disabled; IDLE disabled; PORCORE disabled; BCFGERR disabled; CMR disabled; BCFGFAIL disabled; SWR disabled; 
+    RCON = 0x0;
     // ON disabled; DIVSWEN disabled; RSLP disabled; ROSEL SYSCLK; OE disabled; SIDL disabled; RODIV 0; 
     REFO1CON = 0x0;
     // ROTRIM 0; 
@@ -159,6 +159,7 @@ void ConfigInit(void)
     // System Reg Lock
     SYSKEY = 0x00000000; 
 
+    RCON = 0x00000000;
     /* ************************************************************************** */
     /* Core Timer */
     // Set the count value
