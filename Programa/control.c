@@ -574,7 +574,7 @@ void BotonPressed(const char* cmd)
         if(g_ctrl_current_screen > 0)
         {
             g_ctrl_current_screen--;
-            sprintf(g_show_filename, "screen%u.csv", g_ctrl_current_screen);
+            snprintf(g_show_filename, FILE_NAME_SIZE, "screen%u.csv", g_ctrl_current_screen);
             g_ctrl_stm = SHOW_PAGE;
         }
     }
@@ -845,7 +845,7 @@ void UpdateScreenTask( void )
                     {
                         /* Me traigo el archivo */
                         LogMessage("[UpdateScreenTask] Solicitando [%s] del listado de archivos", download_filename);
-                        sprintf(download_filename, "%s/touch/%s/%s", DOWNLOAD_PATH, g_wifi_info.status.hw_mac, line);
+                        snprintf(download_filename, sizeof(download_filename)-1, "%s/touch/%s/%s", DOWNLOAD_PATH, g_wifi_info.status.hw_mac, line);
                         if(HTTPGetFile(download_filename, NULL) > 0 )
                         {
                             g_update_screen_timeout_count = 600;
