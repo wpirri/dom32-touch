@@ -24,7 +24,7 @@ CLEAN_SUBPROJECTS=${CLEAN_SUBPROJECTS_${SUBPROJECTS}}
 
 
 # Project Name
-PROJECTNAME=Dom32P-Touch
+PROJECTNAME=Programa-2
 
 # Active Configuration
 DEFAULTCONF=default

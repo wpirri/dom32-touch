@@ -27,6 +27,7 @@
 #include "defines.h"
 #include "log.h"
 #include "sd/fsio.h"
+#include "config.h"
 #include "rtcc.h"
 #include "display/display.h"
 #include "display/touch.h"
@@ -61,6 +62,7 @@ unsigned int progress_bar_x = 0;
 unsigned int control_stm_delay = 0;
 unsigned int control_screen_saver_count = 0;
 char control_screen_filename[FILE_NAME_SIZE+1];
+unsigned int control_screen_number;
 
 #define MAX_LINE_LEN 255
 
@@ -192,6 +194,7 @@ void ShowScreen(const char* filename)
 void ControlInit( bool sd_ok )
 {
     status_sd_ok = sd_ok;
+    control_screen_number = 0;
     
 }
 
@@ -229,17 +232,13 @@ void ControlTask( void )
             break;
         case WAIT_WIFI:
             /* Linea de progreso falsa */
-            DrawLineV(DISPLAY_X_SIZE/10, DISPLAY_Y_SIZE-5, 5, BLUE);
+            //DrawLineV(DISPLAY_X_SIZE/10, DISPLAY_Y_SIZE-5, 5, BLUE);
             if(WiFiStart() != 0) 
             {
                 Beeps(10);
                 control_stm = ERROR;
             }
-            DrawLineV(DISPLAY_X_SIZE/9, DISPLAY_Y_SIZE-5, 5, BLUE);
-            
-
-
-
+            strcpy(control_screen_filename, OFFLINE_SCREEN_CSV);
             control_stm++;
             break;
         case SHOW_PAGE:
@@ -271,6 +270,11 @@ void ControlTask( void )
             {
                 control_stm = WIFI_CONFIG;
             }
+            else
+            {
+                strcpy(control_screen_filename, OFFLINE_SCREEN_CSV);
+                control_stm = OFFLINE;
+            }
             break;
         case WIFI_CONFIG:
             break;
@@ -279,8 +283,26 @@ void ControlTask( void )
         case SCREEN_SAVER_LOOP:
             break;
         case OFFLINE:
+            strcpy(control_screen_filename, OFFLINE_SCREEN_CSV);
+            ShowScreen(control_screen_filename);
+            g_wifi_info.status.brillo = g_wifi_info.f.config.brillo_med;
+            control_stm++;
             break;
         case OFFLINE_LOOP:
+            if(g_wifi_info.status.wifi_mode == 3)
+            {
+                control_stm = WIFI_CONFIG;
+            }
+            else if(g_wifi_info.status.host_conectado)
+            {
+                strcpy(control_screen_filename, HOME_SCREEN_CSV);
+                control_screen_number = 0;
+                control_stm = SHOW_PAGE;
+            }
+            else
+            {
+                TouchTask();
+            }
             break;
         case DISPLAY_DISABLE:
             break;

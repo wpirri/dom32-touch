@@ -121,6 +121,10 @@ void DisplayOff()
     DISPLAY_OFF;
 }
 
+void DisplayBrillo(unsigned char brillo)
+{
+    g_display_c_brillo = brillo;
+}
 
 void Clear( unsigned int color )
 {

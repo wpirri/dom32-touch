@@ -95,6 +95,7 @@ int DisplayInit( void );
 
 void DisplayOn();
 void DisplayOff();
+void DisplayBrillo(unsigned char brillo);
 
 void Clear( unsigned int color );
 void DrawPixel(unsigned int x, unsigned int y, unsigned int color);

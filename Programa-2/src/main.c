@@ -69,6 +69,7 @@
 #include "defines.h"
 #include "log.h"
 #include "sd/fsio.h"
+#include "config.h"
 #include "rtcc.h"
 #include "display/display.h"
 #include "display/touch.h"
@@ -232,11 +233,17 @@ int main(void)
         LogMessage("[MAIN] File System Error");
     }
 
+    LogMessage("[MAIN] Configuracion");
+    ConfigInit();
+    ConfigLoad();
+    DumpConfig();
+
     LogMessage("[MAIN] Init RTCC");
     RTCC_Initialize();
 
     LogMessage("[MAIN] Init Display");
     DisplayInit();
+    DisplayBrillo(g_wifi_info.f.config.brillo_max);
 
     LogMessage("[MAIN] Init Touch");
     TouchInit();
