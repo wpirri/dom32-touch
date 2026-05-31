@@ -25,7 +25,8 @@ void TouchTask( void );
 void ShowScreen(const char* filename);
 
 void ControlInit(bool sd_ok);
-void ControlTask(void);
+void Control_Screen_Task(void);
+void Control_WiFi_Task(void);
 void ControlTimerInt(void);
 
 #endif /* _CONTROL_H_ */

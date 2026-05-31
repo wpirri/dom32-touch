@@ -45,6 +45,9 @@ void ConfigLoadDefault( void)
     g_wifi_info.f.config.brillo_min = 0;
     g_wifi_info.f.config.screen_saver_time = 25;
     g_wifi_info.f.config.start_config_mode = true;
+    g_wifi_info.f.config.brillo_max = 80;
+    g_wifi_info.f.config.brillo_med = 50;
+    g_wifi_info.f.config.brillo_min = 30;
 
     g_wifi_info.status.save_config = 10;
 }
@@ -53,6 +56,7 @@ void ConfigLoadDefault( void)
 void ConfigInit(void)
 {
     memset(&g_wifi_info, 0, sizeof(wifi_info));
+    ConfigLoadDefault();
 }
 
 void ConfigLoad( void )

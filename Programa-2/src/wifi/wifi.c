@@ -26,6 +26,7 @@
 #include "../defines.h"
 #include "uart3.h"
 #include "../log.h"
+#include "../config.h"
 
 #define WIFI_RESET_SetHigh()    (LATBSET=(1<<10))
 #define WIFI_RESET_SetLow()     (LATBCLR=(1<<10))
@@ -35,9 +36,12 @@
 #define UART_READ               UART3_Read
 
 volatile unsigned int g_wifi_c_timer_count;
-int g_wifi_c_status;
 int g_wifi_c_mode;
-int g_wifi_c_conectado;
+int g_wifi_c_go_mode;
+int g_wifi_c_ap_conectado;
+int g_wifi_c_go_ap_conectado;
+int g_wifi_c_host_conectado;
+int g_wifi_c_go_host_conectado;
 
 
 void WifiWrite( const char *buffer )
@@ -123,37 +127,6 @@ int WifiReadCount( char *data, unsigned int count, int to )
     return read_count;
 }
 
-/* ************************************************************************* */
-
-void WiFiInit( void )
-{
-    g_wifi_c_timer_count = 0;
-    g_wifi_c_status = 0;
-    g_wifi_c_mode = 0;
-    g_wifi_c_conectado = 0;
-    UART3_Init();
-}
-
-void WiFiTimerInt( void )
-{
-    if(g_wifi_c_timer_count) g_wifi_c_timer_count--;
-}
-
-int WiFiStatus( void )
-{
-    return g_wifi_c_status;
-}
-
-int WiFiMode( void )
-{
-    return g_wifi_c_mode;
-}
-
-int WiFiConectado( void )
-{
-    return g_wifi_c_conectado;
-}
-
 void WiFiWait(int t)
 {
     g_wifi_c_timer_count = t;
@@ -161,6 +134,61 @@ void WiFiWait(int t)
     {
         CLRWDT();
     }
+}
+
+int WiFiCheckUnsolMsg(const char* msg)
+{
+    if( !memcmp(msg, "WIFI CONNECTED", 14))
+    {
+    }
+    else if( !memcmp(msg, "WIFI DISCONNECTED", 17))
+    {
+    }
+    else if( !memcmp(msg, "+STA_CONNECTED", 8))
+    {
+    }
+    else if( !memcmp(msg, "+STA_DISCONNECTED", 8))
+    {
+    }
+    else if( !memcmp(msg, "+CIFSR:", 7))
+    {
+        if( !memcmp((const char*)(msg+7), "STAMAC", 6))
+        {
+            LogMessage("[WiFi] MAC %.17s", (const char*)(msg+15));
+            g_wifi_info.status.hw_mac[0]  = *(msg+15);
+            g_wifi_info.status.hw_mac[1]  = *(msg+16);
+            g_wifi_info.status.hw_mac[2]  = *(msg+18);
+            g_wifi_info.status.hw_mac[3]  = *(msg+19);
+            g_wifi_info.status.hw_mac[4]  = *(msg+21);
+            g_wifi_info.status.hw_mac[5]  = *(msg+22);
+            g_wifi_info.status.hw_mac[6]  = *(msg+24);
+            g_wifi_info.status.hw_mac[7]  = *(msg+25);
+            g_wifi_info.status.hw_mac[8]  = *(msg+27);
+            g_wifi_info.status.hw_mac[9]  = *(msg+28);
+            g_wifi_info.status.hw_mac[10] = *(msg+30);
+            g_wifi_info.status.hw_mac[11] = *(msg+31);
+            g_wifi_info.status.hw_mac[12] = 0;
+        }
+        else if( !memcmp((const char*)(msg+7), "STAIP", 5))
+        {
+            if(strlen((const char*)(msg+14)))
+            {
+                LogMessage("[WiFi] IP %s", (const char*)(msg+14) );
+                g_wifi_c_ap_conectado = g_wifi_c_go_ap_conectado;
+            }
+        }
+    }
+    else if( !memcmp(msg, "AT version:", 11))
+    {
+    }
+    else if( !memcmp(msg, "SDK version:", 12))
+    {
+    }
+    else if( !memcmp(msg, "compile time:", 13))
+    {
+    }
+    
+    return 0;
 }
 
 int WiFiCommand(const char* cmd, const char* wait, int to)
@@ -179,15 +207,54 @@ int WiFiCommand(const char* cmd, const char* wait, int to)
         if( !strstr(buffer, wait))
         {
             LogMessage("[WIFI] %s -> [%s]", cmd, buffer);
+            /* Capturo los datos que me interesan cuando aparecen */
+            WiFiCheckUnsolMsg(buffer);
         }
     } while( !strstr(buffer, wait));
     LogMessage("[WIFI] %s -> %s", cmd, wait);
     return 0;
 }
 
+/* ************************************************************************* */
+
+int WiFiStatus( void )
+{
+    return (g_wifi_c_ap_conectado > 0 && g_wifi_c_host_conectado > 0)?1:0;
+}
+
+int WiFiMode( void )
+{
+    return g_wifi_c_mode;
+}
+
+int WiFiConectado( void )
+{
+    return g_wifi_c_ap_conectado;
+}
+
+int WiFiOnLine( void )
+{
+    return g_wifi_c_host_conectado;
+}
+
+void WiFiInit( void )
+{
+    g_wifi_c_ap_conectado = 0;
+    g_wifi_c_go_ap_conectado = 0;
+    g_wifi_c_mode = 0;
+    g_wifi_c_go_mode = 0;
+    g_wifi_c_host_conectado = 0;
+    g_wifi_c_go_host_conectado = 0;
+
+    UART3_Init();
+}
+
 int WiFiStart( void )
 {
     LogMessage("[WIFI] Start");
+    g_wifi_c_ap_conectado = 0;
+    g_wifi_c_mode = 0;
+    g_wifi_c_host_conectado = 0;
     /* Reseteo el módulo. Bajo y subo el pin de reset */
     WIFI_RESET_SetLow();
     WiFiWait(50);
@@ -202,5 +269,181 @@ int WiFiStart( void )
     if(WiFiCommand("AT+GMR", "OK", 300) < 0) return (-1);
     /* Check soporte SSL */
     if(WiFiCommand("AT+CIPSSLCCONF?", "OK", 150) < 0) return (-1);
+    /* Seteo el modo AP+ST para poder tomar las MAC */
+    if(WiFiCommand("AT+CWMODE=3", "OK", 150) < 0) return (-1);
+    /* Obtengo la MAC */
+    if(WiFiCommand("AT+CIFSR", "OK", 150) < 0) return (-1);
+    /* Me quedo en Modo 0 - Puede devolver error*/
+    WiFiCommand("AT+CWMODE=0", "OK", 150);
+    
     return 0;
 }
+
+int WiFiSetMode(int mode)
+{
+    char cmd[128];
+
+    LogMessage("[WIFI] SetMode %i", mode);    
+    
+    if(mode <  1 || mode > 3 ) return (-1);
+
+    g_wifi_c_ap_conectado = 0;
+    g_wifi_c_mode = 0;
+    g_wifi_c_host_conectado = 0;
+
+    /* Apago cualquier LISTEN que pueda haber - Puede dar error */
+    WiFiCommand("AT+CIPSERVER=0", "OK", 150);
+    /* Si estaba en otro modo me muevo al 0 - Puede dar error*/
+    WiFiCommand("AT+CWMODE=0", "OK", 150);
+    /* Seteo el modo */
+    sprintf(cmd, "AT+CWMODE=%i", mode);
+    if(WiFiCommand(cmd, "OK", 150) < 0) return (-1);
+    /* Multiconexion 0=no 1=si*/
+    if(WiFiCommand("AT+CIPMUX=1", "OK", 150) < 0) return (-1);
+
+    /* Solo para AP */
+    if(mode == WIFI_MODE_AP || mode == WIFI_MODE_AP_ST)
+    {
+        sprintf(cmd, "AT+CWSAP=\"Dom32touch-%s\",\"\",1,0,4,0", &g_wifi_info.status.hw_mac[6]);
+        if(WiFiCommand(cmd, "OK", 150) < 0) return (-1);
+        /* Max conexiones */
+        if(WiFiCommand("AT+CIPSERVERMAXCONN=1", "OK", 150) < 0) return (-1);
+        /* LISTEN en port 80 */
+        if(WiFiCommand("AT+CIPSERVER=1,80", "OK", 150) < 0) return (-1);
+    }
+
+    /* Solo para ST */
+    if(mode == WIFI_MODE_ST || mode == WIFI_MODE_AP_ST)
+    {
+        /* Reconexión automática */
+        if(WiFiCommand("AT+CWAUTOCONN=1", "OK", 150) < 0) return (-1);
+        /* Me conecto con el AP */
+        if(g_wifi_c_go_ap_conectado == 0) g_wifi_c_go_ap_conectado = 1;
+        /* Si no hay AP Definido no puedo seguir */
+        if(g_wifi_info.f.config.wifi_ap1[0] == 0 && g_wifi_info.f.config.wifi_ap2[0] == 0)
+        {
+            LogMessage("[WIFI] No hay AP definido");
+            if(mode == WIFI_MODE_AP_ST)
+            {
+                /* Si es combinado AT+ST */
+                g_wifi_c_mode = mode;
+                return 0;
+            }
+            else
+            {
+                return (-1);
+            }
+        }
+        /* Si el seleccionado no está configurado me paso al otro */
+        if(g_wifi_c_go_ap_conectado == 1 && g_wifi_info.f.config.wifi_ap1[0] == 0)
+        {
+            g_wifi_c_go_ap_conectado = 2;
+        }
+        else if(g_wifi_c_go_ap_conectado == 2 && g_wifi_info.f.config.wifi_ap2[0] == 0)
+        {
+            g_wifi_c_go_ap_conectado = 1;
+        }
+        if(g_wifi_c_go_ap_conectado == 1)
+        {
+            /* Uso el AP1 */
+            LogMessage("[WifiTaskSTMode] Conectando con AP1 %s (%s).",
+                    g_wifi_info.f.config.wifi_ap1,
+                    g_wifi_info.f.config.wifi_ap1_pass);
+            if(g_wifi_info.f.config.wifi_ap1_pass[0])
+            {
+                /* Con clave */
+                sprintf(cmd, "AT+CWJAP=\"%s\",\"%s\"",
+                    g_wifi_info.f.config.wifi_ap1,
+                    g_wifi_info.f.config.wifi_ap1_pass);
+            }
+            else
+            {
+                /* Sin clave */
+                sprintf(cmd, "AT+CWJAP=\"%s\"",
+                    g_wifi_info.f.config.wifi_ap1);
+            }
+        }
+        else
+        {
+            /* Uso el AP2 */
+            LogMessage("[WifiTaskSTMode] Conectando con AP2 %s (%s).",
+                    g_wifi_info.f.config.wifi_ap2,
+                    g_wifi_info.f.config.wifi_ap2_pass);
+            if(g_wifi_info.f.config.wifi_ap2_pass[0])
+            {
+                /* Con clave */
+                sprintf(cmd, "AT+CWJAP=\"%s\",\"%s\"",
+                    g_wifi_info.f.config.wifi_ap2,
+                    g_wifi_info.f.config.wifi_ap2_pass);
+            }
+            else
+            {
+                /* Sin clave */
+                sprintf(cmd, "AT+CWJAP=\"%s\"",
+                    g_wifi_info.f.config.wifi_ap2);
+            }
+        }
+        if(WiFiCommand(cmd, "OK", 150) < 0) return (-1);
+        /* IP y MAC cuando conecte va a devolver la IP */
+        if(WiFiCommand("AT+CIFSR", "OK", 150) < 0) return (-1);
+    }
+    g_wifi_c_mode = mode;
+    return 0;
+}
+
+void WiFiCheckUnsol( void )
+{
+    char buffer[256];
+    
+    if(WifiReadAt(buffer, 255, '\n', 25) >= 0)
+    {
+        LogMessage("[WIFI] Unsol [%s]", buffer);
+        WiFiCheckUnsolMsg(buffer);
+    }
+}
+
+void WiFiTimerInt( void )
+{
+    if(g_wifi_c_timer_count) g_wifi_c_timer_count--;
+}
+
+void WiFiTask( void )
+{
+
+    
+}
+
+/*
+[WIFI] Unsol [+STA_CONNECTED:"be:b5:a5:f9:4c:e0"]
+[WIFI] Unsol [+DIST_STA_IP:"be:b5:a5:f9:4c:e0","192.168.4.2"]
+[WIFI] Unsol [0,CONNECT]
+[WIFI] Unsol []
+[WIFI] Unsol [+IPD,0,167:GET / HTTP/1.1]
+[WIFI] Unsol [User-Agent: Dalvik/2.1.0 (Linux; U; Android 14; 24090RA29G Build/UP1A.231005.007)]
+[WIFI] Unsol [Host: 192.168.4.1]
+[WIFI] Unsol [Connection: Keep-Alive]
+[WIFI] Unsol [Accept-Encoding: gzip]
+[WIFI] Unsol []
+[WIFI] Unsol [0,CLOSED]
+[WIFI] Unsol [0,CONNECT]
+[WIFI] Unsol []
+[WIFI] Unsol [+IPD,0,167:GET / HTTP/1.1]
+[WIFI] Unsol [User-Agent: Dalvik/2.1.0 (Linux; U; Android 14; 24090RA29G Build/UP1A.231005.007)]
+[WIFI] Unsol [Host: 192.168.4.1]
+[WIFI] Unsol [Connection: Keep-Alive]
+[WIFI] Unsol [Accept-Encoding: gzip]
+
+
+
+[WIFI] Unsol [0,CLOSED]
+[WIFI] Unsol [0,CONNECT]
+[WIFI] Unsol []
+[WIFI] Unsol [+IPD,0,167:GET / HTTP/1.1]
+[WIFI] Unsol [User-Agent: Dalvik/2.1.0 (Linux; U; Android 14; 24090RA29G Build/UP1A.231005.007)]
+[WIFI] Unsol [Host: 192.168.4.1]
+[WIFI] Unsol [Connection: Keep-Alive]
+[WIFI] Unsol [Accept-Encoding: gzip]
+[WIFI] Unsol []
+[WIFI] Unsol [+STA_DISCONNECTED:"be:b5:a5:f9:4c:e0"]
+ 
+*/

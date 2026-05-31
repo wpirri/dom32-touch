@@ -18,14 +18,29 @@
 #ifndef _WIFI_H_
 #define _WIFI_H_
 
-void WiFiInit( void );
-void WiFiTimerInt( void );
+#define WIFI_MODE_NONE      0
+#define WIFI_MODE_ST        1
+#define WIFI_MODE_AP        2
+#define WIFI_MODE_AP_ST     3
+
+#define WIFI_STATUS_NO_CONECTADO    0
+#define WIFI_STATUS_CONECTADO_AP1   1
+#define WIFI_STATUS_CONECTADO_AP2   2
+
+#define WIFI_HOST_OFFLINE           0
+#define WIFI_HOST_ONLINE1           1
+#define WIFI_HOST_ONLINE2           2
 
 int WiFiStatus( void );
 int WiFiMode( void );
 int WiFiConectado( void );
+int WiFiOnLine( void );
 
+void WiFiInit( void );
 int WiFiStart( void );
+int WiFiSetMode(int mode);
+void WiFiCheckUnsol( void );
 
-
+void WiFiTimerInt( void );
+void WiFiTask( void );
 #endif /* _WIFI_H_ */
