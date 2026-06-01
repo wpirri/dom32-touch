@@ -140,15 +140,25 @@ int WiFiCheckUnsolMsg(const char* msg)
 {
     if( !memcmp(msg, "WIFI CONNECTED", 14))
     {
+        /* ST Conectada al Router */
+    }
+    else if( !memcmp(msg, "WIFI GOT IP", 11))
+    {
+        /* IP obtenida del Router */
+        g_wifi_c_ap_conectado = g_wifi_c_go_ap_conectado;
     }
     else if( !memcmp(msg, "WIFI DISCONNECTED", 17))
     {
+        /* Desconectado del Router */
+        g_wifi_c_ap_conectado = 0;
     }
     else if( !memcmp(msg, "+STA_CONNECTED", 8))
     {
+        /* Cliente conectado al AP */
     }
     else if( !memcmp(msg, "+STA_DISCONNECTED", 8))
     {
+        /* Cliente desconectado del AP */
     }
     else if( !memcmp(msg, "+CIFSR:", 7))
     {
@@ -174,7 +184,6 @@ int WiFiCheckUnsolMsg(const char* msg)
             if(strlen((const char*)(msg+14)))
             {
                 LogMessage("[WiFi] IP %s", (const char*)(msg+14) );
-                g_wifi_c_ap_conectado = g_wifi_c_go_ap_conectado;
             }
         }
     }
@@ -237,6 +246,18 @@ int WiFiOnLine( void )
     return g_wifi_c_host_conectado;
 }
 
+void WiFiSwitchRouter( void )
+{
+    if(g_wifi_c_go_ap_conectado == 1) g_wifi_c_go_ap_conectado = 2;
+    else                              g_wifi_c_go_ap_conectado = 1;
+}
+
+void WiFiSwitchHost( void )
+{
+    if(g_wifi_c_go_host_conectado == 1) g_wifi_c_go_host_conectado = 2;
+    else                              g_wifi_c_go_host_conectado = 1;
+}
+
 void WiFiInit( void )
 {
     g_wifi_c_ap_conectado = 0;
@@ -274,7 +295,7 @@ int WiFiStart( void )
     /* Obtengo la MAC */
     if(WiFiCommand("AT+CIFSR", "OK", 150) < 0) return (-1);
     /* Me quedo en Modo 0 - Puede devolver error*/
-    WiFiCommand("AT+CWMODE=0", "OK", 150);
+    WiFiCommand("AT+CWMODE=0", "OK", 50);
     
     return 0;
 }
@@ -292,9 +313,9 @@ int WiFiSetMode(int mode)
     g_wifi_c_host_conectado = 0;
 
     /* Apago cualquier LISTEN que pueda haber - Puede dar error */
-    WiFiCommand("AT+CIPSERVER=0", "OK", 150);
+    WiFiCommand("AT+CIPSERVER=0", "OK", 50);
     /* Si estaba en otro modo me muevo al 0 - Puede dar error*/
-    WiFiCommand("AT+CWMODE=0", "OK", 150);
+    WiFiCommand("AT+CWMODE=0", "OK", 50);
     /* Seteo el modo */
     sprintf(cmd, "AT+CWMODE=%i", mode);
     if(WiFiCommand(cmd, "OK", 150) < 0) return (-1);
@@ -383,7 +404,7 @@ int WiFiSetMode(int mode)
                     g_wifi_info.f.config.wifi_ap2);
             }
         }
-        if(WiFiCommand(cmd, "OK", 150) < 0) return (-1);
+        if(WiFiCommand(cmd, "OK", 1000) < 0) return (-1);
         /* IP y MAC cuando conecte va a devolver la IP */
         if(WiFiCommand("AT+CIFSR", "OK", 150) < 0) return (-1);
     }
@@ -395,7 +416,7 @@ void WiFiCheckUnsol( void )
 {
     char buffer[256];
     
-    if(WifiReadAt(buffer, 255, '\n', 25) >= 0)
+    if(WifiReadAt(buffer, 255, '\n', 5) >= 0)
     {
         LogMessage("[WIFI] Unsol [%s]", buffer);
         WiFiCheckUnsolMsg(buffer);
@@ -411,6 +432,14 @@ void WiFiTask( void )
 {
 
     
+}
+
+int WiFiQueryHost(const char* send_msg, char* recv_msg)
+{
+    
+    
+    
+    return 0;
 }
 
 /*

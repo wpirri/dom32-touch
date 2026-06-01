@@ -35,6 +35,8 @@ int WiFiStatus( void );
 int WiFiMode( void );
 int WiFiConectado( void );
 int WiFiOnLine( void );
+void WiFiSwitchRouter( void );
+void WiFiSwitchHost( void );
 
 void WiFiInit( void );
 int WiFiStart( void );

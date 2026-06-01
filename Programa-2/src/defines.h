@@ -42,7 +42,7 @@
 #define CONFIG_FILENAME         "d32touch.cfg"
 #define SCREEN_FILENAME         "screen.lst"
 
-#define TOUCH_DELAY 100
+#define TOUCH_DELAY 10
 #define RETURN_TO_HOME 600
 #define BOTON_BORDE 6
 #define BOTON_REDONDO 15

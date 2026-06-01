@@ -19,7 +19,7 @@
 #define _SYSTEM_H_
 
 void SystemInit( void );
-
+void SystemReset( void );
 
 
 

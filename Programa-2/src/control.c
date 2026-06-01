@@ -36,13 +36,17 @@
 #include "misc/strfunc.h"
 #include "misc/bitmap.h"
 #include "misc/beep.h"
+#include "system.h"
 
 typedef enum
 {
     SCREEN_INIT = 0,
     SCREEN_SHOW_PAGE,
     SCREEN_SHOW_PAGE_LOOP,
+    SCREEN_CONFIG,
+    SCREEN_CONFIG_LOOP,
     SCREEN_WIFI_CONFIG,
+    SCREEN_WIFI_CONFIG_LOOP,
     SCREEN_SAVER,
     SCREEN_SAVER_LOOP,
     SCREEN_OFFLINE,
@@ -59,6 +63,7 @@ unsigned int control_screen_stm_delay;
 unsigned int control_screen_saver_count;
 char control_screen_filename[FILE_NAME_SIZE+1];
 unsigned int control_screen_number;
+unsigned int wifi_config_timer_count;
 
 typedef enum
 {
@@ -67,8 +72,9 @@ typedef enum
     WIFI_MODO_AP_OK,
     WIFI_MODO_ST,
     WIFI_MODO_ST_OK,
-    WIFI_CONECTAR_A_AP,
-    WIFI_CONECTADO_A_AP,
+    WIFI_CONECTAR_A_HOST,
+    WIFI_CONECTADO_A_HOST,
+    WIFI_DESCONECTADO_DE_HOST,
     WIFI_ERROR,
     WIFI_ERROR_FATAL,
     WIFI_ERROR_FATAL_LOOP
@@ -81,13 +87,111 @@ unsigned int control_wifi_stm_delay;
 
 void BotonPressed(const char* cmd)
 {
+    LogMessage("[BotonPressed] CMD: %s", cmd);
+    
+    control_screen_saver_count = 0;
+    
+    if( !memcmp(cmd, "HOME", 4))
+    {
+        control_screen_number = 0;
+        strcpy(control_screen_filename, HOME_SCREEN_CSV);
+        control_screen_stm = SCREEN_SHOW_PAGE;
+    }
+    else if( !memcmp(cmd, "CONFIG", 6))
+    {
+        control_screen_number = 0;
+        control_screen_stm = SCREEN_CONFIG;
+    }
+    else if( !memcmp(cmd, "NEXT", 4))
+    {
+        if(control_screen_number < 9)
+        {
+            control_screen_number++;
+            sprintf(control_screen_filename, "screen%u.csv", control_screen_number);
+            control_screen_stm = SCREEN_SHOW_PAGE;
+        }
+    }
+    else if( !memcmp(cmd, "PREV", 4))
+    {
+        if(control_screen_number > 0)
+        {
+            control_screen_number--;
+            sprintf(control_screen_filename, "screen%u.csv", control_screen_number);
+            control_screen_stm = SCREEN_SHOW_PAGE;
+        }
+    }
+    else if( !memcmp(cmd, "WIFI", 4))
+    {
+        DisplayOff();
+        Clear(0);
+        control_wifi_stm = WIFI_MODO_AP;
+    }
+    else if( !memcmp(cmd, "RESET", 5))
+    {
+        DisplayOff();
+        Clear(0);
+        SystemReset();
+    }
+    else if( !memcmp(cmd, "UPGRADE", 7))
+    {
+        DisplayOff();
+        Clear(0);
 
+        /* TODO: Upgrade irmwaare */
+    }
+    else if( !memcmp(cmd, "SWITCH:", 7))
+    {
+        if(WiFiOnLine() > 0)
+        {
+            DisplayOff();
+            /* TODO: Envío mensaje de switch */
+
+            DisplayOn();
+        }
+    }
+    else if( !memcmp(cmd, "PULSE:", 6))
+    {
+        if(WiFiOnLine() > 0)
+        {
+            DisplayOff();
+            /* TODO: Envío mensaje de pulso */
+
+            DisplayOn();
+        }
+    }
 }
 
 void TouchTask( void )
 {
+    static bool touch_pressed = false;
+    static unsigned int touch_counter = 0;
+    unsigned int touch_x, touch_y;
 
-
+    if(TouchIsPressed( &touch_x, &touch_y, NULL ))
+    {
+        if(touch_counter < TOUCH_DELAY)
+        {
+            touch_counter++;
+            
+            if(touch_counter == TOUCH_DELAY && !touch_pressed)
+            {
+                touch_pressed = true;
+                LogMessage("[TOUCH] X: %u Y: %u", touch_x, touch_y);
+                BotonTask(touch_x, touch_y);
+            }
+        }
+    }
+    else
+    {
+        if(touch_counter)
+        {
+            touch_counter--;
+            if(touch_counter == 0)
+            {
+                touch_pressed = false;
+            }
+        }
+    }
 }
 
 void ShowScreen(const char* filename)
@@ -211,6 +315,7 @@ void ControlInit( bool sd_ok )
     control_screen_number = 0;
     control_screen_stm_delay = 0;
     control_screen_saver_count = 0;
+    wifi_config_timer_count = 0;
     
     control_wifi_stm_delay = 500;
 }
@@ -269,9 +374,31 @@ void Control_Screen_Task( void )
                 control_screen_stm = SCREEN_OFFLINE;
             }
             break;
+        case SCREEN_CONFIG:
+            ShowScreen(CONFIG_SCREEN_CSV);
+            control_screen_stm++;
+            break;
+        case SCREEN_CONFIG_LOOP:
+            TouchTask();
+            break;
         case SCREEN_WIFI_CONFIG:
+            wifi_config_timer_count = 6000;
+            control_screen_stm++;
+            break;
+        case SCREEN_WIFI_CONFIG_LOOP:
             if(WiFiMode() == WIFI_MODE_AP_ST || WiFiMode() == WIFI_MODE_AP)
             {
+                if(wifi_config_timer_count == 0)
+                {
+                    if(g_wifi_info.f.config.wifi_ap1[0] != 0 || g_wifi_info.f.config.wifi_ap2[0] != 0)
+                    {
+                        control_wifi_stm = WIFI_MODO_ST;
+                    }
+                    else
+                    {
+                        wifi_config_timer_count = 1000;
+                    }
+                }
                 Clear(0);
                 strcpy(control_screen_filename, WIFI_SCREEN_BMP);
                 DrawBitmap(control_screen_filename, 
@@ -362,7 +489,9 @@ void Control_WiFi_Task(void)
         case WIFI_INIT:
             if(WiFiStart() == 0)
             {
-                control_wifi_stm = WIFI_MODO_AP;
+                /* Modo inicial del dispositivo */
+                //control_wifi_stm = WIFI_MODO_AP;
+                control_wifi_stm = WIFI_MODO_ST;
             }
             else
             {
@@ -392,10 +521,22 @@ void Control_WiFi_Task(void)
             }
             break;
         case WIFI_MODO_ST_OK:
+            if(WiFiConectado() > 0)
+            {
+                control_wifi_stm++;
+            }
+            else
+            {
+                WiFiSwitchRouter();
+                control_wifi_stm_delay = 500;
+                control_wifi_stm = WIFI_MODO_ST;
+            }
             break;
-        case WIFI_CONECTAR_A_AP:
+        case WIFI_CONECTAR_A_HOST:
             break;
-        case WIFI_CONECTADO_A_AP:
+        case WIFI_CONECTADO_A_HOST:
+            break;
+        case WIFI_DESCONECTADO_DE_HOST:
             break;
         case WIFI_ERROR:
             break;
@@ -412,5 +553,6 @@ void ControlTimerInt( void )
 {
     if(control_screen_stm_delay) control_screen_stm_delay--;
     if(control_wifi_stm_delay) control_wifi_stm_delay--;
+    if(wifi_config_timer_count) wifi_config_timer_count--;
     
 }
