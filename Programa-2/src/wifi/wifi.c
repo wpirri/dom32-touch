@@ -27,6 +27,7 @@
 #include "uart3.h"
 #include "../log.h"
 #include "../config.h"
+#include "../misc/strfunc.h"
 
 #define WIFI_RESET_SetHigh()    (LATBSET=(1<<10))
 #define WIFI_RESET_SetLow()     (LATBCLR=(1<<10))
@@ -40,9 +41,6 @@ int g_wifi_c_mode;
 int g_wifi_c_go_mode;
 int g_wifi_c_ap_conectado;
 int g_wifi_c_go_ap_conectado;
-int g_wifi_c_host_conectado;
-int g_wifi_c_go_host_conectado;
-
 
 void WifiWrite( const char *buffer )
 {
@@ -85,7 +83,7 @@ int WifiReadAt( char *data, unsigned int max_data, char at, int to )
         while( UART_ISRXREADY() && ch != at && read_len < max_data && g_wifi_c_timer_count > 0)
         {
             ch = UART_READ();
-            if(data && ch != 0x0d && ch != 0x0a)
+            if(data/* && ch != 0x0d && ch != 0x0a*/)
             {
                 /* Extiendo el tiempo cada vez que recibo algo válido */
                 if(g_wifi_c_timer_count < to) g_wifi_c_timer_count++;
@@ -208,11 +206,10 @@ int WiFiCommand(const char* cmd, const char* wait, int to)
 {
     char buffer[256];
     
-    g_wifi_c_timer_count = to;
     WifiWriteLine(cmd);
     do
     {
-        if(WifiReadAt(buffer, 255, '\n', g_wifi_c_timer_count) < 0)
+        if(WifiReadAt(buffer, 255, '\n', to) < 0)
         {
             LogMessage("[WIFI] TIMEOUT: Esperando [%s]", wait);
             return (-1);
@@ -229,10 +226,14 @@ int WiFiCommand(const char* cmd, const char* wait, int to)
 }
 
 /* ************************************************************************* */
-
-int WiFiStatus( void )
+void WiFiInit( void )
 {
-    return (g_wifi_c_ap_conectado > 0 && g_wifi_c_host_conectado > 0)?1:0;
+    g_wifi_c_ap_conectado = 0;
+    g_wifi_c_go_ap_conectado = 0;
+    g_wifi_c_mode = 0;
+    g_wifi_c_go_mode = 0;
+
+    UART3_Init();
 }
 
 int WiFiMode( void )
@@ -245,33 +246,10 @@ int WiFiConectado( void )
     return g_wifi_c_ap_conectado;
 }
 
-int WiFiOnLine( void )
-{
-    return g_wifi_c_host_conectado;
-}
-
 void WiFiSwitchRouter( void )
 {
     if(g_wifi_c_go_ap_conectado == 1) g_wifi_c_go_ap_conectado = 2;
     else                              g_wifi_c_go_ap_conectado = 1;
-}
-
-void WiFiSwitchHost( void )
-{
-    if(g_wifi_c_go_host_conectado == 1) g_wifi_c_go_host_conectado = 2;
-    else                              g_wifi_c_go_host_conectado = 1;
-}
-
-void WiFiInit( void )
-{
-    g_wifi_c_ap_conectado = 0;
-    g_wifi_c_go_ap_conectado = 0;
-    g_wifi_c_mode = 0;
-    g_wifi_c_go_mode = 0;
-    g_wifi_c_host_conectado = 0;
-    g_wifi_c_go_host_conectado = 0;
-
-    UART3_Init();
 }
 
 int WiFiStart( void )
@@ -279,7 +257,6 @@ int WiFiStart( void )
     LogMessage("[WIFI] Start");
     g_wifi_c_ap_conectado = 0;
     g_wifi_c_mode = 0;
-    g_wifi_c_host_conectado = 0;
     /* Reseteo el módulo. Bajo y subo el pin de reset */
     WIFI_RESET_SetLow();
     WiFiWait(50);
@@ -314,7 +291,6 @@ int WiFiSetMode(int mode)
 
     g_wifi_c_ap_conectado = 0;
     g_wifi_c_mode = 0;
-    g_wifi_c_host_conectado = 0;
 
     /* Apago cualquier LISTEN que pueda haber - Puede dar error */
     WiFiCommand("AT+CIPSERVER=0", "OK", 50);
@@ -427,6 +403,79 @@ void WiFiCheckUnsol( void )
     }
 }
 
+int WiFiQueryHost(const char* host, int port, const char* send_msg, char* recv_msg)
+{
+    char cmd[256];
+    char str_tmp[16];
+    int recv_len = 0;
+
+    LogMessage("[WIFI] WiFiQueryHost: Enviando %i bytes a %s:%i",
+            strlen(send_msg), host, port);
+    
+    if(WiFiConectado() == 0)
+    {
+        LogMessage("[WIFI] WiFiQueryHost: WiFi no conectado");
+        return (-1);
+    }
+    
+    /* Conexión */
+    sprintf(cmd, "AT+CIPSTART=0,\"%s\",\"%s\",%i",
+            (g_wifi_info.f.config.enable_https)?"SSL":"TCP", host, port);
+    if(WiFiCommand(cmd, "OK", 150) < 0)
+    {
+        LogMessage("[WIFI] WiFiQueryHost: time-Out intentando conectar con %s:%i", host, port);
+        return (-1);
+    }
+    /* Send */
+    sprintf(cmd, "AT+CIPSEND=0,%d", strlen(send_msg));
+    WifiWriteLine(cmd);
+    /* Espero el prompt para enviar los datos */
+    if(WifiReadAt(NULL, 9999, '>', 300) < 0)
+    {
+        LogMessage("[WIFI] WiFiQueryHost: Time-Out esperando enviar datos");
+        return (-1);
+    }
+    if(WiFiCommand(send_msg, "SEND OK", 1000) < 0)
+    {
+        LogMessage("[WIFI] WiFiQueryHost: Time-Out esperando SEND OK");
+        return (-1);
+    }
+
+    /*
+        [+IPD,0,147:HTTP/1.1 200 OK]
+        [date: Tue, 02 Jun 2026 21:15:09 GMT]
+        [server: uvicorn]
+        [content-length: 22]
+        [content-type: application/json]     
+     */
+    while(WifiReadAt(cmd, 255, '\n', 100) >= 0)
+    {
+        if( !memcmp(cmd, "+IPD", 4))
+        {
+            if(str_section(cmd, ',', 2, str_tmp))
+            {
+                recv_len = atoi(str_tmp);
+            }
+            if(recv_msg && strchr(cmd, ':'))
+            {
+                strcpy(recv_msg, (char*)(strchr(cmd, ':')+1));
+            }
+        }
+        else if( !memcmp(cmd, "0,CLOSED", 8))
+        {
+            break;
+        }
+        else
+        {
+            strcat(recv_msg, cmd);
+        }
+    }
+
+    if(WiFiCommand("AT+CIPCLOSE=0", "OK", 1000) < 0) return (-1);
+
+    return recv_len;
+}
+
 void WiFiTimerInt( void )
 {
     if(g_wifi_c_timer_count) g_wifi_c_timer_count--;
@@ -436,14 +485,6 @@ void WiFiTask( void )
 {
 
     
-}
-
-int WiFiQueryHost(const char* send_msg, char* recv_msg)
-{
-    
-    
-    
-    return 0;
 }
 
 /*

@@ -33,6 +33,7 @@
       <itemPath>src/rtcc.h</itemPath>
       <itemPath>src/control.h</itemPath>
       <itemPath>src/config.h</itemPath>
+      <itemPath>src/http.h</itemPath>
     </logicalFolder>
     <logicalFolder name="ExternalFiles"
                    displayName="Important Files"
@@ -72,6 +73,7 @@
       <itemPath>src/rtcc.c</itemPath>
       <itemPath>src/control.c</itemPath>
       <itemPath>src/config.c</itemPath>
+      <itemPath>src/http.c</itemPath>
     </logicalFolder>
   </logicalFolder>
   <sourceRootList>

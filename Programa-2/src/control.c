@@ -36,6 +36,7 @@
 #include "misc/strfunc.h"
 #include "misc/bitmap.h"
 #include "misc/beep.h"
+#include "http.h"
 #include "system.h"
 
 typedef enum
@@ -66,6 +67,7 @@ unsigned int control_screen_saver_count;
 char control_screen_filename[FILE_NAME_SIZE+1];
 unsigned int control_screen_number;
 unsigned int wifi_config_timer_count;
+unsigned int keep_alive_timer_count;
 
 typedef enum
 {
@@ -143,7 +145,7 @@ void BotonPressed(const char* cmd)
     }
     else if( !memcmp(cmd, "SWITCH:", 7))
     {
-        if(WiFiOnLine() > 0)
+        if(HttpOnLine() > 0)
         {
             DisplayOff();
             /* TODO: Envío mensaje de switch */
@@ -153,7 +155,7 @@ void BotonPressed(const char* cmd)
     }
     else if( !memcmp(cmd, "PULSE:", 6))
     {
-        if(WiFiOnLine() > 0)
+        if(HttpOnLine() > 0)
         {
             DisplayOff();
             /* TODO: Envío mensaje de pulso */
@@ -318,6 +320,7 @@ void ControlInit( bool sd_ok )
     control_screen_stm_delay = 0;
     control_screen_saver_count = 0;
     wifi_config_timer_count = 0;
+    keep_alive_timer_count = 0;
     
     control_wifi_stm_delay = 500;
 }
@@ -367,7 +370,7 @@ void Control_Screen_Task( void )
             control_screen_stm++;
             break;
         case SCREEN_SHOW_PAGE_LOOP:
-            if(WiFiMode() == WIFI_MODE_ST && WiFiOnLine())
+            if(WiFiMode() == WIFI_MODE_ST && HttpOnLine())
             {
                 TouchTask();
             }
@@ -426,7 +429,7 @@ void Control_Screen_Task( void )
             control_screen_stm++;
             break;
         case SCREEN_SAVER_LOOP:
-            if(WiFiOnLine())
+            if(HttpOnLine())
             {
                 TouchTask();
             }
@@ -442,7 +445,7 @@ void Control_Screen_Task( void )
             control_screen_stm++;
             break;
         case SCREEN_OFFLINE_LOOP:
-            if(WiFiOnLine())
+            if(HttpOnLine())
             {
                 strcpy(control_screen_filename, HOME_SCREEN_CSV);
                 control_screen_number = 0;
@@ -561,10 +564,26 @@ void Control_WiFi_Task(void)
     }    
 }
 
+void ControlHostKeepAlive(void)
+{
+    char url[256];
+    char data[256];
+    
+    if(keep_alive_timer_count) return;
+    
+    sprintf(url, "%s/infoio.cgi", g_wifi_info.f.config.rqst_path);
+    sprintf(data, "ID=%s&TYP=TOUCH", g_wifi_info.status.hw_mac);
+    HttpQueryHost(url, data, NULL);
+    
+    keep_alive_timer_count = 1500;
+}
+
 void ControlTimerInt( void )
 {
     if(control_screen_stm_delay) control_screen_stm_delay--;
     if(control_wifi_stm_delay) control_wifi_stm_delay--;
     if(wifi_config_timer_count) wifi_config_timer_count--;
+    if(keep_alive_timer_count) keep_alive_timer_count--;
     
 }
+

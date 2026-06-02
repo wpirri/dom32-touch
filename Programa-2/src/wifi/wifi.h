@@ -31,17 +31,16 @@
 #define WIFI_HOST_ONLINE1           1
 #define WIFI_HOST_ONLINE2           2
 
-int WiFiStatus( void );
-int WiFiMode( void );
-int WiFiConectado( void );
-int WiFiOnLine( void );
-void WiFiSwitchRouter( void );
-void WiFiSwitchHost( void );
 
 void WiFiInit( void );
+int WiFiMode( void );
+int WiFiConectado( void );
+void WiFiSwitchRouter( void );
 int WiFiStart( void );
 int WiFiSetMode(int mode);
 void WiFiCheckUnsol( void );
+
+int WiFiQueryHost(const char* host, int port, const char* send_msg, char* recv_msg);
 
 void WiFiTimerInt( void );
 void WiFiTask( void );

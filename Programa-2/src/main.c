@@ -76,6 +76,7 @@
 #include "display/touch.h"
 #include "wifi/wifi.h"
 #include "control.h"
+#include "http.h"
 
 int main(void)
 {
@@ -114,9 +115,11 @@ int main(void)
     LogMessage("[MAIN] Init WiFi");
     WiFiInit();
 
+    LogMessage("[MAIN] Init Http");
+    HttpInit();
     
     
-    
+    LogMessage("[MAIN] Init STM");
     ControlInit(status_sd_ok);
     /* Reset POR y BOR 
        Se hace a lo último así las distintas inicializaciones pueden verificar
@@ -134,6 +137,7 @@ int main(void)
         CLRWDT();
         Control_Screen_Task();
         Control_WiFi_Task();
+        ControlHostKeepAlive();
 
     }
     return 0;
