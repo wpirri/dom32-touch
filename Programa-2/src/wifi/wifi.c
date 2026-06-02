@@ -87,6 +87,8 @@ int WifiReadAt( char *data, unsigned int max_data, char at, int to )
             ch = UART_READ();
             if(data && ch != 0x0d && ch != 0x0a)
             {
+                /* Extiendo el tiempo cada vez que recibo algo válido */
+                if(g_wifi_c_timer_count < to) g_wifi_c_timer_count++;
                 *data = ch;
                 data++;
             }
@@ -115,6 +117,8 @@ int WifiReadCount( char *data, unsigned int count, int to )
             ch = UART_READ();
             if(data)
             {
+                /* Extiendo el tiempo cada vez que recibo algo válido */
+                if(g_wifi_c_timer_count < to) g_wifi_c_timer_count++;
                 *data = ch;
                 data++;
             }
@@ -416,7 +420,7 @@ void WiFiCheckUnsol( void )
 {
     char buffer[256];
     
-    if(WifiReadAt(buffer, 255, '\n', 5) >= 0)
+    if(WifiReadAt(buffer, 255, '\n', 2) >= 0)
     {
         LogMessage("[WIFI] Unsol [%s]", buffer);
         WiFiCheckUnsolMsg(buffer);

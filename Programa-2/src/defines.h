@@ -42,16 +42,17 @@
 #define CONFIG_FILENAME         "d32touch.cfg"
 #define SCREEN_FILENAME         "screen.lst"
 
-#define TOUCH_DELAY 10
+#define TOUCH_DELAY 15
 #define RETURN_TO_HOME 600
 #define BOTON_BORDE 6
 #define BOTON_REDONDO 15
 #define BOTON_CUADRADO 0
 
-#define HOME_SCREEN_CSV    "screen0.csv"
-#define CONFIG_SCREEN_CSV  "config.csv"
-#define OFFLINE_SCREEN_CSV "offline.csv"
-#define INIT_SCREEN_BMP    "power.bmp"
-#define WIFI_SCREEN_BMP    "wifi.bmp"
+#define HOME_SCREEN_CSV     "screen0.csv"
+#define CONFIG_SCREEN_CSV   "config.csv"
+#define OFFLINE_SCREEN_CSV  "offline.csv"
+#define INIT_SCREEN_BMP     "power.bmp"
+#define DOWNLOAD_SCREEN_BMP "download.bmp"
+#define WIFI_SCREEN_BMP     "wifi.bmp"
 
 #endif /* _DEFINES_H_ */

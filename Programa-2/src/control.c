@@ -51,6 +51,8 @@ typedef enum
     SCREEN_SAVER_LOOP,
     SCREEN_OFFLINE,
     SCREEN_OFFLINE_LOOP,
+    SCREEN_FIRMWARE_UPGRADE,
+    SCREEN_FIRMWARE_UPGRADE_LOOP,
     SCREEN_ERROR,
     SCREEN_ERROR_FATAL,
     SCREEN_ERROR_FATAL_LOOP
@@ -58,7 +60,7 @@ typedef enum
 
 enum_control_screen_stm control_screen_stm = SCREEN_INIT;
 bool status_sd_ok;
-bool status_wifi_ok;
+bool status_firmware_upgrade;
 unsigned int control_screen_stm_delay;
 unsigned int control_screen_saver_count;
 char control_screen_filename[FILE_NAME_SIZE+1];
@@ -311,7 +313,7 @@ void ShowScreen(const char* filename)
 void ControlInit( bool sd_ok )
 {
     status_sd_ok = sd_ok;
-    status_wifi_ok = false;
+    status_firmware_upgrade = false;
     control_screen_number = 0;
     control_screen_stm_delay = 0;
     control_screen_saver_count = 0;
@@ -325,6 +327,17 @@ void Control_Screen_Task( void )
     
     /* ***** Maquina de estados de pantallas ***** */
     if(control_screen_stm_delay) return;
+
+    if(status_firmware_upgrade && control_screen_stm != SCREEN_FIRMWARE_UPGRADE_LOOP)
+    {
+        control_screen_stm = SCREEN_FIRMWARE_UPGRADE;
+    }
+
+    if( (WiFiMode() == WIFI_MODE_AP_ST || WiFiMode() == WIFI_MODE_AP) && control_screen_stm != SCREEN_WIFI_CONFIG_LOOP )
+    {
+        control_screen_stm = SCREEN_WIFI_CONFIG;
+    }
+
     
     switch(control_screen_stm)
     {
@@ -354,20 +367,9 @@ void Control_Screen_Task( void )
             control_screen_stm++;
             break;
         case SCREEN_SHOW_PAGE_LOOP:
-            if(WiFiMode() == WIFI_MODE_ST)
+            if(WiFiMode() == WIFI_MODE_ST && WiFiOnLine())
             {
-                if(WiFiOnLine())
-                {
-                    TouchTask();
-                }
-                else
-                {
-                    control_screen_stm = SCREEN_OFFLINE;
-                }
-            }
-            else if(WiFiMode() == WIFI_MODE_AP_ST || WiFiMode() == WIFI_MODE_AP)
-            {
-                control_screen_stm = SCREEN_WIFI_CONFIG;
+                TouchTask();
             }
             else
             {
@@ -399,7 +401,9 @@ void Control_Screen_Task( void )
                         wifi_config_timer_count = 1000;
                     }
                 }
+                DisplayOff();
                 Clear(0);
+                DisplayOn();
                 strcpy(control_screen_filename, WIFI_SCREEN_BMP);
                 DrawBitmap(control_screen_filename, 
                         ((DISPLAY_X_SIZE/2)-(GetBitmapW(control_screen_filename)/2)), 
@@ -438,11 +442,7 @@ void Control_Screen_Task( void )
             control_screen_stm++;
             break;
         case SCREEN_OFFLINE_LOOP:
-            if(WiFiMode() == WIFI_MODE_AP_ST || WiFiMode() == WIFI_MODE_AP)
-            {
-                control_screen_stm = SCREEN_WIFI_CONFIG;
-            }
-            else if(WiFiOnLine())
+            if(WiFiOnLine())
             {
                 strcpy(control_screen_filename, HOME_SCREEN_CSV);
                 control_screen_number = 0;
@@ -452,6 +452,18 @@ void Control_Screen_Task( void )
             {
                 TouchTask();
             }
+            break;
+        case SCREEN_FIRMWARE_UPGRADE:
+            DisplayOff();
+            /* Imagen centrada */
+            DrawBitmap(DOWNLOAD_SCREEN_BMP, 
+                    ((DISPLAY_X_SIZE/2)-(GetBitmapW(DOWNLOAD_SCREEN_BMP)/2)), 
+                    ((DISPLAY_Y_SIZE/2)-(GetBitmapH(DOWNLOAD_SCREEN_BMP)/2)) );
+            DisplayBrillo(g_wifi_info.f.config.brillo_min);
+            DisplayOn();
+            control_screen_stm++;
+            break;
+        case SCREEN_FIRMWARE_UPGRADE_LOOP:
             break;
         case SCREEN_ERROR:
             DisplayOff();
