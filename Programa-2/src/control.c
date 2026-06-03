@@ -568,14 +568,42 @@ void ControlHostKeepAlive(void)
 {
     char url[256];
     char data[256];
+    int rc;
+    char resp_err_code[16];
+    char resp_err_msg[16];
     
     if(keep_alive_timer_count) return;
     
     sprintf(url, "%s/infoio.cgi", g_wifi_info.f.config.rqst_path);
     sprintf(data, "ID=%s&TYP=TOUCH", g_wifi_info.status.hw_mac);
-    HttpQueryHost(url, data, NULL);
-    
-    keep_alive_timer_count = 1500;
+    rc = HttpQueryHost(url, data, NULL, data);
+    if(rc == 200)
+    {
+        LogMessage("[ControlHostKeepAlive] HTTP Req Ok");
+        if(HTTPGetFormData(data, "error", resp_err_code))
+        {
+            if(HTTPGetFormData(data, "message", resp_err_msg))
+            {
+                if(atoi(resp_err_code) == 0)
+                {
+                    LogMessage("[ControlHostKeepAlive] Respuesta del sistema Ok");
+                    HttpConexionOk();
+                    keep_alive_timer_count = 6000;
+                    return;
+                }
+                else
+                {
+                    LogMessage("[ControlHostKeepAlive] Respuesta del sistema [error = %s message = %s]", resp_err_code, resp_err_msg );
+                }
+            }
+        }
+    }
+    else
+    {
+        LogMessage("[ControlHostKeepAlive] HTTP Req No Ok [0%i]", rc);
+    }
+    HttpConexionError();
+    keep_alive_timer_count = 500;
 }
 
 void ControlTimerInt( void )

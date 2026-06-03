@@ -64,6 +64,47 @@ const char http_c_http_get[] = "GET %s HTTP/1.1\r\n"
                                "User-Agent: Dom32io/1.00 (Microchip;PIC32)\r\n"
                                "Accept: text/html,text/xml\r\n\r\n";
 
+int Convert2CharToHex(const char* h)
+{
+    int h1, h2;
+    
+    if( (*h) >= '0' && (*h) <= '9' )
+    {
+        h1 = ((*h)-'0');
+    }
+    else if( (*h) >= 'A' && (*h) <= 'F' )
+    {
+        h1 = ((*h)-'A'+10);
+    }
+    else if( (*h) >= 'a' && (*h) <= 'f' )
+    {
+        h1 = ((*h)-'a'+10);
+    }
+    else
+    {
+        h1 = 0;
+    }
+    h++;
+    if( (*h) >= '0' && (*h) <= '9' )
+    {
+        h2 = ((*h)-'0');
+    }
+    else if( (*h) >= 'A' && (*h) <= 'F' )
+    {
+        h2 = ((*h)-'A'+10);
+    }
+    else if( (*h) >= 'a' && (*h) <= 'f' )
+    {
+        h2 = ((*h)-'a'+10);
+    }
+    else
+    {
+        h2 = 0;
+    }
+
+    return ((h1*16)+h2);
+}
+
 void HttpInit(void)
 {
     g_http_c_host_conectado = 0;
@@ -75,6 +116,16 @@ int HttpOnLine( void )
 {
     if(WiFiConectado() == 0) g_http_c_host_conectado = 0;
     return (g_http_c_host_conectado > 0)?1:0;
+}
+
+void HttpConexionOk( void )
+{
+    g_http_c_host_conectado = g_http_c_go_host_conectado;
+}
+
+void HttpConexionError( void )
+{
+    g_http_c_host_conectado = 0;
 }
 
 void HttpSwitchHost( void )
@@ -93,12 +144,15 @@ void HttpTimerInt(void)
     
 }
 
-int HttpQueryHost(const char* url, const char* msg_send, char* msg_resp)
+int HttpQueryHost(const char* url, const char* msg_send, char* resp_header, char* resp_data)
 {
     char* host;
     int port;
     char http_buffer[4096];
-    int rc;
+    int recv_len;
+    char* head_end;
+    int head_len;
+    int http_rc = 0;
 
     if(WiFiConectado() == 0)
     {
@@ -147,18 +201,209 @@ int HttpQueryHost(const char* url, const char* msg_send, char* msg_resp)
      */
     sprintf(http_buffer, http_c_http_post, 
             url, host, strlen(msg_send), msg_send);
-    rc = WiFiQueryHost(host, port, http_buffer, http_buffer);
-    if(rc < 0)
+    recv_len = WiFiQueryHost(host, port, http_buffer, http_buffer);
+    if(recv_len < 0)
     {
         LogMessage("[HTTP] HttpQueryHost: Error en WiFiQueryHost");
         return (-1);
     }
+
+    head_end = strstr(http_buffer, "\r\n\r\n");
+    if(head_end)
+    {
+        /* Se reconoce una cabecera HTTP */
+        head_len = (int)(head_end - (&http_buffer[0]));
+        http_buffer[head_len] = 0;
+        http_rc = HTTPHeadResponse(http_buffer);
+        if(resp_header)
+        {
+            strcpy(resp_header, http_buffer);
+        }
+        if(resp_data)
+        {
+            strcpy(resp_data, &http_buffer[head_len+4]);
+        }
+    }
     else
     {
-        LogMessage("[HTTP] HttpQueryHost: recibidos %i bytes", rc);
-        LogMessage(http_buffer);
+        /* No se reconoce una cabecera HTTP */
+        if(resp_header)
+        {
+            *resp_header = 0;
+        }
+        if(resp_data)
+        {
+            strcpy(resp_data, http_buffer);
+        }
+    }
+    return http_rc;
+}
 
-        
+int HttpDecodeFormData(char* out, const char* in, unsigned int max_out)
+{
+    int len = 0;
+    
+    LogMessage("HttpDecodeFormData");
+
+    if(!in || !out) return (-1);
+    
+    while(*in)
+    {
+        if(*in == 0x25) /* % */
+        {
+            in++;
+            *out = (unsigned char)Convert2CharToHex(in);
+            in += 2;
+        }
+        else
+        {
+            *out = *in;
+            in++;
+        }
+        out++;
+        len++;
+        if(len >= max_out) break;
+    }
+    *out = 0;
+    return (len < max_out)?len:(-1);
+}
+
+int HttpGetRequest(const char *buffer, char *request, int max_len)
+{
+	int rc = 0;
+    
+    LogMessage("HttpGetRequest");
+    
+	while(*buffer && *buffer != '/') buffer++;
+	if( !(*buffer)) return 0;
+	while(*buffer && *buffer != ' ' && rc < max_len)
+	{
+		*request = *buffer;
+		buffer++;
+		request++;
+		rc++;
+	}
+	*request = 0;
+	return (rc < max_len)?rc:(-1);
+}
+
+int HTTPGetFormData(const char *buffer, const char *label, char *value)
+{
+    const char *p;
+    int len = 0;
+    
+    p = buffer;
+    do
+    {
+        p = strstr(p, label);
+        if(p)
+        {
+            len = 0;
+            p += strlen(label);
+            if(*p == '=')
+            {
+                p++;
+                while(*p && *p != '&')
+                {
+                    *value = *p;
+                    p++;
+                    value++;
+                    len++;
+                }
+                *value = 0;
+            }
+        }
+    } while(p);
+    
+    return len;
+}
+
+int HTTPGetHeadData(const char *buffer, const char *label, char *value)
+{
+    const char *p;
+    int len = 0;
+    
+    p = strstr(buffer, label);
+    if(p)
+    {
+        p += strlen(label);
+        if(*p == ':')
+        {
+            p++;
+            while(*p == ' ') p++;
+            while(*p && *p != ' ' && *p != '\r' && *p != '\n')
+            {
+                *value = *p;
+                p++;
+                value++;
+                len++;
+            }
+            *value = 0;
+        }
+    }
+    return len;
+}
+
+int HTTPHeadResponse(const char *http_head)
+{
+    char str[4];
+    char *p1;
+    
+    LogMessage("[HTTPHeadResponse] %-.20s", http_head); 
+
+    if(http_head)
+    {
+        /* Busco el c�digo de respuesta http en la cabecera
+         * "HTTP/1.1 200 OK\r\n" */
+        p1 = strchr(http_head, ' ');
+        if(p1)
+        {
+            str[0] = *(++p1);
+            str[1] = *(++p1);
+            str[2] = *(++p1);
+            str[3] = 0;
+            return atoi(str);
+        }
     }
     return 0;
 }
+
+int HTTPFormResponse(const char *http_data)
+{
+    char str[16];
+    
+    LogMessage("[HTTPFormResponse] %-.100s", http_data); 
+
+    if(http_data)
+    {
+        if( strchr(http_data, '{') && 
+            strchr(http_data, ':') && 
+            strchr(http_data, ',') && 
+            strchr(http_data, '}')  )
+        {
+            LogMessage("[HTTPFormResponse] Respuesta en formato JSON no esperada");
+            return 99;
+        }
+        else if( strchr(http_data, '=') )
+        {
+            LogMessage("[HTTPFormResponse] Respuesta en formato de formulario");
+            if(HTTPGetFormData((char*)http_data, "error", str))
+            {
+                LogMessage("[HTTPFormResponse] Respuesta con error: %s", str);
+                return atoi(str);
+            }
+            else
+            {
+                /* Si no encuentra la leyenda error no hay error */
+                return 0;
+            }
+        }
+        else
+        {
+            /* Si no dice nada asumo no error */
+            return 0;
+        }
+    }
+    return (-1);
+}
+

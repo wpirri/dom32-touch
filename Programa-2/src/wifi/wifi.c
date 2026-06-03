@@ -412,8 +412,7 @@ int WiFiQueryHost(const char* host, int port, const char* send_msg, char* recv_m
     int rc;
     
     
-    LogMessage("[WIFI] WiFiQueryHost: Enviando %i bytes a %s:%i",
-            strlen(send_msg), host, port);
+    //LogMessage("[WIFI] WiFiQueryHost: Enviando %i bytes a %s:%i", strlen(send_msg), host, port);
     
     if(WiFiConectado() == 0)
     {
@@ -451,11 +450,11 @@ int WiFiQueryHost(const char* host, int port, const char* send_msg, char* recv_m
         [content-length: 22]
         [content-type: application/json]     
      */
-    LogMessage("[WIFI] WiFiQueryHost: Esperando respuesta");
+    //LogMessage("[WIFI] WiFiQueryHost: Esperando respuesta");
     /* Recibo la cabecera IPD o el close */
     while(WifiReadAt(cmd, 256, '\n', 500) >= 0)
     {
-        LogMessage("[WIFI] WifiReadAt Recibido: [%s]", cmd);
+        //LogMessage("[WIFI] WifiReadAt Recibido: [%s]", cmd);
         if( !memcmp(cmd, "+IPD", 4))
         {
             if(str_section(cmd, ',', 2, str_tmp))
@@ -479,14 +478,14 @@ int WiFiQueryHost(const char* host, int port, const char* send_msg, char* recv_m
     /* Recibo los datos */
     while(recv_len < data_len)
     {
-        LogMessage("[WIFI] WiFiQueryHost faltan %i bytes", (data_len-recv_len));
+        //LogMessage("[WIFI] WiFiQueryHost faltan %i bytes", (data_len-recv_len));
         rc = WifiReadCount(cmd, ((data_len-recv_len)<256)?(data_len-recv_len):256, 500 );
         if(rc < 0)
         {
             LogMessage("[WIFI] WiFiQueryHost Time-Out faltando %i bytes", (recv_len < data_len));
             break;
         }
-        LogMessage("[WIFI] WifiReadCount Recibido: [%s]", cmd);
+        //LogMessage("[WIFI] WifiReadCount Recibido: [%s]", cmd);
         if(recv_msg)
         {
             memcpy(recv_msg, cmd, rc);
@@ -496,7 +495,7 @@ int WiFiQueryHost(const char* host, int port, const char* send_msg, char* recv_m
         recv_len += rc;
     }
 
-    LogMessage("[WIFI] WiFiQueryHost: Esperando Cierre de conexion");
+    //LogMessage("[WIFI] WiFiQueryHost: Esperando Cierre de conexion");
     /* Espero el cierre de conexión */
     while(WifiReadAt(cmd, 256, '\n', 100) >= 0)
     {

@@ -20,11 +20,21 @@
 
 void HttpInit(void);
 int HttpOnLine( void );
+void HttpConexionOk( void );
+void HttpConexionError( void );
 void HttpSwitchHost( void );
 
 void HttpTask(void);
 void HttpTimerInt(void);
 
-int HttpQueryHost(const char* url, const char* msg_send, char* msg_resp);
+int HttpQueryHost(const char* url, const char* msg_send, char* resp_header, char* resp_data);
+int HttpDecodeFormData(char* out, const char* in, unsigned int max_out);
+int HttpGetRequest(const char *buffer, char *request, int max_len);
+int HTTPGetFormData(const char *buffer, const char *label, char *value);
+int HTTPGetHeadData(const char *buffer, const char *label, char *value);
+int HTTPHeadResponse(const char *http_head);
+int HTTPFormResponse(const char *http_data);
+
+
 
 #endif /* _HTTPL_H_ */
