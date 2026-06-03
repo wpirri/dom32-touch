@@ -407,8 +407,11 @@ int WiFiQueryHost(const char* host, int port, const char* send_msg, char* recv_m
 {
     char cmd[256];
     char str_tmp[16];
+    int data_len = 0;
     int recv_len = 0;
-
+    int rc;
+    
+    
     LogMessage("[WIFI] WiFiQueryHost: Enviando %i bytes a %s:%i",
             strlen(send_msg), host, port);
     
@@ -448,32 +451,64 @@ int WiFiQueryHost(const char* host, int port, const char* send_msg, char* recv_m
         [content-length: 22]
         [content-type: application/json]     
      */
-    while(WifiReadAt(cmd, 255, '\n', 100) >= 0)
+    LogMessage("[WIFI] WiFiQueryHost: Esperando respuesta");
+    /* Recibo la cabecera IPD o el close */
+    while(WifiReadAt(cmd, 256, '\n', 500) >= 0)
     {
+        LogMessage("[WIFI] WifiReadAt Recibido: [%s]", cmd);
         if( !memcmp(cmd, "+IPD", 4))
         {
             if(str_section(cmd, ',', 2, str_tmp))
             {
-                recv_len = atoi(str_tmp);
+                data_len = atoi(str_tmp);
             }
             if(recv_msg && strchr(cmd, ':'))
             {
                 strcpy(recv_msg, (char*)(strchr(cmd, ':')+1));
+                recv_len = strlen(recv_msg);
+                recv_msg += recv_len;
             }
+            break;
         }
         else if( !memcmp(cmd, "0,CLOSED", 8))
         {
             break;
         }
-        else
-        {
-            strcat(recv_msg, cmd);
-        }
     }
 
+    /* Recibo los datos */
+    while(recv_len < data_len)
+    {
+        LogMessage("[WIFI] WiFiQueryHost faltan %i bytes", (data_len-recv_len));
+        rc = WifiReadCount(cmd, ((data_len-recv_len)<256)?(data_len-recv_len):256, 500 );
+        if(rc < 0)
+        {
+            LogMessage("[WIFI] WiFiQueryHost Time-Out faltando %i bytes", (recv_len < data_len));
+            break;
+        }
+        LogMessage("[WIFI] WifiReadCount Recibido: [%s]", cmd);
+        if(recv_msg)
+        {
+            memcpy(recv_msg, cmd, rc);
+            recv_msg += rc;
+            *recv_msg = 0;
+        }
+        recv_len += rc;
+    }
+
+    LogMessage("[WIFI] WiFiQueryHost: Esperando Cierre de conexion");
+    /* Espero el cierre de conexión */
+    while(WifiReadAt(cmd, 256, '\n', 100) >= 0)
+    {
+        if( !memcmp(cmd, "0,CLOSED", 8))
+        {
+            break;
+        }
+    }
+    
     if(WiFiCommand("AT+CIPCLOSE=0", "OK", 1000) < 0) return (-1);
 
-    return recv_len;
+    return data_len;
 }
 
 void WiFiTimerInt( void )
