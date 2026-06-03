@@ -27,6 +27,7 @@
 #include "log.h"
 #include "config.h"
 #include "wifi/wifi.h"
+#include "misc/strfunc.h"
 
 int g_http_c_host_conectado;
 int g_http_c_go_host_conectado;
@@ -116,6 +117,32 @@ int HttpOnLine( void )
 {
     if(WiFiConectado() == 0) g_http_c_host_conectado = 0;
     return (g_http_c_host_conectado > 0)?1:0;
+}
+
+char* HttpCurrentHost( void )
+{
+    if(g_http_c_host_conectado == 1)
+    {
+        return &g_wifi_info.f.config.wifi_host1[0];
+    }
+    else
+    {
+        return &g_wifi_info.f.config.wifi_host2[0];
+    }
+    return NULL;
+}
+
+int HttpCurrentPort( void )
+{
+    if(g_http_c_host_conectado == 1)
+    {
+        return g_wifi_info.f.config.wifi_host1_port;
+    }
+    else
+    {
+        return g_wifi_info.f.config.wifi_host2_port;
+    }
+    return 0;
 }
 
 void HttpConexionOk( void )
@@ -407,3 +434,48 @@ int HTTPFormResponse(const char *http_data)
     return (-1);
 }
 
+void HTTPCommandSwitch( const char *obj_name )
+{
+    /*
+     newAJAXCommand('/cgi-bin/abmassign.cgi?funcion=switch&Objeto=".$Nombre."'
+     */
+    char url[256];
+    char rqst[256];
+
+    LogMessage("[HTTPCommandSwitch] %s", obj_name);
+    
+    if( !HttpOnLine()) return;
+
+    sprintf(url, "%s/abmassign.cgi?funcion=switch&Objeto=%s", g_wifi_info.f.config.rqst_path, obj_name);
+    url_encode(url, url);
+    /*
+     * GET
+     * 1.- %s: URI
+     * 2.- %s: Host
+     */
+    sprintf(rqst, http_c_http_get, url, HttpCurrentHost());
+    WiFiQueryHost(HttpCurrentHost(), HttpCurrentPort(), rqst, NULL);
+}
+
+void HTTPCommandPulse( const char *obj_name )
+{
+    /*
+     newAJAXCommand('/cgi-bin/abmassign.cgi?funcion=switch&Objeto=".$Nombre."'
+     */
+    char url[256];
+    char rqst[256];
+
+    LogMessage("[HTTPCommandSwitch] %s", obj_name);
+    
+    if( !HttpOnLine()) return;
+
+    sprintf(url, "%s/abmassign.cgi?funcion=pulse&Objeto=%s", g_wifi_info.f.config.rqst_path, obj_name);
+    url_encode(url, url);
+    /*
+     * GET
+     * 1.- %s: URI
+     * 2.- %s: Host
+     */
+    sprintf(rqst, http_c_http_get, url, HttpCurrentHost());
+    WiFiQueryHost(HttpCurrentHost(), HttpCurrentPort(), rqst, NULL);
+}

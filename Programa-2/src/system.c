@@ -17,6 +17,8 @@
  ***************************************************************************/
 #include "system.h"
 
+#include "log.h"
+
 /* ************************************************************************* */
 // FDEVOPT
 #pragma config SOSCHP = OFF    //Secondary Oscillator High Power Enable bit->SOSC oprerates in normal power mode.
@@ -112,6 +114,8 @@ void __attribute__((weak, nomips16)) _general_exception_handler (void)
         case EXCEP_C2E: _except_str = "coprocessor 2"; break;
     }
 
+    LogMessage("[EXCEPTION] %s: 0x%X at 0x%X", _except_str, _excep_code, _excep_addr);
+    
     while(1) { CLRWDT(); }
 }
 

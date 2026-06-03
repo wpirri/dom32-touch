@@ -20,6 +20,8 @@
 
 void HttpInit(void);
 int HttpOnLine( void );
+char* HttpCurrentHost( void );
+int HttpCurrentPort( void );
 void HttpConexionOk( void );
 void HttpConexionError( void );
 void HttpSwitchHost( void );
@@ -35,6 +37,7 @@ int HTTPGetHeadData(const char *buffer, const char *label, char *value);
 int HTTPHeadResponse(const char *http_head);
 int HTTPFormResponse(const char *http_data);
 
-
+void HTTPCommandSwitch( const char *obj_name );
+void HTTPCommandPulse( const char *obj_name );
 
 #endif /* _HTTPL_H_ */

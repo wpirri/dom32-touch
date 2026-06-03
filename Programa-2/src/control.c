@@ -148,8 +148,7 @@ void BotonPressed(const char* cmd)
         if(HttpOnLine() > 0)
         {
             DisplayOff();
-            /* TODO: Envío mensaje de switch */
-
+            HTTPCommandSwitch(&cmd[7]);
             DisplayOn();
         }
     }
@@ -158,8 +157,7 @@ void BotonPressed(const char* cmd)
         if(HttpOnLine() > 0)
         {
             DisplayOff();
-            /* TODO: Envío mensaje de pulso */
-
+            HTTPCommandPulse(&cmd[6]);
             DisplayOn();
         }
     }
@@ -345,6 +343,7 @@ void Control_Screen_Task( void )
     switch(control_screen_stm)
     {
         case SCREEN_INIT:
+            LogMessage("[SCREEN] Init");
             /* Pantalla negra */
             DisplayOff();
             Clear(0);
@@ -365,6 +364,7 @@ void Control_Screen_Task( void )
             }
             break;
         case SCREEN_SHOW_PAGE:
+            LogMessage("[SCREEN] Show Page [%s]", control_screen_filename);
             control_screen_saver_count = 0;
             ShowScreen(control_screen_filename);
             control_screen_stm++;
@@ -380,6 +380,7 @@ void Control_Screen_Task( void )
             }
             break;
         case SCREEN_CONFIG:
+            LogMessage("[SCREEN] Config");
             ShowScreen(CONFIG_SCREEN_CSV);
             control_screen_stm++;
             break;
@@ -387,6 +388,7 @@ void Control_Screen_Task( void )
             TouchTask();
             break;
         case SCREEN_WIFI_CONFIG:
+            LogMessage("[SCREEN] WiFi Config");
             wifi_config_timer_count = 6000;
             control_screen_stm++;
             break;
@@ -419,6 +421,7 @@ void Control_Screen_Task( void )
             }
             break;
         case SCREEN_SAVER:
+            LogMessage("[SCREEN] Screen Saver");
             DisplayOff();
             /* Imagen centrada */
             DrawBitmap(INIT_SCREEN_BMP, 
@@ -439,6 +442,7 @@ void Control_Screen_Task( void )
             }
             break;
         case SCREEN_OFFLINE:
+            LogMessage("[SCREEN] OffLine");
             strcpy(control_screen_filename, OFFLINE_SCREEN_CSV);
             ShowScreen(control_screen_filename);
             DisplayBrillo(g_wifi_info.f.config.brillo_med);
@@ -457,6 +461,7 @@ void Control_Screen_Task( void )
             }
             break;
         case SCREEN_FIRMWARE_UPGRADE:
+            LogMessage("[SCREEN] Firmware Upgrade");
             DisplayOff();
             /* Imagen centrada */
             DrawBitmap(DOWNLOAD_SCREEN_BMP, 
@@ -469,6 +474,7 @@ void Control_Screen_Task( void )
         case SCREEN_FIRMWARE_UPGRADE_LOOP:
             break;
         case SCREEN_ERROR:
+            LogMessage("[SCREEN] Error");
             DisplayOff();
             DisplayBrillo(g_wifi_info.f.config.brillo_med);
             Clear(RED);
@@ -477,6 +483,7 @@ void Control_Screen_Task( void )
             control_screen_stm = SCREEN_INIT;
             break;
         case SCREEN_ERROR_FATAL:
+            LogMessage("[SCREEN] Error Fatal");
             DisplayOff();
             DisplayBrillo(g_wifi_info.f.config.brillo_med);
             Clear(BLUE);
