@@ -508,7 +508,8 @@ int WiFiQueryHost(const char* host, int port, const char* send_msg, char* recv_m
         }
     }
     
-    if(WiFiCommand("AT+CIPCLOSE=0", "OK", 1000) < 0) return (-1);
+    /* Me aseguro el Close */
+    WiFiCommand("AT+CIPCLOSE=0", "OK", 1);
 
     return data_len;
 }
