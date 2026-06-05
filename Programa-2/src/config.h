@@ -68,6 +68,7 @@ typedef struct _config_in_file_ /*  */
     unsigned char debug;
     char wifi_sta_last_ip[16];
     unsigned char display_type;         /* 0 = MCU 1 = SPI */
+    char download_path[33];                 /* /download */
 } config_in_file;
 
 typedef struct

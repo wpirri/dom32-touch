@@ -30,6 +30,7 @@ void HttpTask(void);
 void HttpTimerInt(void);
 
 int HttpQueryHost(const char* url, const char* msg_send, char* resp_header, char* resp_data);
+int HttpDownload(const char* filename);
 int HttpDecodeFormData(char* out, const char* in, unsigned int max_out);
 int HttpGetRequest(const char *buffer, char *request, int max_len);
 int HTTPGetFormData(const char *buffer, const char *label, char *value);

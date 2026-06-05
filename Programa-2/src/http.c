@@ -266,6 +266,26 @@ int HttpQueryHost(const char* url, const char* msg_send, char* resp_header, char
     return http_rc;
 }
 
+int HttpDownload(const char* filename)
+{
+    char url[256];
+    char rqst[256];
+
+    LogMessage("[HttpDownload] %s", url);
+    
+    if( !HttpOnLine()) return (-1);
+
+    sprintf(url, "%s/%s", g_wifi_info.f.config.download_path, filename);
+    url_encode(url, url);
+    /*
+     * GET
+     * 1.- %s: URI
+     * 2.- %s: Host
+     */
+    sprintf(rqst, http_c_http_get, url, HttpCurrentHost());
+    return WiFiQueryHostToFile(HttpCurrentHost(), HttpCurrentPort(), rqst, filename);
+}
+
 int HttpDecodeFormData(char* out, const char* in, unsigned int max_out)
 {
     int len = 0;
@@ -479,3 +499,4 @@ void HTTPCommandPulse( const char *obj_name )
     sprintf(rqst, http_c_http_get, url, HttpCurrentHost());
     WiFiQueryHost(HttpCurrentHost(), HttpCurrentPort(), rqst, NULL);
 }
+

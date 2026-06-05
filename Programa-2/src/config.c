@@ -36,6 +36,7 @@ void ConfigLoadDefault( void)
     g_wifi_info.f.config.wifi_host1_port = 80;
     g_wifi_info.f.config.wifi_host2_port = 80;
     strcpy(g_wifi_info.f.config.rqst_path, "/cgi-bin");
+    strcpy(g_wifi_info.f.config.download_path, "/download");
     g_wifi_info.f.config.report = 600;
     g_wifi_info.f.config.enable_https = 0;
     g_wifi_info.f.config.io_config_default = 1;
@@ -80,6 +81,10 @@ void ConfigLoad( void )
                 LogMessage("[CONFIG] Ajustando registro de configuracion de %d a %d bytes.",
                         rc, sizeof(config_in_file));
                 memset(&g_wifi_info.f.dummy[rc], 0, (sizeof(config_in_file)-rc));
+            }
+            if(g_wifi_info.f.config.download_path[0] == 0)
+            {
+                strcpy(g_wifi_info.f.config.download_path, "/download");
             }
             return;
         }

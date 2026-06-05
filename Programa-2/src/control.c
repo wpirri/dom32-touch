@@ -52,8 +52,8 @@ typedef enum
     SCREEN_SAVER_LOOP,
     SCREEN_OFFLINE,
     SCREEN_OFFLINE_LOOP,
-    SCREEN_FIRMWARE_UPGRADE,
-    SCREEN_FIRMWARE_UPGRADE_LOOP,
+    SCREEN_DOWNLOAD_FILE,
+    SCREEN_DOWNLOAD_FILE_LOOP,
     SCREEN_ERROR,
     SCREEN_ERROR_FATAL,
     SCREEN_ERROR_FATAL_LOOP
@@ -61,7 +61,6 @@ typedef enum
 
 enum_control_screen_stm control_screen_stm = SCREEN_INIT;
 bool status_sd_ok;
-bool status_firmware_upgrade;
 unsigned int control_screen_stm_delay;
 unsigned int control_screen_saver_count;
 char control_screen_filename[FILE_NAME_SIZE+1];
@@ -138,10 +137,9 @@ void BotonPressed(const char* cmd)
     }
     else if( !memcmp(cmd, "UPGRADE", 7))
     {
-        DisplayOff();
-        Clear(0);
-
-        /* TODO: Upgrade irmwaare */
+        control_screen_stm = SCREEN_DOWNLOAD_FILE;
+        HttpDownload(FIRMWARE_FILENAME);
+        control_screen_stm = SCREEN_CONFIG;
     }
     else if( !memcmp(cmd, "SWITCH:", 7))
     {
@@ -313,7 +311,6 @@ void ShowScreen(const char* filename)
 void ControlInit( bool sd_ok )
 {
     status_sd_ok = sd_ok;
-    status_firmware_upgrade = false;
     control_screen_number = 0;
     control_screen_stm_delay = 0;
     control_screen_saver_count = 0;
@@ -329,16 +326,10 @@ void Control_Screen_Task( void )
     /* ***** Maquina de estados de pantallas ***** */
     if(control_screen_stm_delay) return;
 
-    if(status_firmware_upgrade && control_screen_stm != SCREEN_FIRMWARE_UPGRADE_LOOP)
-    {
-        control_screen_stm = SCREEN_FIRMWARE_UPGRADE;
-    }
-
     if( (WiFiMode() == WIFI_MODE_AP_ST || WiFiMode() == WIFI_MODE_AP) && control_screen_stm != SCREEN_WIFI_CONFIG_LOOP )
     {
         control_screen_stm = SCREEN_WIFI_CONFIG;
     }
-
     
     switch(control_screen_stm)
     {
@@ -460,7 +451,7 @@ void Control_Screen_Task( void )
                 TouchTask();
             }
             break;
-        case SCREEN_FIRMWARE_UPGRADE:
+        case SCREEN_DOWNLOAD_FILE:
             LogMessage("[SCREEN] Firmware Upgrade");
             DisplayOff();
             /* Imagen centrada */
@@ -471,7 +462,7 @@ void Control_Screen_Task( void )
             DisplayOn();
             control_screen_stm++;
             break;
-        case SCREEN_FIRMWARE_UPGRADE_LOOP:
+        case SCREEN_DOWNLOAD_FILE_LOOP:
             break;
         case SCREEN_ERROR:
             LogMessage("[SCREEN] Error");
