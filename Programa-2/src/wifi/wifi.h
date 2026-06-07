@@ -31,6 +31,7 @@
 #define WIFI_HOST_ONLINE1           1
 #define WIFI_HOST_ONLINE2           2
 
+#define WIFI_BUFFER_LEN 4096
 
 void WiFiInit( void );
 int WiFiMode( void );

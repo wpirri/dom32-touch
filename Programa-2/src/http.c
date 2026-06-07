@@ -271,7 +271,7 @@ int HttpDownload(const char* filename)
     char url[256];
     char rqst[256];
 
-    LogMessage("[HttpDownload] %s", url);
+    LogMessage("[HttpDownload] %s", filename);
     
     if( !HttpOnLine()) return (-1);
 

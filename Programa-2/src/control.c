@@ -52,8 +52,6 @@ typedef enum
     SCREEN_SAVER_LOOP,
     SCREEN_OFFLINE,
     SCREEN_OFFLINE_LOOP,
-    SCREEN_DOWNLOAD_FILE,
-    SCREEN_DOWNLOAD_FILE_LOOP,
     SCREEN_ERROR,
     SCREEN_ERROR_FATAL,
     SCREEN_ERROR_FATAL_LOOP
@@ -86,7 +84,18 @@ typedef enum
 enum_control_wifi_stm control_wifi_stm = WIFI_INIT;
 unsigned int control_wifi_stm_delay;
 
-#define MAX_LINE_LEN 255
+void ShowDownloadScreen( void )
+{
+    LogMessage("[SCREEN] ShowDownloadScreen");
+    DisplayOff();
+    Clear(0);
+    /* Imagen centrada */
+    DrawBitmap(DOWNLOAD_SCREEN_BMP, 
+            ((DISPLAY_X_SIZE/2)-(GetBitmapW(DOWNLOAD_SCREEN_BMP)/2)), 
+            ((DISPLAY_Y_SIZE/2)-(GetBitmapH(DOWNLOAD_SCREEN_BMP)/2)) );
+    DisplayBrillo(g_wifi_info.f.config.brillo_max);
+    DisplayOn();
+}
 
 void BotonPressed(const char* cmd)
 {
@@ -137,7 +146,7 @@ void BotonPressed(const char* cmd)
     }
     else if( !memcmp(cmd, "UPGRADE", 7))
     {
-        control_screen_stm = SCREEN_DOWNLOAD_FILE;
+        ShowDownloadScreen();
         HttpDownload(FIRMWARE_FILENAME);
         control_screen_stm = SCREEN_CONFIG;
     }
@@ -198,7 +207,7 @@ void ShowScreen(const char* filename)
 {
     FSFILE* f;
     int rc;
-    char line[MAX_LINE_LEN+1];
+    char line[256];
     unsigned int line_len;
     char str_tmp[256];
     
@@ -228,7 +237,7 @@ void ShowScreen(const char* filename)
             line_len = 0;
             do {
                 rc = FSfread(&line[line_len++], 1, 1, f);
-            } while(line[line_len-1] != 0x0d && line[line_len-1] != 0x0a && line_len < MAX_LINE_LEN && rc == 1);
+            } while(line[line_len-1] != 0x0d && line[line_len-1] != 0x0a && line_len < 256 && rc == 1);
             line[--line_len] = 0;
             if(line_len > 0 && line[0] != '#')
             {
@@ -451,19 +460,6 @@ void Control_Screen_Task( void )
                 TouchTask();
             }
             break;
-        case SCREEN_DOWNLOAD_FILE:
-            LogMessage("[SCREEN] Firmware Upgrade");
-            DisplayOff();
-            /* Imagen centrada */
-            DrawBitmap(DOWNLOAD_SCREEN_BMP, 
-                    ((DISPLAY_X_SIZE/2)-(GetBitmapW(DOWNLOAD_SCREEN_BMP)/2)), 
-                    ((DISPLAY_Y_SIZE/2)-(GetBitmapH(DOWNLOAD_SCREEN_BMP)/2)) );
-            DisplayBrillo(g_wifi_info.f.config.brillo_min);
-            DisplayOn();
-            control_screen_stm++;
-            break;
-        case SCREEN_DOWNLOAD_FILE_LOOP:
-            break;
         case SCREEN_ERROR:
             LogMessage("[SCREEN] Error");
             DisplayOff();
@@ -598,7 +594,7 @@ void ControlHostKeepAlive(void)
     }
     else
     {
-        LogMessage("[ControlHostKeepAlive] HTTP Req No Ok [0%i]", rc);
+        LogMessage("[ControlHostKeepAlive] HTTP Req No Ok [%i]", rc);
     }
     HttpConexionError();
     keep_alive_timer_count = 500;

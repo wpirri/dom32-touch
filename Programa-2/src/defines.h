@@ -37,6 +37,7 @@
 // 0x124F80 = 100ms
 #define CORE_TIMER_COMPARE_VAL 0x1D4C0
 
+#define TMP_FILENAME            "download.tmp"
 #define FIRMWARE_FILENAME       "domtouch.hex"
 #define CONFIG_FILENAME         "d32touch.cfg"
 #define SCREEN_FILENAME         "screen.lst"

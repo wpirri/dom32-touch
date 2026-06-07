@@ -38,6 +38,10 @@
 #define UART_ISRXREADY          UART3_IsRxReady
 #define UART_READ               UART3_Read
 
+#ifndef _min
+#define _min(a,b) ((a<b)?a:b)
+#endif
+
 volatile unsigned int g_wifi_c_timer_count;
 int g_wifi_c_mode;
 int g_wifi_c_go_mode;
@@ -83,7 +87,8 @@ int WifiReadAt( char *data, unsigned int max_data, char at, int to )
     do {
         CLRWDT();
         while( UART_ISRXREADY() && ch != at && read_len < max_data && g_wifi_c_timer_count > 0)
-        {
+{
+            CLRWDT();
             ch = UART_READ();
             if(data/* && ch != 0x0d && ch != 0x0a*/)
             {
@@ -114,6 +119,7 @@ int WifiReadCount( char *data, unsigned int count, int to )
         CLRWDT();
         while( UART_ISRXREADY() && read_count < count && g_wifi_c_timer_count > 0)
         {
+            CLRWDT();
             ch = UART_READ();
             if(data)
             {
@@ -126,7 +132,7 @@ int WifiReadCount( char *data, unsigned int count, int to )
         }
     } while (read_count < count && g_wifi_c_timer_count > 0);
     
-    if(g_wifi_c_timer_count == 0) return (-1);
+    if(g_wifi_c_timer_count == 0) return (read_count)?read_count:(-1);
 
     return read_count;
 }
@@ -518,45 +524,42 @@ int WiFiQueryHost(const char* host, int port, const char* send_msg, char* recv_m
 
 int WiFiQueryHostToFile(const char* host, int port, const char* send_msg, const char* filename)
 {
-    char cmd[256];
-    char str_tmp[16];
-    int data_len = 0;
-    int recv_len = 0;
     int rc;
-    int http_header_resp;
-    char filename_tmp[] = "DOWNLOAD.TMP";
+    char buffer[WIFI_BUFFER_LEN+1];
     char* p;
-    FSFILE* f;
-    int file_len = 0;
-    
-    LogMessage("[WIFI] WiFiQueryHostToFile: Enviando %i bytes a %s:%i", strlen(send_msg), host, port);
+    char* ipd;
+    int ipd_channel, ipd_len, ipd_recibido;
+    unsigned long total_recibido = 0;
+    int dd_offset;
+
+    LogMessage("[WIFI:WiFiQueryHostToFile] WiFiQueryHostToFile: [%s]", filename);
     
     if(WiFiConectado() == 0)
     {
-        LogMessage("[WIFI] WiFiQueryHostToFile: WiFi no conectado");
+        LogMessage("[WIFI:WiFiQueryHostToFile] WiFiQueryHostToFile: WiFi no conectado");
         return (-1);
     }
     
     /* Conexión */
-    sprintf(cmd, "AT+CIPSTART=0,\"%s\",\"%s\",%i",
+    sprintf(buffer, "AT+CIPSTART=0,\"%s\",\"%s\",%i",
             (g_wifi_info.f.config.enable_https)?"SSL":"TCP", host, port);
-    if(WiFiCommand(cmd, "OK", 150) < 0)
+    if(WiFiCommand(buffer, "OK", 150) < 0)
     {
-        LogMessage("[WIFI] WiFiQueryHostToFile: time-Out intentando conectar con %s:%i", host, port);
+        LogMessage("[WIFI:WiFiQueryHostToFile] WiFiQueryHostToFile: time-Out intentando conectar con %s:%i", host, port);
         return (-1);
     }
     /* Send */
-    sprintf(cmd, "AT+CIPSEND=0,%d", strlen(send_msg));
-    WifiWriteLine(cmd);
+    sprintf(buffer, "AT+CIPSEND=0,%d", strlen(send_msg));
+    WifiWriteLine(buffer);
     /* Espero el prompt para enviar los datos */
     if(WifiReadAt(NULL, 9999, '>', 300) < 0)
     {
-        LogMessage("[WIFI] WiFiQueryHostToFile: Time-Out esperando enviar datos");
+        LogMessage("[WIFI:WiFiQueryHostToFile] WiFiQueryHostToFile: Time-Out esperando enviar datos");
         return (-1);
     }
     if(WiFiCommand(send_msg, "SEND OK", 1000) < 0)
     {
-        LogMessage("[WIFI] WiFiQueryHostToFile: Time-Out esperando SEND OK");
+        LogMessage("[WIFI:WiFiQueryHostToFile] WiFiQueryHostToFile: Time-Out esperando SEND OK");
         return (-1);
     }
 
@@ -567,104 +570,62 @@ int WiFiQueryHostToFile(const char* host, int port, const char* send_msg, const 
         [content-length: 22]
         [content-type: application/json]     
      */
-    LogMessage("[WIFI] WiFiQueryHostToFile: Esperando respuesta");
-    /* Recibo la cabecera IPD o el close */
-    while(WifiReadAt(cmd, 256, '\n', 500) >= 0)
+
+    /*
+    f = FSfopen(TMP_FILENAME, FS_WRITE);
+    if( !f)
     {
-        LogMessage("[WIFI] WiFiQueryHostToFile Recibido: [%s]", cmd);
-        if( !memcmp(cmd, "+IPD", 4))
-        {
-            if(str_section(cmd, ',', 2, str_tmp))
-            {
-                data_len = atoi(str_tmp);
-            }
-            if(strchr(cmd, ':'))
-            {
-                p = ((char*)(strchr(cmd, ':')+1));
-                recv_len = strlen(p);
-                http_header_resp = HTTPHeadResponse(cmd);
-            }
-            break;
-        }
-        else if( !memcmp(cmd, "0,CLOSED", 8))
-        {
-            break;
-        }
-        else if( cmd[0] == '\r' && cmd[1] == '\n')
-        {
-            if(data_len && recv_len)
-            {
-                /* fin de la cabecera http */
-                break;
-                
-            }
-        }
-        else
-        {
-            if(HTTPGetHeadData(cmd, "content-length", str_tmp))
-            {
-                file_len = atoi(str_tmp);
-            }
-        }
+        LogMessage("[WIFI:WiFiQueryHostToFile] WiFiQueryHostToFile: ERROR al abrir archivo temporal %s", TMP_FILENAME);
+        return (-1);
     }
+    */
+    
+    LogMessage("[WIFI:WiFiQueryHostToFile] WiFiQueryHostToFile: Esperando respuesta");
 
-    if(http_header_resp == 200 && file_len > 0)
+    /* Me aseguro de recibir la cabecera */
+    while( (rc = WifiReadCount(buffer, 16, 500 )) > 0)
     {
-        /* Abro archivo temporal */
-        f = FSfopen(filename_tmp, FS_WRITE);
-        if( !f )
+        buffer[rc] = 0;
+        total_recibido += rc;
+        ipd = strstr(buffer, "+IPD");
+        if(!ipd)
         {
-            LogMessage("[WIFI] WiFiQueryHostToFile: ERROR abriendo archivo temporal");
-            return (-1);
+            LogMessage("[WIFI:WiFiQueryHostToFile] WiFiQueryHostToFile: Error en la cabecera +IPD");
+            break;
         }
-        /* Recibo los datos */
-        while(recv_len < data_len)
+        LogMessage("[WIFI:WiFiQueryHostToFile] WiFiQueryHostToFile: Recibido(1) %i bytes", rc);
+        /* Parseo la cabecera */
+        if(sscanf(ipd, "+IPD,%d,%d:", &ipd_channel, &ipd_len) != 2)
         {
-            LogMessage("[WIFI] WiFiQueryHost faltan %i bytes", (data_len-recv_len));
-            rc = WifiReadCount(cmd, ((data_len-recv_len)<256)?(data_len-recv_len):256, 500 );
-            if(rc < 0)
-            {
-                LogMessage("[WIFI] WiFiQueryHostToFile Time-Out faltando %i bytes", (recv_len < data_len));
-                break;
-            }
-            LogMessage("[WIFI] WiFiQueryHostToFile Recibido: [%s]", cmd);
-            FSfwrite(cmd, (file_len<rc)?file_len:rc, 1, f);
-            file_len -= ((file_len<rc)?file_len:rc);
-            recv_len += rc;
+            LogMessage("[WIFI:WiFiQueryHostToFile] WiFiQueryHostToFile: Error en la cabecera +IPD [%s]", ipd);
+            break;
         }
-
-        /* Si terminó todo bien */
-        if(file_len == 0)
-        {
-            /* Borro el archivo si ya existe */
-            FSremove(filename);
-            /* Renombro el temporal al nombre definitivo */
-            FSrename (filename, f);
-        }
-        /* Cierro el archivo */
-        FSfclose(f);
-        /* Borro el temporal si quedó */
-        FSremove(filename_tmp);
+        LogMessage("[WIFI:WiFiQueryHostToFile] WiFiQueryHostToFile: +IPD %i bytes", ipd_len);
+        p = ((char*)strchr(ipd, ':'));
+        *p = 0;
+        dd_offset = p - &buffer[0];
+        LogMessage("[WIFI:WiFiQueryHostToFile] WiFiQueryHostToFile: dd_offset: %i", dd_offset);
+        ipd_recibido = 16 - dd_offset;;
+        LogMessage("[WIFI:WiFiQueryHostToFile] WiFiQueryHostToFile: ipd_recibifo: %i", ipd_recibido);
+        p++;
+        /* Recibo el resto del paquete */
+        LogMessage("[WIFI:WiFiQueryHostToFile] WiFiQueryHostToFile: +IPD faltan %i bytes", (ipd_len - ipd_recibido));
+        rc = WifiReadCount(p, ipd_len - ipd_recibido, 500 );
+        LogMessage("[WIFI:WiFiQueryHostToFile] WiFiQueryHostToFile: Recibido(2) %i bytes", rc);
+        total_recibido += rc;
+        /* En ipd tengo un paquete +IPD completo */
+        
+        
+        
+        
+        
         
     }
-    else
-    {
-        LogMessage("[WIFI] WiFiQueryHostToFile: ERROR HTTP 0%i FileLen: %i bytes", http_header_resp, file_len);
-    }
-    LogMessage("[WIFI] WiFiQueryHostToFile: Esperando Cierre de conexion");
-    /* Espero el cierre de conexión */
-    while(WifiReadAt(cmd, 256, '\n', 100) >= 0)
-    {
-        if( !memcmp(cmd, "0,CLOSED", 8))
-        {
-            break;
-        }
-    }
     
-    /* Me aseguro el Close */
-    WiFiCommand("AT+CIPCLOSE=0", "OK", 1);
+    LogMessage("[WIFI:WiFiQueryHostToFile] WiFiQueryHostToFile: Total recibido %lu bytes", total_recibido);
     
-    return recv_len;
+    
+    return 0;
 }
 
 void WiFiTimerInt( void )
