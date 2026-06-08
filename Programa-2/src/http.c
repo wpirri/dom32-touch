@@ -271,8 +271,6 @@ int HttpDownload(const char* filename)
     char url[256];
     char rqst[256];
 
-    LogMessage("[HttpDownload] %s", filename);
-    
     if( !HttpOnLine()) return (-1);
 
     sprintf(url, "%s/%s", g_wifi_info.f.config.download_path, filename);
@@ -290,8 +288,6 @@ int HttpDecodeFormData(char* out, const char* in, unsigned int max_out)
 {
     int len = 0;
     
-    LogMessage("HttpDecodeFormData");
-
     if(!in || !out) return (-1);
     
     while(*in)
@@ -318,8 +314,6 @@ int HttpDecodeFormData(char* out, const char* in, unsigned int max_out)
 int HttpGetRequest(const char *buffer, char *request, int max_len)
 {
 	int rc = 0;
-    
-    LogMessage("HttpGetRequest");
     
 	while(*buffer && *buffer != '/') buffer++;
 	if( !(*buffer)) return 0;
@@ -396,8 +390,6 @@ int HTTPHeadResponse(const char *http_head)
     char str[4];
     char *p1;
     
-    LogMessage("[HTTPHeadResponse] %-.20s", http_head); 
-
     if(http_head)
     {
         /* Busco el c�digo de respuesta http en la cabecera
@@ -419,8 +411,6 @@ int HTTPFormResponse(const char *http_data)
 {
     char str[16];
     
-    LogMessage("[HTTPFormResponse] %-.100s", http_data); 
-
     if(http_data)
     {
         if( strchr(http_data, '{') && 
@@ -462,8 +452,6 @@ void HTTPCommandSwitch( const char *obj_name )
     char url[256];
     char rqst[256];
 
-    LogMessage("[HTTPCommandSwitch] %s", obj_name);
-    
     if( !HttpOnLine()) return;
 
     sprintf(url, "%s/abmassign.cgi?funcion=switch&Objeto=%s", g_wifi_info.f.config.rqst_path, obj_name);
@@ -485,8 +473,6 @@ void HTTPCommandPulse( const char *obj_name )
     char url[256];
     char rqst[256];
 
-    LogMessage("[HTTPCommandSwitch] %s", obj_name);
-    
     if( !HttpOnLine()) return;
 
     sprintf(url, "%s/abmassign.cgi?funcion=pulse&Objeto=%s", g_wifi_info.f.config.rqst_path, obj_name);
