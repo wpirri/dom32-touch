@@ -650,8 +650,9 @@ int WiFiQueryHostToFile(const char* host, int port, const char* send_msg, const 
             }
         }
     }
-    
+
     /* Se terminó de recibir la cabecera HTTP */
+    LogMessage("[WIFI] WiFiQueryHostToFile: Recibiendo archivo de %i bytes", content_length);
     f = FSfopen(TMP_FILENAME, FS_WRITE);
     if( !f )
     {
@@ -676,7 +677,6 @@ int WiFiQueryHostToFile(const char* host, int port, const char* send_msg, const 
             /* Escribir cmd x rc bytes al archivo */
             FSfwrite(cmd, rc, 1, f);
             total_escrito += rc;
-            
         }
         rc = WifiReadCount(cmd, 16, 500);
         if(rc > 0)
@@ -695,9 +695,8 @@ int WiFiQueryHostToFile(const char* host, int port, const char* send_msg, const 
                     recv_len = rc - ((int)(p - &cmd[0]));
 
                     /* Escribir p x rc - ((int)(p - &cmd[0])) bytes al archivo */
-                    FSfwrite(p, rc, 1, f);
-                    total_escrito += rc;
-                    
+                    FSfwrite(p, ((int)(p - &cmd[0])), 1, f);
+                    total_escrito += ((int)(p - &cmd[0]));
                 }                
             }
             else
@@ -710,7 +709,6 @@ int WiFiQueryHostToFile(const char* host, int port, const char* send_msg, const 
 
     LogMessage("[WIFI] WiFiQueryHostToFile: Archivo [%s] esperado: %lu recibido: %lu", filename, content_length, total_escrito);
 
-    
     FSremove(filename);
     FSrename(filename, f);
     FSfclose(f);
