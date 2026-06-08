@@ -473,7 +473,6 @@ int WiFiQueryHost(const char* host, int port, const char* send_msg, char* recv_m
     while( (rc = WifiReadAt(cmd, WIFI_BUFFER_LEN, '\n', 500)) >= 0)
     {
         cmd[rc] = 0;
-        LogMessage("[WIFI] WifiReadAt Recibido: [%s]", cmd);
         if( !memcmp(cmd, "+IPD", 4))
         {
             if(str_section(cmd, ',', 2, str_tmp))
@@ -515,7 +514,6 @@ int WiFiQueryHost(const char* host, int port, const char* send_msg, char* recv_m
     /* Recibo los datos */
     while(recv_len < data_len)
     {
-        LogMessage("[WIFI] WiFiQueryHost faltan %i bytes", (data_len-recv_len));
         rc = WifiReadCount(cmd, ((data_len-recv_len)<WIFI_BUFFER_LEN)?(data_len-recv_len):WIFI_BUFFER_LEN, 500 );
         if(rc < 0)
         {
@@ -523,7 +521,6 @@ int WiFiQueryHost(const char* host, int port, const char* send_msg, char* recv_m
             break;
         }
         cmd[rc] = 0;
-        LogMessage("[WIFI] WifiReadCount Recibido: [%s]", cmd);
         if(recv_msg)
         {
             memcpy(recv_msg, cmd, rc);
@@ -619,7 +616,6 @@ int WiFiQueryHostToFile(const char* host, int port, const char* send_msg, const 
     while( (rc = WifiReadAt(cmd, WIFI_BUFFER_LEN, '\n', 500)) >= 0)
     {
         cmd[rc] = 0;
-        LogMessage("[WIFI] WifiReadAt Recibido: [%s]", cmd);
         if( !memcmp(cmd, "+IPD", 4))
         {
             if(str_section(cmd, ',', 2, str_tmp))
@@ -668,15 +664,13 @@ int WiFiQueryHostToFile(const char* host, int port, const char* send_msg, const 
         /* Recibo los datos */
         while(recv_len < data_len)
         {
-            LogMessage("[WIFI] WiFiQueryHostToFile faltan %i bytes", (data_len-recv_len));
-            rc = WifiReadCount(cmd, ((data_len-recv_len)<WIFI_BUFFER_LEN)?(data_len-recv_len):WIFI_BUFFER_LEN, 500 );
+            rc = WifiReadCount(cmd, ((data_len-recv_len)<WIFI_BUFFER_LEN)?(data_len-recv_len):WIFI_BUFFER_LEN, 100 );
             if(rc < 0)
             {
                 LogMessage("[WIFI] WiFiQueryHostToFile Time-Out faltando %i bytes", (recv_len < data_len));
                 break;
             }
             cmd[rc] = 0;
-            LogMessage("[WIFI] WifiReadCount Recibido: [%s]", cmd);
             recv_len += rc;
             
             /* Escribir cmd x rc bytes al archivo */
@@ -688,7 +682,6 @@ int WiFiQueryHostToFile(const char* host, int port, const char* send_msg, const 
         if(rc > 0)
         {
             cmd[rc] = 0;
-            LogMessage("[WIFI] WifiReadCount Recibido: [%s] Esperando mas +IPD", cmd);
             p_ipd = strstr(cmd, "+IPD");
             if(p_ipd)
             {
