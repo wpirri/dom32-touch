@@ -695,8 +695,8 @@ int WiFiQueryHostToFile(const char* host, int port, const char* send_msg, const 
                     recv_len = rc - ((int)(p - &cmd[0]));
 
                     /* Escribir p x rc - ((int)(p - &cmd[0])) bytes al archivo */
-                    FSfwrite(p, ((int)(p - &cmd[0])), 1, f);
-                    total_escrito += ((int)(p - &cmd[0]));
+                    FSfwrite(p, recv_len, 1, f);
+                    total_escrito += recv_len;
                 }                
             }
             else
