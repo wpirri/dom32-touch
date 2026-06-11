@@ -80,23 +80,7 @@ typedef struct
     } f;
     struct
     {
-        bool wifi_ok;
-        bool wifi_start_ap;
-        bool wifi_start_st;
-        bool wifi_ssl_capable;
-        bool flag_sd_ok;
-        unsigned char save_config;
-        unsigned int wifi_port_select;
-        unsigned int count_inactividad;
-        unsigned int control_notificar;
         char hw_mac[13];
-        char wifi_at[65];
-        char wifi_sdk[65];
-        char up_fw[65];
-        unsigned char brillo;
-        unsigned char sombra;
-        unsigned char debug;
-        unsigned char display_type;
     } status;
 } wifi_info;
 
@@ -111,7 +95,6 @@ void ConfigInit(void);
 
 void ConfigLoad( void );
 void ConfigSave(void);
-void ConfigTimer(void);
 
 void DumpConfig( void );
 

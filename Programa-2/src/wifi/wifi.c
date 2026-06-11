@@ -43,6 +43,7 @@ int g_wifi_c_mode;
 int g_wifi_c_go_mode;
 int g_wifi_c_ap_conectado;
 int g_wifi_c_go_ap_conectado;
+char g_wifi_c_hw_mac[13];
 
 void WifiWrite( const char *buffer )
 {
@@ -171,19 +172,19 @@ int WiFiCheckUnsolMsg(const char* msg)
         if( !memcmp((const char*)(msg+7), "STAMAC", 6))
         {
             LogMessage("[WiFi] MAC %.17s", (const char*)(msg+15));
-            g_wifi_info.status.hw_mac[0]  = *(msg+15);
-            g_wifi_info.status.hw_mac[1]  = *(msg+16);
-            g_wifi_info.status.hw_mac[2]  = *(msg+18);
-            g_wifi_info.status.hw_mac[3]  = *(msg+19);
-            g_wifi_info.status.hw_mac[4]  = *(msg+21);
-            g_wifi_info.status.hw_mac[5]  = *(msg+22);
-            g_wifi_info.status.hw_mac[6]  = *(msg+24);
-            g_wifi_info.status.hw_mac[7]  = *(msg+25);
-            g_wifi_info.status.hw_mac[8]  = *(msg+27);
-            g_wifi_info.status.hw_mac[9]  = *(msg+28);
-            g_wifi_info.status.hw_mac[10] = *(msg+30);
-            g_wifi_info.status.hw_mac[11] = *(msg+31);
-            g_wifi_info.status.hw_mac[12] = 0;
+            g_wifi_c_hw_mac[0]  = *(msg+15);
+            g_wifi_c_hw_mac[1]  = *(msg+16);
+            g_wifi_c_hw_mac[2]  = *(msg+18);
+            g_wifi_c_hw_mac[3]  = *(msg+19);
+            g_wifi_c_hw_mac[4]  = *(msg+21);
+            g_wifi_c_hw_mac[5]  = *(msg+22);
+            g_wifi_c_hw_mac[6]  = *(msg+24);
+            g_wifi_c_hw_mac[7]  = *(msg+25);
+            g_wifi_c_hw_mac[8]  = *(msg+27);
+            g_wifi_c_hw_mac[9]  = *(msg+28);
+            g_wifi_c_hw_mac[10] = *(msg+30);
+            g_wifi_c_hw_mac[11] = *(msg+31);
+            g_wifi_c_hw_mac[12] = 0;
         }
         else if( !memcmp((const char*)(msg+7), "STAIP", 5))
         {
@@ -309,7 +310,7 @@ int WiFiSetMode(int mode)
     /* Solo para AP */
     if(mode == WIFI_MODE_AP || mode == WIFI_MODE_AP_ST)
     {
-        sprintf(cmd, "AT+CWSAP=\"Dom32touch-%s\",\"\",1,0,4,0", &g_wifi_info.status.hw_mac[6]);
+        sprintf(cmd, "AT+CWSAP=\"Dom32touch-%s\",\"\",1,0,4,0", &g_wifi_c_hw_mac[6]);
         if(WiFiCommand(cmd, "OK", 150) < 0) return (-1);
         /* Max conexiones */
         if(WiFiCommand("AT+CIPSERVERMAXCONN=1", "OK", 150) < 0) return (-1);
@@ -405,6 +406,11 @@ void WiFiCheckUnsol( void )
         LogMessage("[WIFI] Unsol [%s]", buffer);
         WiFiCheckUnsolMsg(buffer);
     }
+}
+
+const char* WiFiMAC( void )
+{
+    return ((const char*)(&g_wifi_c_hw_mac[0]));
 }
 
 int WiFiQueryHost(const char* host, int port, const char* send_msg, char* recv_msg)

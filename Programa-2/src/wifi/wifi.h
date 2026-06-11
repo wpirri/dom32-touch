@@ -40,6 +40,7 @@ void WiFiSwitchRouter( void );
 int WiFiStart( void );
 int WiFiSetMode(int mode);
 void WiFiCheckUnsol( void );
+const char* WiFiMAC( void );
 
 int WiFiQueryHost(const char* host, int port, const char* send_msg, char* recv_msg);
 int WiFiQueryHostToFile(const char* host, int port, const char* send_msg, const char* filename);

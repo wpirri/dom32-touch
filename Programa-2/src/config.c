@@ -49,8 +49,6 @@ void ConfigLoadDefault( void)
     g_wifi_info.f.config.brillo_max = 80;
     g_wifi_info.f.config.brillo_med = 50;
     g_wifi_info.f.config.brillo_min = 30;
-
-    g_wifi_info.status.save_config = 10;
 }
 
 /*****************************************************************************/
@@ -101,44 +99,26 @@ void ConfigSave(void)
     FSFILE* f;
     int rc;
 
-    g_wifi_info.status.save_config = 0;
-    
-    if(g_wifi_info.status.flag_sd_ok)
+    LogMessage("[CONFIG] ConfigSave %s.", CONFIG_FILENAME);
+    f = FSfopen(CONFIG_FILENAME, FS_WRITE);
+    if(f)
     {
-        LogMessage("[CONFIG] ConfigSave %s.", CONFIG_FILENAME);
-        f = FSfopen(CONFIG_FILENAME, FS_WRITE);
-        if(f)
+        rc = FSfwrite(&g_wifi_info.f.config, sizeof(config_in_file), 1, f);
+        FSfclose(f);
+        if(rc == 1)
         {
-            rc = FSfwrite(&g_wifi_info.f.config, sizeof(config_in_file), 1, f);
-            FSfclose(f);
-            if(rc == 1)
-            {
-                LogMessage("[CONFIG] Guardado en %s Ok.", CONFIG_FILENAME);
-                DumpConfig();
-            }
-            else
-            {
-                LogMessage("[CONFIG] Error de escritura en %s.", CONFIG_FILENAME);
-            }
+            LogMessage("[CONFIG] Guardado en %s Ok.", CONFIG_FILENAME);
+            DumpConfig();
         }
         else
         {
-            LogMessage("[CONFIG] Error al abrir/crear el archivo %s en SD.", CONFIG_FILENAME);
+            LogMessage("[CONFIG] Error de escritura en %s.", CONFIG_FILENAME);
         }
     }
-}
-
-void ConfigTimer(void)
-{
-    if(g_wifi_info.status.save_config)
+    else
     {
-        g_wifi_info.status.save_config--;
-        if(g_wifi_info.status.save_config == 0)
-        {
-            ConfigSave();
-        }
+        LogMessage("[CONFIG] Error al abrir/crear el archivo %s en SD.", CONFIG_FILENAME);
     }
-    
 }
 
 void DumpConfig( void )
