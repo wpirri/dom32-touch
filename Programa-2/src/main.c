@@ -96,6 +96,8 @@ int main(void)
         status_sd_ok = false;
         LogMessage("[MAIN] File System Error");
     }
+    LogMessage("[MAIN] Compilacion " __DATE__ " " __TIME__ ".");
+    LogMessage("[MAIN] Compilador " __VERSION__ ".");
 
     LogMessage("[MAIN] Configuracion");
     ConfigInit();
