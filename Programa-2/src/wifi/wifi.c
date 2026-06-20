@@ -222,7 +222,20 @@ int WiFiCommand(const char* cmd, const char* wait, int to)
         if( !strstr(buffer, wait))
         {
             LogMessage("[WIFI] %s -> [%s]", cmd, buffer);
-            /* Capturo los datos que me interesan cuando aparecen */
+            if( !memcmp(buffer, "ERROR", 5))
+            {
+                LogMessage("[WIFI] ERROR: Esperando [%s]", wait);
+                return (-1);
+            }
+            /*
+            else if( !memcmp(buffer, "ALREADY CONNECTED", 17))
+            {
+                LogMessage("[WIFI] Deconectando y Reintentando [%s]", cmd);
+                WiFiCommand("AT+CIPCLOSE=0", "OK", 100);
+                WifiWriteLine(cmd);
+                continue;
+            }
+            */
             WiFiCheckUnsolMsg(buffer);
         }
     } while( !strstr(buffer, wait));
@@ -437,6 +450,7 @@ int WiFiQueryHost(const char* host, int port, const char* send_msg, char* recv_m
     if(WiFiCommand(cmd, "OK", 150) < 0)
     {
         LogMessage("[WIFI] WiFiQueryHost: time-Out intentando conectar con %s:%i", host, port);
+        WiFiCommand("AT+CIPCLOSE=0", "OK", 100);
         return (-1);
     }
     /* Send */
@@ -446,11 +460,13 @@ int WiFiQueryHost(const char* host, int port, const char* send_msg, char* recv_m
     if(WifiReadAt(NULL, 9999, '>', 300) < 0)
     {
         LogMessage("[WIFI] WiFiQueryHost: Time-Out esperando enviar datos");
+        WiFiCommand("AT+CIPCLOSE=0", "OK", 100);
         return (-1);
     }
     if(WiFiCommand(send_msg, "SEND OK", 1000) < 0)
     {
         LogMessage("[WIFI] WiFiQueryHost: Time-Out esperando SEND OK");
+        WiFiCommand("AT+CIPCLOSE=0", "OK", 100);
         return (-1);
     }
 
@@ -547,7 +563,7 @@ int WiFiQueryHost(const char* host, int port, const char* send_msg, char* recv_m
     }
     
     /* Me aseguro el Close */
-    WiFiCommand("AT+CIPCLOSE=0", "OK", 1);
+    WiFiCommand("AT+CIPCLOSE=0", "OK", 100);
 
     return recv_len;
 }
@@ -580,6 +596,7 @@ int WiFiQueryHostToFile(const char* host, int port, const char* send_msg, const 
     if(WiFiCommand(cmd, "OK", 150) < 0)
     {
         LogMessage("[WIFI] WiFiQueryHostToFile: time-Out intentando conectar con %s:%i", host, port);
+        WiFiCommand("AT+CIPCLOSE=0", "OK", 100);
         return (-1);
     }
     /* Send */
@@ -589,11 +606,13 @@ int WiFiQueryHostToFile(const char* host, int port, const char* send_msg, const 
     if(WifiReadAt(NULL, 9999, '>', 300) < 0)
     {
         LogMessage("[WIFI] WiFiQueryHostToFile: Time-Out esperando enviar datos");
+        WiFiCommand("AT+CIPCLOSE=0", "OK", 100);
         return (-1);
     }
     if(WiFiCommand(send_msg, "SEND OK", 1000) < 0)
     {
         LogMessage("[WIFI] WiFiQueryHostToFile: Time-Out esperando SEND OK");
+        WiFiCommand("AT+CIPCLOSE=0", "OK", 100);
         return (-1);
     }
 
@@ -663,6 +682,7 @@ int WiFiQueryHostToFile(const char* host, int port, const char* send_msg, const 
     if( !f )
     {
         LogMessage("[WIFI] WiFiQueryHostToFile: ERROR intentando abrir el archivo temporal [%s]", TMP_FILENAME);
+        WiFiCommand("AT+CIPCLOSE=0", "OK", 100);
         return (-1);
     }
 
@@ -730,7 +750,7 @@ int WiFiQueryHostToFile(const char* host, int port, const char* send_msg, const 
     }
     
     /* Me aseguro el Close */
-    WiFiCommand("AT+CIPCLOSE=0", "OK", 1);
+    WiFiCommand("AT+CIPCLOSE=0", "OK", 100);
 
     return recv_len;
 }
