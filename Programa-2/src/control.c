@@ -620,7 +620,7 @@ void ControlHostKeepAlive(void)
     char data[256];
     int rc;
     char resp_err_code[16];
-    char resp_err_msg[16];
+    char resp_err_msg[256];
     
     if(keep_alive_timer_count) return;
     
