@@ -294,7 +294,7 @@ int WiFiStart( void )
     /* Obtengo la MAC */
     if(WiFiCommand("AT+CIFSR", "OK", 150) < 0) return (-1);
     /* Me quedo en Modo 0 - Puede devolver error*/
-    WiFiCommand("AT+CWMODE=0", "OK", 50);
+    WiFiCommand("AT+CWMODE=0", "OK", 150);
     
     return 0;
 }
@@ -311,9 +311,9 @@ int WiFiSetMode(int mode)
     g_wifi_c_mode = 0;
 
     /* Apago cualquier LISTEN que pueda haber - Puede dar error */
-    WiFiCommand("AT+CIPSERVER=0", "OK", 50);
+    WiFiCommand("AT+CIPSERVER=0", "OK", 150);
     /* Si estaba en otro modo me muevo al 0 - Puede dar error*/
-    WiFiCommand("AT+CWMODE=0", "OK", 50);
+    WiFiCommand("AT+CWMODE=0", "OK", 150);
     /* Seteo el modo */
     sprintf(cmd, "AT+CWMODE=%i", mode);
     if(WiFiCommand(cmd, "OK", 150) < 0) return (-1);
@@ -404,7 +404,7 @@ int WiFiSetMode(int mode)
         }
         if(WiFiCommand(cmd, "OK", 1000) < 0) return (-1);
         /* IP y MAC cuando conecte va a devolver la IP */
-        if(WiFiCommand("AT+CIFSR", "OK", 150) < 0) return (-1);
+        if(WiFiCommand("AT+CIFSR", "OK", 300) < 0) return (-1);
     }
     g_wifi_c_mode = mode;
     return 0;
@@ -447,17 +447,16 @@ int WiFiQueryHost(const char* host, int port, const char* send_msg, char* recv_m
     /* Conexión */
     sprintf(cmd, "AT+CIPSTART=0,\"%s\",\"%s\",%i",
             (g_wifi_info.f.config.enable_https)?"SSL":"TCP", host, port);
-    if(WiFiCommand(cmd, "OK", 150) < 0)
+    if(WiFiCommand(cmd, "OK", 1000) < 0)
     {
         LogMessage("[WIFI] WiFiQueryHost: time-Out intentando conectar con %s:%i", host, port);
-        WiFiCommand("AT+CIPCLOSE=0", "OK", 100);
         return (-1);
     }
     /* Send */
     sprintf(cmd, "AT+CIPSEND=0,%d", strlen(send_msg));
     WifiWriteLine(cmd);
     /* Espero el prompt para enviar los datos */
-    if(WifiReadAt(NULL, 9999, '>', 300) < 0)
+    if(WifiReadAt(NULL, 9999, '>', 1000) < 0)
     {
         LogMessage("[WIFI] WiFiQueryHost: Time-Out esperando enviar datos");
         WiFiCommand("AT+CIPCLOSE=0", "OK", 100);
@@ -554,7 +553,7 @@ int WiFiQueryHost(const char* host, int port, const char* send_msg, char* recv_m
 
     LogMessage("[WIFI] WiFiQueryHost: Esperando Cierre de conexion");
     /* Espero el cierre de conexión */
-    while(WifiReadAt(cmd, 256, '\n', 100) >= 0)
+    while(WifiReadAt(cmd, 256, '\n', 150) >= 0)
     {
         if( !memcmp(cmd, "0,CLOSED", 8))
         {
@@ -593,17 +592,16 @@ int WiFiQueryHostToFile(const char* host, int port, const char* send_msg, const 
     /* Conexión */
     sprintf(cmd, "AT+CIPSTART=0,\"%s\",\"%s\",%i",
             (g_wifi_info.f.config.enable_https)?"SSL":"TCP", host, port);
-    if(WiFiCommand(cmd, "OK", 150) < 0)
+    if(WiFiCommand(cmd, "OK", 1000) < 0)
     {
         LogMessage("[WIFI] WiFiQueryHostToFile: time-Out intentando conectar con %s:%i", host, port);
-        WiFiCommand("AT+CIPCLOSE=0", "OK", 100);
         return (-1);
     }
     /* Send */
     sprintf(cmd, "AT+CIPSEND=0,%d", strlen(send_msg));
     WifiWriteLine(cmd);
     /* Espero el prompt para enviar los datos */
-    if(WifiReadAt(NULL, 9999, '>', 300) < 0)
+    if(WifiReadAt(NULL, 9999, '>', 1000) < 0)
     {
         LogMessage("[WIFI] WiFiQueryHostToFile: Time-Out esperando enviar datos");
         WiFiCommand("AT+CIPCLOSE=0", "OK", 100);
