@@ -1,0 +1,27 @@
+## Archivo: screen3.csv
+## Creado: 2026/07/01 23:26:22
+#
+# FONDO,[color]
+# BOTON_CUADRADO,[etiqueta],[comando:objeto],[x],[y],[w],[h],[color fondo],[color borde],[color etiqueta],[icono],[orientacion]
+# BOTON_REDONDO,[etiqueta],[comando:objeto],[x],[y],[w],[h],[color fondo],[color borde],[color etiqueta],[icono],[orientacion]
+#
+# etiqueta: Texto que aparece en el botón (opcopnal)
+# comando: SWITCH, PULSE, CONFIG, HOME, NEXT, PREV
+# objeto: 
+# x: posición X de la esquina superior derecha del botón
+# y: posición Y de la esquina superior derecha del botón
+# w: Ancho del botón
+# h: altura del botón
+# color fondo: 0 a 65535
+# color borde: 0 a 65535
+# color etiqueta: 0 a 65535
+# icono: archivo BMP de 48x48 pixel (opcopnal)
+# orientacion: 0 = Horizontal, 1 = Vertical
+#
+FONDO,16
+#
+BOTON_REDONDO,Taller,SWITCH:Luz Taller,5,5,230,80,256,768,58624,lamp1.bmp,0
+BOTON_REDONDO,Deposito,SWITCH:Luz Deposito,5,90,230,80,256,768,58624,lamp1.bmp,0
+BOTON_REDONDO,Quincho,SWITCH:Luz Quincho,5,175,230,80,256,768,58624,lamp1.bmp,0
+BOTON_CUADRADO,,PREV,20,260,60,60,16,16,16,prev.bmp,0
+BOTON_CUADRADO,,HOME,90,260,60,60,16,16,16,home.bmp,0
