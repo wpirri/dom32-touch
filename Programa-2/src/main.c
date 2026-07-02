@@ -137,10 +137,9 @@ int main(void)
     while(1)
     {
         CLRWDT();
+        ControlTask();
         Control_Screen_Task();
         Control_WiFi_Task();
-        ControlHostKeepAlive();
-
     }
     return 0;
 }

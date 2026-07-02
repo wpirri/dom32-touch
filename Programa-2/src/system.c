@@ -130,8 +130,8 @@ void __attribute__ ((vector(_CORE_TIMER_VECTOR), interrupt(IPL1SOFT))) _CORE_TIM
     /* ********************************************************************* */
     /* 100 interrupciones por segundo                                        */
     /* ********************************************************************* */
-    WiFiTimerInt();
-    ControlTimerInt();
+    WiFiTimer();
+    ControlTimer();
 
 }
 

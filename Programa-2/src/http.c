@@ -190,19 +190,43 @@ int HttpQueryHost(const char* url, const char* msg_send, char* resp_header, char
     /* Selección de host y port */
     if(g_http_c_host_conectado == 0)
     {
+        /* Si todavía no tuve una conexión Ok o tuve errores */
+        
         if(g_wifi_info.f.config.wifi_host1[0] == 0 &&
-           g_wifi_info.f.config.wifi_host2[0] == 0  ) return (-1);
-        if(g_http_c_go_host_conectado == 0) g_http_c_go_host_conectado = 1;
-        if(g_http_c_go_host_conectado == 1 && g_wifi_info.f.config.wifi_host1[0])
+           g_wifi_info.f.config.wifi_host2[0] == 0  )
+        {
+            /* Si no hay host definido no puedo seguir */
+            return (-1);
+        }
+        
+        if(g_http_c_go_host_conectado == 0)
+        {
+            /* Decido dónde probar primero */
+            g_http_c_go_host_conectado = 1;
+        }
+        else
+        {
+            /* Invierto el host para probar */
+            g_http_c_go_host_conectado = (g_http_c_go_host_conectado == 1)?2:1;
+        }
+        
+        /* Si el que seleccioné no está configurado elijo el otro */
+        if(g_http_c_go_host_conectado == 1 && g_wifi_info.f.config.wifi_host1[0] == 0)
         {
             g_http_c_go_host_conectado = 2;
         }
-        else if(g_http_c_go_host_conectado == 2 && g_wifi_info.f.config.wifi_host2[0])
+        else if(g_http_c_go_host_conectado == 2 && g_wifi_info.f.config.wifi_host2[0] == 0)
         {
             g_http_c_go_host_conectado = 1;
         }
-    }    
+    }
+    else
+    {
+        /* Si ya estuve conectado voy por el mismo */
+        g_http_c_go_host_conectado = g_http_c_host_conectado;
+    }
 
+    /* Tomo host y port de lo que elegí al final */
     if(g_http_c_go_host_conectado == 1)
     {
         host = &g_wifi_info.f.config.wifi_host1[0];
@@ -214,6 +238,7 @@ int HttpQueryHost(const char* url, const char* msg_send, char* resp_header, char
         port = g_wifi_info.f.config.wifi_host2_port;
     }
 
+    /* Si el port está en cero elijo el default según protocolo */
     if(port == 0)
     {
         if(g_wifi_info.f.config.enable_https) port = 443;
@@ -231,6 +256,7 @@ int HttpQueryHost(const char* url, const char* msg_send, char* resp_header, char
     recv_len = WiFiQueryHost(host, port, http_buffer, http_buffer);
     if(recv_len < 0)
     {
+        g_http_c_host_conectado = 0;
         LogMessage("[HTTP] HttpQueryHost: Error en WiFiQueryHost");
         return (-1);
     }
@@ -250,9 +276,18 @@ int HttpQueryHost(const char* url, const char* msg_send, char* resp_header, char
         {
             strcpy(resp_data, &http_buffer[head_len+4]);
         }
+        if(http_rc = 200)
+        {
+            g_http_c_host_conectado = g_http_c_go_host_conectado;
+        }
+        else
+        {
+            g_http_c_host_conectado = 0;
+        }
     }
     else
     {
+        g_http_c_host_conectado = 0;
         /* No se reconoce una cabecera HTTP */
         if(resp_header)
         {

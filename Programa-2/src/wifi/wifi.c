@@ -216,15 +216,15 @@ int WiFiCommand(const char* cmd, const char* wait, int to)
     {
         if(WifiReadAt(buffer, 255, '\n', to) < 0)
         {
-            LogMessage("[WIFI] TIMEOUT: Esperando [%s]", wait);
+            LogMessage("[WiFiCommand] TIMEOUT: Esperando [%s]", wait);
             return (-1);
         }
         if( !strstr(buffer, wait))
         {
-            LogMessage("[WIFI] %s -> [%s]", cmd, buffer);
+            LogMessage("[WiFiCommand] Recibido: [%s]", buffer);
             if( !memcmp(buffer, "ERROR", 5))
             {
-                LogMessage("[WIFI] ERROR: Esperando [%s]", wait);
+                LogMessage("[WiFiCommand] ERROR: Esperando [%s]", wait);
                 return (-1);
             }
             /*
@@ -753,7 +753,7 @@ int WiFiQueryHostToFile(const char* host, int port, const char* send_msg, const 
     return recv_len;
 }
 
-void WiFiTimerInt( void )
+void WiFiTimer( void )
 {
     if(g_wifi_c_timer_count) g_wifi_c_timer_count--;
 }

@@ -34,6 +34,9 @@
 #define WIFI_BUFFER_LEN 4096
 
 void WiFiInit( void );
+void WiFiTimer( void );
+void WiFiTask( void );
+
 int WiFiMode( void );
 int WiFiConectado( void );
 void WiFiSwitchRouter( void );
@@ -45,6 +48,4 @@ const char* WiFiMAC( void );
 int WiFiQueryHost(const char* host, int port, const char* send_msg, char* recv_msg);
 int WiFiQueryHostToFile(const char* host, int port, const char* send_msg, const char* filename);
 
-void WiFiTimerInt( void );
-void WiFiTask( void );
 #endif /* _WIFI_H_ */

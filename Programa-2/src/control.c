@@ -622,8 +622,6 @@ void ControlHostKeepAlive(void)
     char resp_err_code[16];
     char resp_err_msg[256];
     
-    if(keep_alive_timer_count) return;
-    
     sprintf(url, "%s/infoio.cgi", g_wifi_info.f.config.rqst_path);
     sprintf(data, "ID=%s&TYP=TOUCH", WiFiMAC());
     rc = HttpQueryHost(url, data, NULL, data);
@@ -658,12 +656,12 @@ void ControlHostKeepAlive(void)
     keep_alive_timer_count = 500;
 }
 
-void ControlTimerInt( void )
+void ControlTimer( void )
 {
     if(control_screen_stm_delay) control_screen_stm_delay--;
     if(control_wifi_stm_delay) control_wifi_stm_delay--;
     if(wifi_config_timer_count) wifi_config_timer_count--;
-    if(keep_alive_timer_count) keep_alive_timer_count--;
+    if(WiFiConectado() && keep_alive_timer_count) keep_alive_timer_count--;
     if(control_screen_saver_count) control_screen_saver_count--;
     if(reset_timer_count)
     {
@@ -703,6 +701,16 @@ void ControlTimerInt( void )
         
     }
     
+}
+
+void ControlTask(void)
+{
+
+    if(WiFiConectado() && keep_alive_timer_count == 0)
+    {
+        ControlHostKeepAlive();
+    }
+
 }
 
 void ProcessGeneralConfig(char* in)
