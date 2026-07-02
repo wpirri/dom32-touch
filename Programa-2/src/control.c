@@ -71,6 +71,8 @@ unsigned int update_firmware_timer_count;
 unsigned int update_screen_timer_count;
 unsigned int save_config_timer_count;
 
+bool assinc_timer_flag;
+
 typedef enum
 {
     WIFI_INIT = 0,
@@ -346,8 +348,8 @@ void ControlInit( bool sd_ok )
     update_firmware_timer_count = 0;
     update_screen_timer_count = 0;
     save_config_timer_count = 0;
-    
     control_wifi_stm_delay = 500;
+    assinc_timer_flag = false;
 }
 
 void Control_Screen_Task( void )
@@ -658,6 +660,9 @@ void ControlHostKeepAlive(void)
 
 void ControlTimer( void )
 {
+    /* Para las cosas que necesitan el timer pero no pueden estar dentro de una int */
+    assinc_timer_flag = true;
+    
     if(control_screen_stm_delay) control_screen_stm_delay--;
     if(control_wifi_stm_delay) control_wifi_stm_delay--;
     if(wifi_config_timer_count) wifi_config_timer_count--;
@@ -671,46 +676,53 @@ void ControlTimer( void )
             SystemReset();
         }
     }
-    if(update_firmware_timer_count)
-    {
-        update_firmware_timer_count--;
-        if(update_firmware_timer_count == 0)
-        {
-            control_screen_number = 0;
-            strcpy(control_screen_filename, HOME_SCREEN_CSV);
-            DownloadFile(FIRMWARE_FILENAME, SCREEN_SHOW_PAGE);
-        }
-    }
-    if(update_screen_timer_count)
-    {
-        update_screen_timer_count--;
-        if(update_screen_timer_count == 0)
-        {
-            /* TODO: Logica de carga de pantallas */
-            
-            
-        }
-    }
-    if(save_config_timer_count)
-    {
-        save_config_timer_count--;
-        if(save_config_timer_count == 0)
-        {
-            ConfigSave();
-        }
-        
-    }
-    
 }
 
 void ControlTask(void)
 {
-
     if(WiFiConectado() && keep_alive_timer_count == 0)
     {
         ControlHostKeepAlive();
     }
+    
+    /* Para las cosas que dependen del timer pero no pueden estar en una interrupcion */
+    if(assinc_timer_flag)
+    {
+        assinc_timer_flag = false;
+        
+        if(update_screen_timer_count)
+        {
+            update_screen_timer_count--;
+            if(update_screen_timer_count == 0)
+            {
+                /* TODO: Logica de carga de pantallas */
 
+
+            }
+        }
+
+        if(save_config_timer_count)
+        {
+            save_config_timer_count--;
+            if(save_config_timer_count == 0)
+            {
+                ConfigSave();
+            }
+
+        }
+
+        if(update_firmware_timer_count)
+        {
+            update_firmware_timer_count--;
+            if(update_firmware_timer_count == 0)
+            {
+                control_screen_number = 0;
+                strcpy(control_screen_filename, HOME_SCREEN_CSV);
+                DownloadFile(FIRMWARE_FILENAME, SCREEN_SHOW_PAGE);
+            }
+        }
+        
+    }
 }
 
 void ProcessGeneralConfig(char* in)
