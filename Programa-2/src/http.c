@@ -315,7 +315,7 @@ int HttpDownload(const char* filename)
      * 1.- %s: URI
      * 2.- %s: Host
      */
-    sprintf(rqst, http_c_http_get, url, HttpCurrentHost());
+    snprintf(rqst, 250, http_c_http_get, url, HttpCurrentHost());
     return WiFiQueryHostToFile(HttpCurrentHost(), HttpCurrentPort(), rqst, filename);
 }
 
@@ -485,18 +485,18 @@ void HTTPCommandSwitch( const char *obj_name )
      newAJAXCommand('/cgi-bin/abmassign.cgi?funcion=switch&Objeto=".$Nombre."'
      */
     char url[256];
-    char rqst[256];
+    char rqst[1024];
 
     if( !HttpOnLine()) return;
 
-    sprintf(url, "%s/abmassign.cgi?funcion=switch&Objeto=%s", g_wifi_config.u.config.rqst_path, obj_name);
+    snprintf(url, 250, "%s/abmassign.cgi?funcion=switch&Objeto=%s", g_wifi_config.u.config.rqst_path, obj_name);
     url_encode(url, url);
     /*
      * GET
      * 1.- %s: URI
      * 2.- %s: Host
      */
-    sprintf(rqst, http_c_http_get, url, HttpCurrentHost());
+    snprintf(rqst, 1000, http_c_http_get, url, HttpCurrentHost());
     WiFiQueryHost(HttpCurrentHost(), HttpCurrentPort(), rqst, NULL);
 }
 
@@ -506,18 +506,18 @@ void HTTPCommandPulse( const char *obj_name )
      newAJAXCommand('/cgi-bin/abmassign.cgi?funcion=switch&Objeto=".$Nombre."'
      */
     char url[256];
-    char rqst[256];
+    char rqst[1024];
 
     if( !HttpOnLine()) return;
 
-    sprintf(url, "%s/abmassign.cgi?funcion=pulse&Objeto=%s", g_wifi_config.u.config.rqst_path, obj_name);
+    snprintf(url, 250, "%s/abmassign.cgi?funcion=pulse&Objeto=%s", g_wifi_config.u.config.rqst_path, obj_name);
     url_encode(url, url);
     /*
      * GET
      * 1.- %s: URI
      * 2.- %s: Host
      */
-    sprintf(rqst, http_c_http_get, url, HttpCurrentHost());
+    snprintf(rqst, 1000, http_c_http_get, url, HttpCurrentHost());
     WiFiQueryHost(HttpCurrentHost(), HttpCurrentPort(), rqst, NULL);
 }
 
