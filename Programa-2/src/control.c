@@ -559,6 +559,8 @@ void Control_Screen_Task( void )
                         wifi_config_timer_count = 1000;
                     }
                 }
+                
+                
                 DisplayOff();
                 Clear(0);
                 DisplayOn();

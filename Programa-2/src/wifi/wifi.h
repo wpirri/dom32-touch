@@ -34,13 +34,13 @@
 #define WIFI_BUFFER_LEN 4096
 
 void WiFiInit( void );
+int WiFiStart( void );
 void WiFiTimer( void );
 void WiFiTask( void );
 
 int WiFiMode( void );
 int WiFiConectado( void );
 void WiFiSwitchRouter( void );
-int WiFiStart( void );
 int WiFiSetMode(int mode);
 void WiFiCheckUnsol( void );
 const char* WiFiMAC( void );
