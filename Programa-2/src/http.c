@@ -521,3 +521,127 @@ void HTTPCommandPulse( const char *obj_name )
     WiFiQueryHost(HttpCurrentHost(), HttpCurrentPort(), rqst, NULL);
 }
 
+/*<html>
+<head>
+<title>Dom32IO</title>
+</head>
+<style>
+body{background-color:grey;font-size:24pt;}
+#it{height:75;font-size:24pt}
+</style>
+<body>
+<form method="post">
+<h1>WiFi</h1>
+<hr />
+<h2 >AP1:</h2>
+&nbsp;<input id="it" type="text" name="ap1" value="%s">&nbsp;<input id="it" type="text" name="ap1p" value="%s"><br>
+<h2 >AP2:</h2>
+&nbsp;<input id="it" type="text" name="ap2" value="%s">&nbsp;<input id="it" type="text" name="ap2p" value="%s"><br>
+<br>
+<br>
+&nbsp;&nbsp;<input id="it"  type="submit" value="Guardar">
+</form>
+</body>
+</html>
+*/
+int HttpReturnWiFiFormConfig(char *out, int max_len)
+{
+    char wifi_host1[64];
+    char wifi_host2[64];
+    
+    if(g_wifi_config.u.config.wifi_host1[0] != 0)
+    {
+        if(g_wifi_config.u.config.wifi_host1_port > 0)
+        {
+            sprintf(wifi_host1, "%s:%i", g_wifi_config.u.config.wifi_host1, g_wifi_config.u.config.wifi_host1_port);
+        }
+        else
+        {
+            strcpy(wifi_host1, g_wifi_config.u.config.wifi_host1);
+        }
+    }
+    else
+    {
+        wifi_host1[0] = 0;
+    }
+
+    if(g_wifi_config.u.config.wifi_host2[0] != 0)
+    {
+        if(g_wifi_config.u.config.wifi_host2_port > 0)
+        {
+            sprintf(wifi_host2, "%s:%i", g_wifi_config.u.config.wifi_host2, g_wifi_config.u.config.wifi_host2_port);
+        }
+        else
+        {
+            strcpy(wifi_host2, g_wifi_config.u.config.wifi_host2);
+        }
+    }
+    else
+    {
+        wifi_host2[0] = 0;
+    }
+    
+    snprintf(out, max_len, 
+            "%s"
+            "<html>\n"
+            "<head>\n"
+            "<title>Dom32IO</title>\n"
+            "</head>\n"
+            "<style>\n"
+            "body{background-color:grey;font-size:24pt;}\n"
+            "#it{height:75;font-size:24pt}\n"
+            "</style>\n"
+            "<body>\n"
+            "<form method=\"post\">\n"
+            "<h1>WiFi</h1>\n"
+            "<p>MAC: %s</p>\n"
+            "<hr />\n"
+            "<h2>AP1:</h2>\n"
+            "&nbsp;<input id=\"it\" type=\"text\" name=\"ap1\" value=\"%s\">&nbsp;<input  id=\"it\" type=\"text\" name=\"ap1p\" value=\"%s\"><br>\n"
+            "<h2>AP2:</h2>\n"
+            "&nbsp;<input id=\"it\" type=\"text\" name=\"ap2\" value=\"%s\">&nbsp;<input  id=\"it\" type=\"text\" name=\"ap2p\" value=\"%s\"><br>\n"
+            "<h2>Central:</h2>\n"
+            "&nbsp;<input id=\"it\" type=\"text\" name=\"ce1\" value=\"%s\">&nbsp;<input  id=\"it\" type=\"text\" name=\"ce2\" value=\"%s\"><br>\n"
+            "<h2>Path:</h2>\n"
+            "&nbsp;<input id=\"it\" type=\"text\" name=\"path\" value=\"%s\"><br>\n"
+            "<br>\n"
+            "<br>\n"
+            "&nbsp;&nbsp;<input  id=\"it\" type=\"submit\" value=\"Guardar\">"
+            "</form>\n"
+            "</body>\n"
+            "</html>\n",
+            http_c_http_200,
+            WiFiMAC(),
+            g_wifi_config.u.config.wifi_ap1, g_wifi_config.u.config.wifi_ap1_pass,
+            g_wifi_config.u.config.wifi_ap2, g_wifi_config.u.config.wifi_ap2_pass,
+            wifi_host1, wifi_host2,
+            g_wifi_config.u.config.rqst_path);
+    
+    return strlen(out);
+}
+
+int HttpProcessRequest(const char* request, const char* uri, const char* host,
+                       unsigned int content_length, char* data_io)
+{
+    LogMessage("[HttpProcessRequest] %s %s de %s data: %i bytes", request, uri, host, content_length);
+
+    if( !strcmp(request, "GET"))
+    {
+        if( !strcmp(uri, "/") || !strcmp(uri, "/index.htm") )
+        {
+            return HttpReturnWiFiFormConfig(data_io, 2048);
+        }
+    }
+    else if( !strcmp(request, "POST"))
+    {
+        LogMessage("[HttpProcessRequest] POST: %i bytes [%s]", content_length, data_io);
+        if( !strcmp(uri, "/") || !strcmp(uri, "/index.htm") )
+        {
+            /* Capturo datos del formulario */
+            
+            return HttpReturnWiFiFormConfig(data_io, 2048);
+        }
+    }
+    strcpy(data_io, http_c_http_404);
+    return (strlen(data_io));
+}

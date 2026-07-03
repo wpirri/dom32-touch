@@ -43,6 +43,7 @@ int g_wifi_c_mode;
 int g_wifi_c_go_mode;
 int g_wifi_c_ap_conectado;
 int g_wifi_c_go_ap_conectado;
+int g_wifi_c_sta_conectado;
 char g_wifi_c_hw_mac[13];
 
 void WifiWrite( const char *buffer );
@@ -52,6 +53,7 @@ int WifiReadCount( char *data, unsigned int count, int to );
 void WiFiWait(int t);
 int WiFiCheckUnsolMsg(const char* msg);
 int WiFiCommand(const char* cmd, const char* wait, int to);
+void WiFiReadUnsolIPD(const char* msg);
 
 /* ************************************************************************* */
 void WiFiInit( void )
@@ -60,6 +62,7 @@ void WiFiInit( void )
     g_wifi_c_go_ap_conectado = 0;
     g_wifi_c_mode = 0;
     g_wifi_c_go_mode = 0;
+    g_wifi_c_sta_conectado = 0;
 
     UART3_Init();
 }
@@ -112,6 +115,11 @@ int WiFiMode( void )
 int WiFiConectado( void )
 {
     return g_wifi_c_ap_conectado;
+}
+
+int WiFiStaConectado( void )
+{
+    return g_wifi_c_sta_conectado;
 }
 
 void WiFiSwitchRouter( void )
@@ -235,9 +243,8 @@ void WiFiCheckUnsol( void )
 {
     char buffer[256];
     
-    if(WifiReadAt(buffer, 255, '\n', 2) >= 0)
+    if(WifiReadAt(buffer, 255, '\n', 2) > 0)
     {
-        LogMessage("[WIFI] Unsol [%s]", buffer);
         WiFiCheckUnsolMsg(buffer);
     }
 }
@@ -245,6 +252,212 @@ void WiFiCheckUnsol( void )
 const char* WiFiMAC( void )
 {
     return ((const char*)(&g_wifi_c_hw_mac[0]));
+}
+
+void WifiWrite( const char *buffer )
+{
+    if(buffer)
+    {
+        LogMessage("[WIFI] WifiWrite [%-.100s]", buffer);
+        while(*buffer)
+        {
+            UART_WRITE((uint8_t)*buffer);
+            buffer++;
+        }
+    }
+}
+
+void WifiWriteLine( const char *line )
+{
+    if(line)
+    {
+        LogMessage("[WIFI] WifiWriteLine [%-.100s]", line);
+        while(*line)
+        {
+            UART_WRITE((uint8_t)*line);
+            line++;
+        }
+    }
+    UART_WRITE('\r');
+    UART_WRITE('\n');
+}
+
+int WifiReadAt( char *data, unsigned int max_data, char at, int to )
+{
+    unsigned int read_len = 0;
+    char ch = at+1;
+    
+    if(UART_OVERFLOW()) return (-1);
+
+    g_wifi_c_timer_count = to;
+    do {
+        CLRWDT();
+        while( UART_ISRXREADY() && ch != at && read_len < max_data && g_wifi_c_timer_count > 0)
+        {
+            CLRWDT();
+            ch = UART_READ();
+            if(data/* && ch != 0x0d && ch != 0x0a*/)
+            {
+                /* Extiendo el tiempo cada vez que recibo algo válido */
+                if(g_wifi_c_timer_count < to) g_wifi_c_timer_count++;
+                *data = ch;
+                data++;
+            }
+            read_len++;
+        }
+    } while (ch != at && read_len < max_data && g_wifi_c_timer_count > 0);
+
+    if(g_wifi_c_timer_count == 0) return (-1);
+
+    if(data) *data = 0;
+    return read_len;
+}
+
+int WifiReadCount( char *data, unsigned int count, int to )
+{
+    unsigned int read_count = 0;
+    char ch;
+    
+    if(UART_OVERFLOW()) return (-1);
+
+    g_wifi_c_timer_count = to;
+    do {
+        CLRWDT();
+        while( UART_ISRXREADY() && read_count < count && g_wifi_c_timer_count > 0)
+        {
+            CLRWDT();
+            ch = UART_READ();
+            if(data)
+            {
+                /* Extiendo el tiempo cada vez que recibo algo válido */
+                if(g_wifi_c_timer_count < to) g_wifi_c_timer_count++;
+                *data = ch;
+                data++;
+            }
+            read_count++;
+        }
+    } while (read_count < count && g_wifi_c_timer_count > 0);
+    
+    if(g_wifi_c_timer_count == 0) return (read_count)?read_count:(-1);
+
+    return read_count;
+}
+
+void WiFiWait(int t)
+{
+    g_wifi_c_timer_count = t;
+    while(g_wifi_c_timer_count > 0)
+    {
+        CLRWDT();
+    }
+}
+
+int WiFiCheckUnsolMsg(const char* msg)
+{
+    LogMessage("[WIFI] Unsol [%s]", msg);
+
+    if( !memcmp(msg, "WIFI CONNECTED", 14))
+    {
+        /* ST Conectada al Router */
+    }
+    else if( !memcmp(msg, "WIFI GOT IP", 11))
+    {
+        /* IP obtenida del Router */
+        g_wifi_c_ap_conectado = g_wifi_c_go_ap_conectado;
+    }
+    else if( !memcmp(msg, "WIFI DISCONNECTED", 17))
+    {
+        /* Desconectado del Router */
+        g_wifi_c_ap_conectado = 0;
+    }
+    else if( !memcmp(msg, "+STA_CONNECTED", 8))
+    {
+        /* Cliente conectado al AP */
+        g_wifi_c_sta_conectado = 1;
+    }
+    else if( !memcmp(msg, "+STA_DISCONNECTED", 8))
+    {
+        /* Cliente desconectado del AP */
+        g_wifi_c_sta_conectado = 0;
+    }
+    else if( !memcmp(msg, "+CIFSR:", 7))
+    {
+        if( !memcmp((const char*)(msg+7), "STAMAC", 6))
+        {
+            LogMessage("[WiFi] MAC %.17s", (const char*)(msg+15));
+            g_wifi_c_hw_mac[0]  = *(msg+15);
+            g_wifi_c_hw_mac[1]  = *(msg+16);
+            g_wifi_c_hw_mac[2]  = *(msg+18);
+            g_wifi_c_hw_mac[3]  = *(msg+19);
+            g_wifi_c_hw_mac[4]  = *(msg+21);
+            g_wifi_c_hw_mac[5]  = *(msg+22);
+            g_wifi_c_hw_mac[6]  = *(msg+24);
+            g_wifi_c_hw_mac[7]  = *(msg+25);
+            g_wifi_c_hw_mac[8]  = *(msg+27);
+            g_wifi_c_hw_mac[9]  = *(msg+28);
+            g_wifi_c_hw_mac[10] = *(msg+30);
+            g_wifi_c_hw_mac[11] = *(msg+31);
+            g_wifi_c_hw_mac[12] = 0;
+        }
+        else if( !memcmp((const char*)(msg+7), "STAIP", 5))
+        {
+            if(strlen((const char*)(msg+14)))
+            {
+                LogMessage("[WiFi] IP %s", (const char*)(msg+14) );
+            }
+        }
+    }
+    else if( !memcmp(msg, "AT version:", 11))
+    {
+    }
+    else if( !memcmp(msg, "SDK version:", 12))
+    {
+    }
+    else if( !memcmp(msg, "compile time:", 13))
+    {
+    }
+    else if( !memcmp(msg, "+IPD", 4))
+    {
+        WiFiReadUnsolIPD(msg);
+    }
+    
+    return 0;
+}
+
+int WiFiCommand(const char* cmd, const char* wait, int to)
+{
+    char buffer[256];
+    
+    WifiWriteLine(cmd);
+    do
+    {
+        if(WifiReadAt(buffer, 255, '\n', to) < 0)
+        {
+            LogMessage("[WiFiCommand] TIMEOUT: Esperando [%s]", wait);
+            return (-1);
+        }
+        if( !strstr(buffer, wait))
+        {
+            LogMessage("[WiFiCommand] Recibido: [%s]", buffer);
+            if( !memcmp(buffer, "ERROR", 5))
+            {
+                LogMessage("[WiFiCommand] ERROR: Esperando [%s]", wait);
+                return (-1);
+            }
+            /*
+            else if( !memcmp(buffer, "ALREADY CONNECTED", 17))
+            {
+                LogMessage("[WIFI] Deconectando y Reintentando [%s]", cmd);
+                WiFiCommand("AT+CIPCLOSE=0", "OK", 100);
+                WifiWriteLine(cmd);
+                continue;
+            }
+            */
+            WiFiCheckUnsolMsg(buffer);
+        }
+    } while( !strstr(buffer, wait));
+    LogMessage("[WIFI] %s -> %s", cmd, wait);
+    return 0;
 }
 
 int WiFiQueryHost(const char* host, int port, const char* send_msg, char* recv_msg)
@@ -574,200 +787,110 @@ int WiFiQueryHostToFile(const char* host, int port, const char* send_msg, const 
     return recv_len;
 }
 
-void WifiWrite( const char *buffer )
+void WiFiReadUnsolIPD(const char* msg)
 {
-    if(buffer)
-    {
-        LogMessage("[WIFI] WifiWrite [%-.100s]", buffer);
-        while(*buffer)
-        {
-            UART_WRITE((uint8_t)*buffer);
-            buffer++;
-        }
-    }
-}
+    int rc;
+    char str[256];
+    char read_buffer[2048];
+    unsigned int data_len = 0;
+    char *p;
 
-void WifiWriteLine( const char *line )
-{
-    if(line)
-    {
-        LogMessage("[WIFI] WifiWriteLine [%-.100s]", line);
-        while(*line)
-        {
-            UART_WRITE((uint8_t)*line);
-            line++;
-        }
-    }
-    UART_WRITE('\r');
-    UART_WRITE('\n');
-}
-
-int WifiReadAt( char *data, unsigned int max_data, char at, int to )
-{
-    unsigned int read_len = 0;
-    char ch = at+1;
+    char uri[256];
+    char host[256];
+    char request[8];
+    unsigned int content_length = 0;
     
-    if(UART_OVERFLOW()) return (-1);
+    LogMessage("[WiFiReadUnsolIPD] msg: [%s]", msg);
 
-    g_wifi_c_timer_count = to;
-    do {
-        CLRWDT();
-        while( UART_ISRXREADY() && ch != at && read_len < max_data && g_wifi_c_timer_count > 0)
-        {
-            CLRWDT();
-            ch = UART_READ();
-            if(data/* && ch != 0x0d && ch != 0x0a*/)
-            {
-                /* Extiendo el tiempo cada vez que recibo algo válido */
-                if(g_wifi_c_timer_count < to) g_wifi_c_timer_count++;
-                *data = ch;
-                data++;
-            }
-            read_len++;
-        }
-    } while (ch != at && read_len < max_data && g_wifi_c_timer_count > 0);
-
-    if(g_wifi_c_timer_count == 0) return (-1);
-
-    if(data) *data = 0;
-    return read_len;
-}
-
-int WifiReadCount( char *data, unsigned int count, int to )
-{
-    unsigned int read_count = 0;
-    char ch;
+    strcpy(read_buffer, msg);
+    rc = strlen(msg);
     
-    if(UART_OVERFLOW()) return (-1);
-
-    g_wifi_c_timer_count = to;
-    do {
-        CLRWDT();
-        while( UART_ISRXREADY() && read_count < count && g_wifi_c_timer_count > 0)
-        {
-            CLRWDT();
-            ch = UART_READ();
-            if(data)
-            {
-                /* Extiendo el tiempo cada vez que recibo algo válido */
-                if(g_wifi_c_timer_count < to) g_wifi_c_timer_count++;
-                *data = ch;
-                data++;
-            }
-            read_count++;
-        }
-    } while (read_count < count && g_wifi_c_timer_count > 0);
-    
-    if(g_wifi_c_timer_count == 0) return (read_count)?read_count:(-1);
-
-    return read_count;
-}
-
-void WiFiWait(int t)
-{
-    g_wifi_c_timer_count = t;
-    while(g_wifi_c_timer_count > 0)
-    {
-        CLRWDT();
-    }
-}
-
-int WiFiCheckUnsolMsg(const char* msg)
-{
-    if( !memcmp(msg, "WIFI CONNECTED", 14))
-    {
-        /* ST Conectada al Router */
-    }
-    else if( !memcmp(msg, "WIFI GOT IP", 11))
-    {
-        /* IP obtenida del Router */
-        g_wifi_c_ap_conectado = g_wifi_c_go_ap_conectado;
-    }
-    else if( !memcmp(msg, "WIFI DISCONNECTED", 17))
-    {
-        /* Desconectado del Router */
-        g_wifi_c_ap_conectado = 0;
-    }
-    else if( !memcmp(msg, "+STA_CONNECTED", 8))
-    {
-        /* Cliente conectado al AP */
-    }
-    else if( !memcmp(msg, "+STA_DISCONNECTED", 8))
-    {
-        /* Cliente desconectado del AP */
-    }
-    else if( !memcmp(msg, "+CIFSR:", 7))
-    {
-        if( !memcmp((const char*)(msg+7), "STAMAC", 6))
-        {
-            LogMessage("[WiFi] MAC %.17s", (const char*)(msg+15));
-            g_wifi_c_hw_mac[0]  = *(msg+15);
-            g_wifi_c_hw_mac[1]  = *(msg+16);
-            g_wifi_c_hw_mac[2]  = *(msg+18);
-            g_wifi_c_hw_mac[3]  = *(msg+19);
-            g_wifi_c_hw_mac[4]  = *(msg+21);
-            g_wifi_c_hw_mac[5]  = *(msg+22);
-            g_wifi_c_hw_mac[6]  = *(msg+24);
-            g_wifi_c_hw_mac[7]  = *(msg+25);
-            g_wifi_c_hw_mac[8]  = *(msg+27);
-            g_wifi_c_hw_mac[9]  = *(msg+28);
-            g_wifi_c_hw_mac[10] = *(msg+30);
-            g_wifi_c_hw_mac[11] = *(msg+31);
-            g_wifi_c_hw_mac[12] = 0;
-        }
-        else if( !memcmp((const char*)(msg+7), "STAIP", 5))
-        {
-            if(strlen((const char*)(msg+14)))
-            {
-                LogMessage("[WiFi] IP %s", (const char*)(msg+14) );
-            }
-        }
-    }
-    else if( !memcmp(msg, "AT version:", 11))
-    {
-    }
-    else if( !memcmp(msg, "SDK version:", 12))
-    {
-    }
-    else if( !memcmp(msg, "compile time:", 13))
-    {
-    }
-    
-    return 0;
-}
-
-int WiFiCommand(const char* cmd, const char* wait, int to)
-{
-    char buffer[256];
-    
-    WifiWriteLine(cmd);
     do
     {
-        if(WifiReadAt(buffer, 255, '\n', to) < 0)
+        read_buffer[rc] = 0;
+        
+        if( !memcmp(read_buffer, "+IPD", 4))
         {
-            LogMessage("[WiFiCommand] TIMEOUT: Esperando [%s]", wait);
-            return (-1);
+            if(str_section(read_buffer, ',', 2, str))
+            {
+                data_len = atoi(str);
+            }
+            if(strchr(read_buffer, ':'))
+            {
+                p = ((char*)(strchr(read_buffer, ':')+1));
+            }
+            /* De esta primera parte saco algunos datos */
+            if( !memcmp(p, "GET ", 4))
+            {
+                strcpy(request, "GET");
+            }
+            else if( !memcmp(p, "POST ", 5))
+            {
+                strcpy(request, "POST");
+            }
+            HttpGetRequest(p, uri, 255);
+            
+            
         }
-        if( !strstr(buffer, wait))
+        else if( read_buffer[0] == '\r' && read_buffer[1] == '\n' && data_len )
         {
-            LogMessage("[WiFiCommand] Recibido: [%s]", buffer);
-            if( !memcmp(buffer, "ERROR", 5))
-            {
-                LogMessage("[WiFiCommand] ERROR: Esperando [%s]", wait);
-                return (-1);
-            }
-            /*
-            else if( !memcmp(buffer, "ALREADY CONNECTED", 17))
-            {
-                LogMessage("[WIFI] Deconectando y Reintentando [%s]", cmd);
-                WiFiCommand("AT+CIPCLOSE=0", "OK", 100);
-                WifiWriteLine(cmd);
-                continue;
-            }
-            */
-            WiFiCheckUnsolMsg(buffer);
+            /* Fin de la cabecera */
+            break;
         }
-    } while( !strstr(buffer, wait));
-    LogMessage("[WIFI] %s -> %s", cmd, wait);
-    return 0;
+        else
+        {
+            /* La cabecera HTTP no va al archivo*/
+            /* Tomo datos de la cabecera HTTP que necesito */
+            if(HTTPGetHeadData(read_buffer, "Content-Length", str))
+            {
+                content_length = atol(str);
+            }
+            else if(HTTPGetHeadData(read_buffer, "content-length", str))
+            {
+                content_length = atol(str);
+            }
+            HTTPGetHeadData(read_buffer, "Host", host);
+
+        }
+    } while( (rc = WifiReadAt(read_buffer, 2047, '\n', 500)) > 0);
+    /* se terminó de recibir la cabecera, falta recibir [content_length] bytes */
+    /* Ya tengo request, uri, request, host y content_length */
+    
+    if(content_length > 2048)
+    {
+        WiFiCommand("AT+CIPCLOSE=0", "OK", 100);
+        LogMessage("[WiFiReadUnsolIPD] Por leer %u bytes, no hay espacio");
+        return;
+    }
+    
+    if(content_length > 0)
+    {
+        if(WifiReadCount(read_buffer, content_length, 5000 ) <= 0)
+        {
+            WiFiCommand("AT+CIPCLOSE=0", "OK", 100);
+            LogMessage("[WiFiReadUnsolIPD] No se pudieron recibir los %u bytes restantes", content_length);
+            return;
+        }
+    }
+    
+    if(HttpProcessRequest(request, uri, host, content_length, read_buffer) > 0)
+    {
+        /* Send */
+        sprintf(str, "AT+CIPSEND=0,%d", strlen(read_buffer));
+        WifiWriteLine(str);
+        /* Espero el prompt para enviar los datos */
+        if(WifiReadAt(NULL, 9999, '>', 1000) < 0)
+        {
+            LogMessage("[WiFiReadUnsolIPD] Time-Out esperando enviar datos");
+            WiFiCommand("AT+CIPCLOSE=0", "OK", 100);
+            return;
+        }
+        if(WiFiCommand(read_buffer, "SEND OK", 1000) < 0)
+        {
+            LogMessage("[WiFiReadUnsolIPD] Time-Out esperando SEND OK");
+            WiFiCommand("AT+CIPCLOSE=0", "OK", 100);
+            return;
+        }
+    }
+    WiFiCommand("AT+CIPCLOSE=0", "OK", 100);
 }

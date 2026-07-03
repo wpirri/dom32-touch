@@ -40,6 +40,7 @@ void WiFiTask( void );
 
 int WiFiMode( void );
 int WiFiConectado( void );
+int WiFiStaConectado( void );
 void WiFiSwitchRouter( void );
 int WiFiSetMode(int mode);
 void WiFiCheckUnsol( void );

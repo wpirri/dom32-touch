@@ -546,29 +546,28 @@ void Control_Screen_Task( void )
             control_screen_stm++;
             break;
         case SCREEN_WIFI_CONFIG_LOOP:
+            control_screen_stm_delay = 100;
             if(WiFiMode() == WIFI_MODE_AP_ST || WiFiMode() == WIFI_MODE_AP)
             {
-                if(wifi_config_timer_count == 0)
+                if(WiFiStaConectado())
                 {
-                    if(g_wifi_config.u.config.wifi_ap1[0] != 0 || g_wifi_config.u.config.wifi_ap2[0] != 0)
-                    {
-                        control_wifi_stm = WIFI_MODO_ST;
-                    }
-                    else
-                    {
-                        wifi_config_timer_count = 1000;
-                    }
+                    wifi_config_timer_count = 500; 
                 }
-                
-                
-                DisplayOff();
-                Clear(0);
-                DisplayOn();
-                strcpy(control_screen_filename, WIFI_SCREEN_BMP);
-                DrawBitmap(control_screen_filename, 
-                        ((DISPLAY_X_SIZE/2)-(GetBitmapW(control_screen_filename)/2)), 
-                        ((DISPLAY_Y_SIZE/2)-(GetBitmapH(control_screen_filename)/2)) );
-                control_screen_stm_delay = 20;
+                else if(wifi_config_timer_count == 0)
+                {
+                    control_wifi_stm = WIFI_MODO_ST;
+                }
+                else
+                {
+                    DisplayOff();
+                    Clear(0);
+                    DisplayOn();
+                    strcpy(control_screen_filename, WIFI_SCREEN_BMP);
+                    DrawBitmap(control_screen_filename, 
+                            ((DISPLAY_X_SIZE/2)-(GetBitmapW(control_screen_filename)/2)), 
+                            ((DISPLAY_Y_SIZE/2)-(GetBitmapH(control_screen_filename)/2)) );
+                    control_screen_stm_delay = 20;
+                }
             }
             else
             {
