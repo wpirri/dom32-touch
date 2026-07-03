@@ -865,15 +865,18 @@ void WiFiReadUnsolIPD(const char* msg)
     
     if(content_length > 0)
     {
-        if(WifiReadCount(read_buffer, content_length, 5000 ) <= 0)
+        if( (rc = WifiReadCount(read_buffer, content_length, 5000 )) <= 0)
         {
             WiFiCommand("AT+CIPCLOSE=0", "OK", 100);
             LogMessage("[WiFiReadUnsolIPD] No se pudieron recibir los %u bytes restantes", content_length);
             return;
         }
+        read_buffer[rc] = 0;
+        LogMessage("[WiFiReadUnsolIPD] Recibido: %u Eperado: %i bytes", content_length, rc);
     }
+
     
-    if(HttpProcessRequest(request, uri, host, content_length, read_buffer) > 0)
+    if(HttpProcessRequest(request, uri, host, content_length, read_buffer, 2048) > 0)
     {
         /* Send */
         sprintf(str, "AT+CIPSEND=0,%d", strlen(read_buffer));

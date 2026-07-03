@@ -27,4 +27,6 @@ void ControlTask(void);
 void Control_Screen_Task(void);
 void Control_WiFi_Task(void);
 
+void ProcessGeneralConfig(char* in);
+
 #endif /* _CONTROL_H_ */

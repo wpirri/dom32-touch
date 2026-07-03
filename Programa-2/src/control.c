@@ -94,7 +94,6 @@ unsigned int update_firmware_timer_count;
 unsigned int update_screen_timer_count;
 unsigned int save_config_timer_count;
 
-void ProcessGeneralConfig(char* in);
 void ControlHostKeepAlive(void);
 
 void DownloadFile(const char* filename, enum_control_screen_stm return_screen)
@@ -242,6 +241,7 @@ void ProcessGeneralConfig(char* in)
 {
     char s[256];
     struct tm tm_time;
+    char *p;
     
     if(HTTPGetFormData(in, "ap1", g_wifi_config.u.config.wifi_ap1))
     {
@@ -261,10 +261,26 @@ void ProcessGeneralConfig(char* in)
     }
     if(HTTPGetFormData(in, "ce1", g_wifi_config.u.config.wifi_host1))
     {
+        p = strchr(g_wifi_config.u.config.wifi_host1, ':');
+        if(p)
+        {
+            *p = 0;
+            p++;
+            /* viene con el port */
+            g_wifi_config.u.config.wifi_host1_port = atoi(p);
+        }
         save_config_timer_count = 1000;
     }
     if(HTTPGetFormData(in, "ce2", g_wifi_config.u.config.wifi_host2))
     {
+        p = strchr(g_wifi_config.u.config.wifi_host2, ':');
+        if(p)
+        {
+            *p = 0;
+            p++;
+            /* viene con el port */
+            g_wifi_config.u.config.wifi_host2_port = atoi(p);
+        }
         save_config_timer_count = 1000;
     }
     if(HTTPGetFormData(in, "path", g_wifi_config.u.config.rqst_path))

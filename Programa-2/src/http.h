@@ -42,6 +42,6 @@ void HTTPCommandSwitch( const char *obj_name );
 void HTTPCommandPulse( const char *obj_name );
 
 int HttpProcessRequest(const char* request, const char* uri, const char* host,
-                       unsigned int content_length, char* data_io);
+                       unsigned int content_length, char* data_io, unsigned int max_io);
 
 #endif /* _HTTPL_H_ */

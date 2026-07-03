@@ -621,7 +621,7 @@ int HttpReturnWiFiFormConfig(char *out, int max_len)
 }
 
 int HttpProcessRequest(const char* request, const char* uri, const char* host,
-                       unsigned int content_length, char* data_io)
+                       unsigned int content_length, char* data_io, unsigned int max_io)
 {
     LogMessage("[HttpProcessRequest] %s %s de %s data: %i bytes", request, uri, host, content_length);
 
@@ -629,16 +629,17 @@ int HttpProcessRequest(const char* request, const char* uri, const char* host,
     {
         if( !strcmp(uri, "/") || !strcmp(uri, "/index.htm") )
         {
-            return HttpReturnWiFiFormConfig(data_io, 2048);
+            return HttpReturnWiFiFormConfig(data_io, max_io);
         }
     }
     else if( !strcmp(request, "POST"))
     {
+        HttpDecodeFormData(data_io, data_io, max_io);
         LogMessage("[HttpProcessRequest] POST: %i bytes [%s]", content_length, data_io);
         if( !strcmp(uri, "/") || !strcmp(uri, "/index.htm") )
         {
             /* Capturo datos del formulario */
-            
+            ProcessGeneralConfig(data_io);
             return HttpReturnWiFiFormConfig(data_io, 2048);
         }
     }
