@@ -77,17 +77,13 @@ typedef struct
     {
         char dummy[ ((sizeof(config_in_file)/sizeof(uint32_t))+1)*sizeof(uint32_t) ];
         config_in_file config;
-    } f;
-    struct
-    {
-        char hw_mac[13];
-    } status;
-} wifi_info;
+    } u;
+} wifi_config;
 
 #ifdef _IN_CONFIG_C_
-wifi_info g_wifi_info;
+wifi_config g_wifi_config;
 #else
-extern wifi_info g_wifi_info;
+extern wifi_config g_wifi_config;
 #endif /* _IN_CONFIG_C_ */
 
 

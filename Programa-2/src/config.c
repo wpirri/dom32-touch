@@ -32,29 +32,29 @@
 
 void ConfigLoadDefault( void)
 {
-    memset(&g_wifi_info.f.config, 0, sizeof(config_in_file));
-    g_wifi_info.f.config.wifi_host1_port = 80;
-    g_wifi_info.f.config.wifi_host2_port = 80;
-    strcpy(g_wifi_info.f.config.rqst_path, "/cgi-bin");
-    strcpy(g_wifi_info.f.config.download_path, "/download");
-    g_wifi_info.f.config.report = 600;
-    g_wifi_info.f.config.enable_https = 0;
-    g_wifi_info.f.config.io_config_default = 1;
-    g_wifi_info.f.config.rtcc_clk_div_adj = 480000;
-    g_wifi_info.f.config.brillo_max = 100;
-    g_wifi_info.f.config.brillo_med = 30;
-    g_wifi_info.f.config.brillo_min = 0;
-    g_wifi_info.f.config.screen_saver_time = 25;
-    g_wifi_info.f.config.start_config_mode = true;
-    g_wifi_info.f.config.brillo_max = 80;
-    g_wifi_info.f.config.brillo_med = 50;
-    g_wifi_info.f.config.brillo_min = 30;
+    memset(&g_wifi_config.u.config, 0, sizeof(config_in_file));
+    g_wifi_config.u.config.wifi_host1_port = 80;
+    g_wifi_config.u.config.wifi_host2_port = 80;
+    strcpy(g_wifi_config.u.config.rqst_path, "/cgi-bin");
+    strcpy(g_wifi_config.u.config.download_path, "/download");
+    g_wifi_config.u.config.report = 600;
+    g_wifi_config.u.config.enable_https = 0;
+    g_wifi_config.u.config.io_config_default = 1;
+    g_wifi_config.u.config.rtcc_clk_div_adj = 480000;
+    g_wifi_config.u.config.brillo_max = 100;
+    g_wifi_config.u.config.brillo_med = 30;
+    g_wifi_config.u.config.brillo_min = 0;
+    g_wifi_config.u.config.screen_saver_time = 25;
+    g_wifi_config.u.config.start_config_mode = true;
+    g_wifi_config.u.config.brillo_max = 80;
+    g_wifi_config.u.config.brillo_med = 50;
+    g_wifi_config.u.config.brillo_min = 30;
 }
 
 /*****************************************************************************/
 void ConfigInit(void)
 {
-    memset(&g_wifi_info, 0, sizeof(wifi_info));
+    memset(&g_wifi_config, 0, sizeof(wifi_config));
     ConfigLoadDefault();
 }
 
@@ -68,7 +68,7 @@ void ConfigLoad( void )
     f = FSfopen(CONFIG_FILENAME, FS_READ);
     if(f)
     {
-        rc = FSfread(&g_wifi_info.f.config, 1, sizeof(config_in_file), f);
+        rc = FSfread(&g_wifi_config.u.config, 1, sizeof(config_in_file), f);
         FSfclose(f);
         LogMessage("[CONFIG] Leidos %i bytes de %s.", rc, CONFIG_FILENAME);
         if(rc >= 236)
@@ -78,11 +78,11 @@ void ConfigLoad( void )
             {
                 LogMessage("[CONFIG] Ajustando registro de configuracion de %d a %d bytes.",
                         rc, sizeof(config_in_file));
-                memset(&g_wifi_info.f.dummy[rc], 0, (sizeof(config_in_file)-rc));
+                memset(&g_wifi_config.u.dummy[rc], 0, (sizeof(config_in_file)-rc));
             }
-            if(g_wifi_info.f.config.download_path[0] == 0)
+            if(g_wifi_config.u.config.download_path[0] == 0)
             {
-                strcpy(g_wifi_info.f.config.download_path, "/download");
+                strcpy(g_wifi_config.u.config.download_path, "/download");
             }
             return;
         }
@@ -103,7 +103,7 @@ void ConfigSave(void)
     f = FSfopen(CONFIG_FILENAME, FS_WRITE);
     if(f)
     {
-        rc = FSfwrite(&g_wifi_info.f.config, sizeof(config_in_file), 1, f);
+        rc = FSfwrite(&g_wifi_config.u.config, sizeof(config_in_file), 1, f);
         FSfclose(f);
         if(rc == 1)
         {
@@ -123,21 +123,21 @@ void ConfigSave(void)
 
 void DumpConfig( void )
 {
-    LogMessage("[CONFIG] wifi_ap1:         %s", g_wifi_info.f.config.wifi_ap1);
-    LogMessage("[CONFIG] wifi_ap1_pass:    %s", g_wifi_info.f.config.wifi_ap1_pass);
-    LogMessage("[CONFIG] wifi_ap2:         %s", g_wifi_info.f.config.wifi_ap2);
-    LogMessage("[CONFIG] wifi_ap2_pass:    %s", g_wifi_info.f.config.wifi_ap2_pass);
-    LogMessage("[CONFIG] wifi_host1:       %s", g_wifi_info.f.config.wifi_host1);
-    LogMessage("[CONFIG] wifi_host1_port:  %d", g_wifi_info.f.config.wifi_host1_port);
-    LogMessage("[CONFIG] wifi_host2:       %s", g_wifi_info.f.config.wifi_host2);
-    LogMessage("[CONFIG] wifi_host2_port:  %d", g_wifi_info.f.config.wifi_host2_port);
-    LogMessage("[CONFIG] rqst_path:        %s", g_wifi_info.f.config.rqst_path);
-    LogMessage("[CONFIG] report:           %d", g_wifi_info.f.config.report);
-    LogMessage("[CONFIG] enable_https:     %s", (g_wifi_info.f.config.enable_https)?"si":"no");
-    LogMessage("[CONFIG] rtcc_clk_div_adj: %li", g_wifi_info.f.config.rtcc_clk_div_adj);
-    LogMessage("[CONFIG] Brillo maximo:    %d", g_wifi_info.f.config.brillo_max);
-    LogMessage("[CONFIG] Brillo medio:     %d", g_wifi_info.f.config.brillo_med);
-    LogMessage("[CONFIG] Brillo minimo:    %d", g_wifi_info.f.config.brillo_min);
-    LogMessage("[CONFIG] Screen Saver:     %d", g_wifi_info.f.config.screen_saver_time);
-    LogMessage("[CONFIG] Display:          %d", g_wifi_info.f.config.display_type);
+    LogMessage("[CONFIG] wifi_ap1:         %s", g_wifi_config.u.config.wifi_ap1);
+    LogMessage("[CONFIG] wifi_ap1_pass:    %s", g_wifi_config.u.config.wifi_ap1_pass);
+    LogMessage("[CONFIG] wifi_ap2:         %s", g_wifi_config.u.config.wifi_ap2);
+    LogMessage("[CONFIG] wifi_ap2_pass:    %s", g_wifi_config.u.config.wifi_ap2_pass);
+    LogMessage("[CONFIG] wifi_host1:       %s", g_wifi_config.u.config.wifi_host1);
+    LogMessage("[CONFIG] wifi_host1_port:  %d", g_wifi_config.u.config.wifi_host1_port);
+    LogMessage("[CONFIG] wifi_host2:       %s", g_wifi_config.u.config.wifi_host2);
+    LogMessage("[CONFIG] wifi_host2_port:  %d", g_wifi_config.u.config.wifi_host2_port);
+    LogMessage("[CONFIG] rqst_path:        %s", g_wifi_config.u.config.rqst_path);
+    LogMessage("[CONFIG] report:           %d", g_wifi_config.u.config.report);
+    LogMessage("[CONFIG] enable_https:     %s", (g_wifi_config.u.config.enable_https)?"si":"no");
+    LogMessage("[CONFIG] rtcc_clk_div_adj: %li", g_wifi_config.u.config.rtcc_clk_div_adj);
+    LogMessage("[CONFIG] Brillo maximo:    %d", g_wifi_config.u.config.brillo_max);
+    LogMessage("[CONFIG] Brillo medio:     %d", g_wifi_config.u.config.brillo_med);
+    LogMessage("[CONFIG] Brillo minimo:    %d", g_wifi_config.u.config.brillo_min);
+    LogMessage("[CONFIG] Screen Saver:     %d", g_wifi_config.u.config.screen_saver_time);
+    LogMessage("[CONFIG] Display:          %d", g_wifi_config.u.config.display_type);
 }

@@ -109,7 +109,7 @@ int main(void)
 
     LogMessage("[MAIN] Init Display");
     DisplayInit();
-    DisplayBrillo(g_wifi_info.f.config.brillo_max);
+    DisplayBrillo(g_wifi_config.u.config.brillo_max);
 
     LogMessage("[MAIN] Init Touch");
     TouchInit();

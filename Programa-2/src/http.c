@@ -123,11 +123,11 @@ char* HttpCurrentHost( void )
 {
     if(g_http_c_host_conectado == 1)
     {
-        return &g_wifi_info.f.config.wifi_host1[0];
+        return &g_wifi_config.u.config.wifi_host1[0];
     }
     else
     {
-        return &g_wifi_info.f.config.wifi_host2[0];
+        return &g_wifi_config.u.config.wifi_host2[0];
     }
     return NULL;
 }
@@ -136,11 +136,11 @@ int HttpCurrentPort( void )
 {
     if(g_http_c_host_conectado == 1)
     {
-        return g_wifi_info.f.config.wifi_host1_port;
+        return g_wifi_config.u.config.wifi_host1_port;
     }
     else
     {
-        return g_wifi_info.f.config.wifi_host2_port;
+        return g_wifi_config.u.config.wifi_host2_port;
     }
     return 0;
 }
@@ -192,8 +192,8 @@ int HttpQueryHost(const char* url, const char* msg_send, char* resp_header, char
     {
         /* Si todavía no tuve una conexión Ok o tuve errores */
         
-        if(g_wifi_info.f.config.wifi_host1[0] == 0 &&
-           g_wifi_info.f.config.wifi_host2[0] == 0  )
+        if(g_wifi_config.u.config.wifi_host1[0] == 0 &&
+           g_wifi_config.u.config.wifi_host2[0] == 0  )
         {
             /* Si no hay host definido no puedo seguir */
             return (-1);
@@ -211,11 +211,11 @@ int HttpQueryHost(const char* url, const char* msg_send, char* resp_header, char
         }
         
         /* Si el que seleccioné no está configurado elijo el otro */
-        if(g_http_c_go_host_conectado == 1 && g_wifi_info.f.config.wifi_host1[0] == 0)
+        if(g_http_c_go_host_conectado == 1 && g_wifi_config.u.config.wifi_host1[0] == 0)
         {
             g_http_c_go_host_conectado = 2;
         }
-        else if(g_http_c_go_host_conectado == 2 && g_wifi_info.f.config.wifi_host2[0] == 0)
+        else if(g_http_c_go_host_conectado == 2 && g_wifi_config.u.config.wifi_host2[0] == 0)
         {
             g_http_c_go_host_conectado = 1;
         }
@@ -229,19 +229,19 @@ int HttpQueryHost(const char* url, const char* msg_send, char* resp_header, char
     /* Tomo host y port de lo que elegí al final */
     if(g_http_c_go_host_conectado == 1)
     {
-        host = &g_wifi_info.f.config.wifi_host1[0];
-        port = g_wifi_info.f.config.wifi_host1_port;
+        host = &g_wifi_config.u.config.wifi_host1[0];
+        port = g_wifi_config.u.config.wifi_host1_port;
     }
     else
     {
-        host = &g_wifi_info.f.config.wifi_host2[0];
-        port = g_wifi_info.f.config.wifi_host2_port;
+        host = &g_wifi_config.u.config.wifi_host2[0];
+        port = g_wifi_config.u.config.wifi_host2_port;
     }
 
     /* Si el port está en cero elijo el default según protocolo */
     if(port == 0)
     {
-        if(g_wifi_info.f.config.enable_https) port = 443;
+        if(g_wifi_config.u.config.enable_https) port = 443;
         else port = 80;
     }
 
@@ -308,7 +308,7 @@ int HttpDownload(const char* filename)
 
     if( !HttpOnLine()) return (-1);
 
-    sprintf(url, "%s/%s", g_wifi_info.f.config.download_path, filename);
+    sprintf(url, "%s/%s", g_wifi_config.u.config.download_path, filename);
     url_encode(url, url);
     /*
      * GET
@@ -489,7 +489,7 @@ void HTTPCommandSwitch( const char *obj_name )
 
     if( !HttpOnLine()) return;
 
-    sprintf(url, "%s/abmassign.cgi?funcion=switch&Objeto=%s", g_wifi_info.f.config.rqst_path, obj_name);
+    sprintf(url, "%s/abmassign.cgi?funcion=switch&Objeto=%s", g_wifi_config.u.config.rqst_path, obj_name);
     url_encode(url, url);
     /*
      * GET
@@ -510,7 +510,7 @@ void HTTPCommandPulse( const char *obj_name )
 
     if( !HttpOnLine()) return;
 
-    sprintf(url, "%s/abmassign.cgi?funcion=pulse&Objeto=%s", g_wifi_info.f.config.rqst_path, obj_name);
+    sprintf(url, "%s/abmassign.cgi?funcion=pulse&Objeto=%s", g_wifi_config.u.config.rqst_path, obj_name);
     url_encode(url, url);
     /*
      * GET

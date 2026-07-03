@@ -339,7 +339,7 @@ int WiFiSetMode(int mode)
         /* Me conecto con el AP */
         if(g_wifi_c_go_ap_conectado == 0) g_wifi_c_go_ap_conectado = 1;
         /* Si no hay AP Definido no puedo seguir */
-        if(g_wifi_info.f.config.wifi_ap1[0] == 0 && g_wifi_info.f.config.wifi_ap2[0] == 0)
+        if(g_wifi_config.u.config.wifi_ap1[0] == 0 && g_wifi_config.u.config.wifi_ap2[0] == 0)
         {
             LogMessage("[WIFI] No hay AP definido");
             if(mode == WIFI_MODE_AP_ST)
@@ -354,11 +354,11 @@ int WiFiSetMode(int mode)
             }
         }
         /* Si el seleccionado no está configurado me paso al otro */
-        if(g_wifi_c_go_ap_conectado == 1 && g_wifi_info.f.config.wifi_ap1[0] == 0)
+        if(g_wifi_c_go_ap_conectado == 1 && g_wifi_config.u.config.wifi_ap1[0] == 0)
         {
             g_wifi_c_go_ap_conectado = 2;
         }
-        else if(g_wifi_c_go_ap_conectado == 2 && g_wifi_info.f.config.wifi_ap2[0] == 0)
+        else if(g_wifi_c_go_ap_conectado == 2 && g_wifi_config.u.config.wifi_ap2[0] == 0)
         {
             g_wifi_c_go_ap_conectado = 1;
         }
@@ -366,40 +366,40 @@ int WiFiSetMode(int mode)
         {
             /* Uso el AP1 */
             LogMessage("[WifiTaskSTMode] Conectando con AP1 %s (%s).",
-                    g_wifi_info.f.config.wifi_ap1,
-                    g_wifi_info.f.config.wifi_ap1_pass);
-            if(g_wifi_info.f.config.wifi_ap1_pass[0])
+                    g_wifi_config.u.config.wifi_ap1,
+                    g_wifi_config.u.config.wifi_ap1_pass);
+            if(g_wifi_config.u.config.wifi_ap1_pass[0])
             {
                 /* Con clave */
                 sprintf(cmd, "AT+CWJAP=\"%s\",\"%s\"",
-                    g_wifi_info.f.config.wifi_ap1,
-                    g_wifi_info.f.config.wifi_ap1_pass);
+                    g_wifi_config.u.config.wifi_ap1,
+                    g_wifi_config.u.config.wifi_ap1_pass);
             }
             else
             {
                 /* Sin clave */
                 sprintf(cmd, "AT+CWJAP=\"%s\"",
-                    g_wifi_info.f.config.wifi_ap1);
+                    g_wifi_config.u.config.wifi_ap1);
             }
         }
         else
         {
             /* Uso el AP2 */
             LogMessage("[WifiTaskSTMode] Conectando con AP2 %s (%s).",
-                    g_wifi_info.f.config.wifi_ap2,
-                    g_wifi_info.f.config.wifi_ap2_pass);
-            if(g_wifi_info.f.config.wifi_ap2_pass[0])
+                    g_wifi_config.u.config.wifi_ap2,
+                    g_wifi_config.u.config.wifi_ap2_pass);
+            if(g_wifi_config.u.config.wifi_ap2_pass[0])
             {
                 /* Con clave */
                 sprintf(cmd, "AT+CWJAP=\"%s\",\"%s\"",
-                    g_wifi_info.f.config.wifi_ap2,
-                    g_wifi_info.f.config.wifi_ap2_pass);
+                    g_wifi_config.u.config.wifi_ap2,
+                    g_wifi_config.u.config.wifi_ap2_pass);
             }
             else
             {
                 /* Sin clave */
                 sprintf(cmd, "AT+CWJAP=\"%s\"",
-                    g_wifi_info.f.config.wifi_ap2);
+                    g_wifi_config.u.config.wifi_ap2);
             }
         }
         if(WiFiCommand(cmd, "OK", 1000) < 0) return (-1);
@@ -446,7 +446,7 @@ int WiFiQueryHost(const char* host, int port, const char* send_msg, char* recv_m
     
     /* Conexión */
     sprintf(cmd, "AT+CIPSTART=0,\"%s\",\"%s\",%i",
-            (g_wifi_info.f.config.enable_https)?"SSL":"TCP", host, port);
+            (g_wifi_config.u.config.enable_https)?"SSL":"TCP", host, port);
     if(WiFiCommand(cmd, "OK", 1000) < 0)
     {
         LogMessage("[WIFI] WiFiQueryHost: time-Out intentando conectar con %s:%i", host, port);
@@ -591,7 +591,7 @@ int WiFiQueryHostToFile(const char* host, int port, const char* send_msg, const 
     
     /* Conexión */
     sprintf(cmd, "AT+CIPSTART=0,\"%s\",\"%s\",%i",
-            (g_wifi_info.f.config.enable_https)?"SSL":"TCP", host, port);
+            (g_wifi_config.u.config.enable_https)?"SSL":"TCP", host, port);
     if(WiFiCommand(cmd, "OK", 1000) < 0)
     {
         LogMessage("[WIFI] WiFiQueryHostToFile: time-Out intentando conectar con %s:%i", host, port);
