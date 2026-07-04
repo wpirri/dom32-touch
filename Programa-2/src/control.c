@@ -108,6 +108,12 @@ void DownloadFile(const char* filename, enum_control_screen_stm return_screen)
     DisplayOn();
 
     HttpDownload(filename);
+    
+    if( !strcmp(filename, FIRMWARE_FILENAME))
+    {
+        reset_timer_count = 300;
+        save_config_timer_count = 150;
+    }
 
     control_screen_stm = return_screen;
 }
@@ -117,7 +123,7 @@ void ControlInit( bool sd_ok )
     status_sd_ok = sd_ok;
     control_screen_number = 0;
     control_screen_stm_delay = 0;
-    control_screen_saver_count = g_wifi_config.u.config.screen_saver_time*100;
+    control_screen_saver_count = ((g_wifi_config.u.config.screen_saver_time)?g_wifi_config.u.config.screen_saver_time*100:6000);
     wifi_config_timer_count = 0;
     keep_alive_timer_count = 0;
     reset_timer_count = 0;
@@ -499,7 +505,7 @@ void Control_Screen_Task( void )
             break;
         case SCREEN_SHOW_PAGE:
             LogMessage("[SCREEN] Show Page [%s]", control_screen_filename);
-            control_screen_saver_count = g_wifi_config.u.config.screen_saver_time*100;
+            control_screen_saver_count = ((g_wifi_config.u.config.screen_saver_time)?g_wifi_config.u.config.screen_saver_time*100:6000);
             DisplayBrillo(g_wifi_config.u.config.brillo_max);
             ShowScreen(control_screen_filename);
             control_screen_stm++;
@@ -507,11 +513,16 @@ void Control_Screen_Task( void )
         case SCREEN_SHOW_PAGE_LOOP:
             if(WiFiMode() == WIFI_MODE_ST && HttpOnLine())
             {
-                if(control_screen_saver_count == 0 && g_wifi_config.u.config.screen_saver_time > 0)
+                TouchTask();
+                if(control_screen_saver_count == 0)
                 {
-                    if( !strcmp(control_screen_filename, HOME_SCREEN_CSV))
+                    if( !strcmp(control_screen_filename, HOME_SCREEN_CSV) )
+                               
                     {
-                        control_screen_stm = SCREEN_SAVER;
+                        if(g_wifi_config.u.config.screen_saver_time > 0 )
+                        {
+                            control_screen_stm = SCREEN_SAVER;
+                        }
                     }
                     else
                     {
@@ -519,10 +530,6 @@ void Control_Screen_Task( void )
                         strcpy(control_screen_filename, HOME_SCREEN_CSV);
                         control_screen_stm = SCREEN_SHOW_PAGE;
                     }
-                }
-                else
-                {
-                    TouchTask();
                 }
             }
             else
@@ -537,7 +544,7 @@ void Control_Screen_Task( void )
             control_screen_stm++;
             break;
         case SCREEN_CONFIG_LOOP:
-            if(control_screen_saver_count == 0 && g_wifi_config.u.config.screen_saver_time > 0)
+            if(control_screen_saver_count == 0)
             {
                 control_screen_number = 0;
                 strcpy(control_screen_filename, HOME_SCREEN_CSV);
@@ -614,9 +621,12 @@ void Control_Screen_Task( void )
         case SCREEN_OFFLINE_LOOP:
             if(HttpOnLine())
             {
-                if(control_screen_saver_count == 0 && g_wifi_config.u.config.screen_saver_time > 0)
+                if(control_screen_saver_count == 0)
                 {
-                    control_screen_stm = SCREEN_SAVER;
+                    if(g_wifi_config.u.config.screen_saver_time > 0)
+                    {
+                        control_screen_stm = SCREEN_SAVER;
+                    }
                 }
                 else
                 {
@@ -660,7 +670,7 @@ void BotonPressed(const char* cmd)
 {
     LogMessage("[BotonPressed] CMD: %s", cmd);
     
-    control_screen_saver_count = g_wifi_config.u.config.screen_saver_time*100;
+    control_screen_saver_count = ((g_wifi_config.u.config.screen_saver_time)?g_wifi_config.u.config.screen_saver_time*100:6000);
     
     if( !memcmp(cmd, "HOME", 4))
     {
