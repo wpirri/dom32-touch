@@ -38,3 +38,124 @@ Unit    Price	    Ext Price
 1       $18.08000	$18.08
 25      $16.51000	$412.75
 50      $14.93000	$746.50
+
+
+
+
+
+
+
+<html>
+<head>
+<title>Dom32IO</title>
+</head>
+<style>
+body{background-color:grey;font-size:24pt;}
+#it{height:75;font-size:24pt}
+</style>
+<body>
+<form method="post">
+<h1>WiFi</h1>
+<p>MAC: c8c9a34a61ac</p>
+<hr />
+<h2>AP1:</h2>
+&nbsp;<input id="it" type="text" name="ap1" value="872e">&nbsp;<input  id="it" type="text" name="ap1p" value="AeD*aYZfdVDyyE]pet+A"><br>
+<h2>AP2:</h2>
+&nbsp;<input id="it" type="text" name="ap2" value="">&nbsp;<input  id="it" type="text" name="ap2p" value=""><br>
+<h2>Central:</h2>
+&nbsp;<input id="it" type="text" name="ce1" value="192.168.10.24:8080">&nbsp;<input  id="it" type="text" name="ce2" value="192.168.10.40:80"><br>
+<h2>Path:</h2>
+&nbsp;<input id="it" type="text" name="path" value="/cgi-bin"><br>
+<br>
+<br>
+&nbsp;&nbsp;<input  id="it" type="submit" value="Guardar"></form>
+</body>
+</html>
+
+    snprintf(out, max_len, 
+            "%s"
+            "<!DOCTYPE html>\r\n"
+            "<html>\r\n"
+            "<head>\r\n"
+            "<title>Dom32IO</title>\r\n"
+            "<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\r\n"
+            "<style\r\n"
+            "body{\r\n"
+            "    margin:0;\r\n"
+            "    padding:0;\r\n"
+            "    background:#e0e0e0;\r\n"
+            "    font-size:18px;\r\n"
+            "}\r\n"
+            ".container{\r\n"
+            "    padding:10px;\r\n"
+            "    background:#fff;\r\n"
+            "    margin:10px;\r\n"
+            "    border-radius:10px;\r\n"
+            "    box-shadow:0 0 5px #999;\r\n"
+            "}\r\n"
+            "h1{\r\n"
+            "    margin:0 0 10px 0;\r\n"
+            "    font-size:22px;\r\n"
+            "    text-align:center;\r\n"
+            "}\r\n"
+            "label{\r\n"
+            "    display:block;\r\n"
+            "    margin-top:10px;\r\n"
+            "    font-weight:bold;\r\n"
+            "}\r\n"
+            "input{\r\n"
+            "    width:100%%;\r\n"
+            "    height:45px;\r\n"
+            "    font-size:18px;\r\n"
+            "    padding:5px;\r\n"
+            "    margin-top:5px;\r\n"
+            "    box-sizing:border-box;\r\n"
+            "    border-radius:6px;\r\n"
+            "    border:1px solid #888;\r\n"
+            "}\r\n"
+            "button{\r\n"
+            "    width:100%%;\r\n"
+            "    height:55px;\r\n"
+            "    font-size:20px;\r\n"
+            "    margin-top:20px;\r\n"
+            "    background:#4CAF50;\r\n"
+            "    color:white;\r\n"
+            "    border:none;\r\n"
+            "    border-radius:8px;\r\n"
+            "}\r\n"
+            "</style>\r\n"
+            "</head>\r\n"
+            "\r\n"
+            "<body>\r\n"
+            "<div class=\"container\">\r\n"
+            "<form method=\"post\">\r\n"
+            "\r\n"
+            "<h1>WiFi Config</h1>\r\n"
+            "<label>MAC</label>\r\n"
+            "<div style=\"font-size:18px; padding:8px 0;\">%s</div>\r\n"
+            "<label>AP1 SSID</label>\r\n"
+            "<input type=\"text\" name=\"ap1\" value=\"%s\">\r\n"
+            "<label>AP1 Password</label>\r\n"
+            "<input type=\"text\" name=\"ap1p\" value=\"%s\">\r\n"
+            "<label>AP2 SSID</label>\r\n"
+            "<input type=\"text\" name=\"ap2\" value=\"%s\">\r\n"
+            "<label>AP2 Password</label>\r\n"
+            "<input type=\"text\" name=\"ap2p\" value=\"%s\">\r\n"
+            "<label>Central 1</label>\r\n"
+            "<input type=\"text\" name=\"ce1\" value=\"%s\">\r\n"
+            "<label>Central 2</label>\r\n"
+            "<input type=\"text\" name=\"ce2\" value=\"%s\">\r\n"
+            "<label>Path</label>\r\n"
+            "<input type=\"text\" name=\"path\" value=\"%s\">\r\n"
+            "<button type=\"submit\">Guardar</button>\r\n"
+            "\r\n"
+            "</form>\r\n"
+            "</div>\r\n"
+            "</body>\r\n"
+            "</html>\r\n"
+            ,http_c_http_200,
+            WiFiMAC(),
+            g_wifi_config.u.config.wifi_ap1, g_wifi_config.u.config.wifi_ap1_pass,
+            g_wifi_config.u.config.wifi_ap2, g_wifi_config.u.config.wifi_ap2_pass,
+            wifi_host1, wifi_host2,
+            g_wifi_config.u.config.rqst_path);

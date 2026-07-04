@@ -26,6 +26,7 @@
 #include "defines.h"
 #include "log.h"
 #include "config.h"
+#include "control.h"
 #include "wifi/wifi.h"
 #include "misc/strfunc.h"
 
@@ -256,7 +257,6 @@ int HttpQueryHost(const char* url, const char* msg_send, char* resp_header, char
     recv_len = WiFiQueryHost(host, port, http_buffer, http_buffer);
     if(recv_len < 0)
     {
-        g_http_c_host_conectado = 0;
         LogMessage("[HTTP] HttpQueryHost: Error en WiFiQueryHost");
         return (-1);
     }
@@ -276,18 +276,9 @@ int HttpQueryHost(const char* url, const char* msg_send, char* resp_header, char
         {
             strcpy(resp_data, &http_buffer[head_len+4]);
         }
-        if(http_rc == 200)
-        {
-            g_http_c_host_conectado = g_http_c_go_host_conectado;
-        }
-        else
-        {
-            g_http_c_host_conectado = 0;
-        }
     }
     else
     {
-        g_http_c_host_conectado = 0;
         /* No se reconoce una cabecera HTTP */
         if(resp_header)
         {
