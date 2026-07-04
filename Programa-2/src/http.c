@@ -579,25 +579,32 @@ int HttpReturnWiFiFormConfig(char *out, int max_len)
             "<title>Dom32IO</title>\n"
             "</head>\n"
             "<style>\n"
-            "body{background-color:grey;font-size:24pt;}\n"
-            "#it{height:75;font-size:24pt}\n"
+            "body{margin:0;padding:0;background:#e0e0e0;font-size:18px;}\n"
+            "button{width:100%%;height:55px;font-size:20px;margin-top:20px;background:#4CAF50;color:white;border:none;border-radius:8px;}\n"
+            "input{width:48%%;height:45px;font-size:18px;padding:5px;margin-top:5px;box-sizing:border-box;border-radius:6px;border:1px solid #888;}\n"
+            "h1{margin:0 0 10px 0;font-size:22px;text-align:center;}\n"
+            "label{display:block;margin-top:10px;font-weight:bold;}\n"
             "</style>\n"
             "<body>\n"
             "<form method=\"post\">\n"
-            "<h1>WiFi</h1>\n"
-            "<p>MAC: %s</p>\n"
+            "<h1>Dom32IO</h1>\n"
+            "<label>MAC</label>\n"
+            "<p>%s</p>\n"
             "<hr />\n"
-            "<h2>AP1:</h2>\n"
-            "&nbsp;<input id=\"it\" type=\"text\" name=\"ap1\" value=\"%s\">&nbsp;<input  id=\"it\" type=\"text\" name=\"ap1p\" value=\"%s\"><br>\n"
-            "<h2>AP2:</h2>\n"
-            "&nbsp;<input id=\"it\" type=\"text\" name=\"ap2\" value=\"%s\">&nbsp;<input  id=\"it\" type=\"text\" name=\"ap2p\" value=\"%s\"><br>\n"
-            "<h2>Central:</h2>\n"
-            "&nbsp;<input id=\"it\" type=\"text\" name=\"ce1\" value=\"%s\">&nbsp;<input  id=\"it\" type=\"text\" name=\"ce2\" value=\"%s\"><br>\n"
-            "<h2>Path:</h2>\n"
-            "&nbsp;<input id=\"it\" type=\"text\" name=\"path\" value=\"%s\"><br>\n"
-            "<br>\n"
-            "<br>\n"
-            "&nbsp;&nbsp;<input  id=\"it\" type=\"submit\" value=\"Guardar\">"
+            "<label>AP1</label>\n"
+            "<input type=\"text\" name=\"ap1\" value=\"%s\"> <input type=\"text\" name=\"ap1p\" value=\"%s\"><br>\n"
+            "<label>AP2</label>\n"
+            "<input type=\"text\" name=\"ap2\" value=\"%s\"> <input type=\"text\" name=\"ap2p\" value=\"%s\"><br>\n"
+            "<label>Central</label>\n"
+            "<input type=\"text\" name=\"ce1\" value=\"%s\"> <input type=\"text\" name=\"ce2\" value=\"%s\"><br>\n"
+            "<label>Path</label>\n"
+            "<input type=\"text\" name=\"path\" value=\"%s\">\n"
+            "<label>Saver</label>\n"
+            "<input type=\"text\" name=\"sct\" value=\"%d\">\n"
+            "<label>Report</label>\n"
+            "<input type=\"text\" name=\"rep\" value=\"%d\">\n"
+            "<hr />\n"
+            "<button type=\"submit\">Guardar</button>"
             "</form>\n"
             "</body>\n"
             "</html>\n",
@@ -606,7 +613,9 @@ int HttpReturnWiFiFormConfig(char *out, int max_len)
             g_wifi_config.u.config.wifi_ap1, g_wifi_config.u.config.wifi_ap1_pass,
             g_wifi_config.u.config.wifi_ap2, g_wifi_config.u.config.wifi_ap2_pass,
             wifi_host1, wifi_host2,
-            g_wifi_config.u.config.rqst_path);
+            g_wifi_config.u.config.rqst_path,
+            g_wifi_config.u.config.screen_saver_time,
+            g_wifi_config.u.config.report/10);
     
     return strlen(out);
 }

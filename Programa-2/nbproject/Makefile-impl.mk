@@ -27,7 +27,7 @@ CLEAN_SUBPROJECTS=${CLEAN_SUBPROJECTS_${SUBPROJECTS}}
 PROJECTNAME=Programa-2
 
 # Active Configuration
-DEFAULTCONF=Standalone
+DEFAULTCONF=Booteable
 CONF=${DEFAULTCONF}
 
 # All Configurations

@@ -297,6 +297,21 @@ void ProcessGeneralConfig(char* in)
         g_wifi_config.u.config.wifi_host2_port = atoi(s);
         save_config_timer_count = 1000;
     }
+    if(HTTPGetFormData(in, "rep", s))
+    {
+        g_wifi_config.u.config.report = atoi(s) * 10;
+        if(g_wifi_config.u.config.report == 0)
+        {
+            g_wifi_config.u.config.report = 600;
+        }
+        save_config_timer_count = 1000;
+    }
+    if(HTTPGetFormData(in, "sct", s))
+    {
+        g_wifi_config.u.config.screen_saver_time = atoi(s);
+        save_config_timer_count = 1000;
+    }
+
     if(HTTPGetFormData(in, "reset", s))
     {
         reset_timer_count = 300;
@@ -328,11 +343,6 @@ void ProcessGeneralConfig(char* in)
         g_wifi_config.u.config.brillo_min = atoi(s);
         save_config_timer_count = 1000;
     }
-    if(HTTPGetFormData(in, "screen-saver", s))
-    {
-        g_wifi_config.u.config.screen_saver_time = atoi(s);
-        save_config_timer_count = 1000;
-    }
     if(HTTPGetFormData(in, "debug", s))
     {
         g_wifi_config.u.config.debug = atoi(s);
@@ -343,25 +353,7 @@ void ProcessGeneralConfig(char* in)
         g_wifi_config.u.config.display_type = atoi(s);
         save_config_timer_count = 1000;
     }
-    if(HTTPGetFormData(in, "report", s))
-    {
-        g_wifi_config.u.config.report = atoi(s) * 10;
-        if(g_wifi_config.u.config.report == 0)
-        {
-            g_wifi_config.u.config.report = 600;
-        }
-        save_config_timer_count = 1000;
-    }
-    if(HTTPGetFormData(in, "REPORT", s))
-    {
-        g_wifi_config.u.config.report = atoi(s) * 10;
-        if(g_wifi_config.u.config.report == 0)
-        {
-            g_wifi_config.u.config.report = 600;
-        }
-        save_config_timer_count = 1000;
-    }
-    if(HTTPGetFormData(in, "TIME", s))
+    if(HTTPGetFormData(in, "time", s))
     {
         LogMessage("TIME: %s", s);
         /*             1111111111
