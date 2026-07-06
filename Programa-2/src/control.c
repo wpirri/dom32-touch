@@ -56,7 +56,7 @@ typedef enum
     WIFI_ERROR_FATAL_LOOP
 } enum_control_wifi_stm;
 
-enum_control_wifi_stm control_wifi_stm = WIFI_INIT;
+enum_control_wifi_stm control_wifi_stm;
 unsigned int control_wifi_stm_delay;
 
 /* **** Screen ************************************************************* */
@@ -78,7 +78,7 @@ typedef enum
     SCREEN_ERROR_FATAL_LOOP
 } enum_control_screen_stm;
 
-enum_control_screen_stm control_screen_stm = SCREEN_INIT;
+enum_control_screen_stm control_screen_stm;
 unsigned int control_screen_stm_delay;
 unsigned int control_screen_saver_count;
 char control_screen_filename[FILE_NAME_SIZE+1];
@@ -93,6 +93,7 @@ unsigned int reset_timer_count;
 unsigned int update_firmware_timer_count;
 unsigned int update_screen_timer_count;
 unsigned int save_config_timer_count;
+char filename_to_download[256];
 
 void ControlHostKeepAlive(void);
 
@@ -121,17 +122,24 @@ void DownloadFile(const char* filename, enum_control_screen_stm return_screen)
 void ControlInit( bool sd_ok )
 {
     status_sd_ok = sd_ok;
-    control_screen_number = 0;
-    control_screen_stm_delay = 0;
-    control_screen_saver_count = ((g_wifi_config.u.config.screen_saver_time)?g_wifi_config.u.config.screen_saver_time*100:6000);
-    wifi_config_timer_count = 0;
+    filename_to_download[0] = 0;
     keep_alive_timer_count = 0;
     reset_timer_count = 0;
     update_firmware_timer_count = 0;
-    update_screen_timer_count = 0;
     save_config_timer_count = 0;
-    control_wifi_stm_delay = 500;
     assinc_timer_flag = false;
+    
+    /* **** WiFi *********************************************************** */
+    control_wifi_stm = WIFI_INIT;
+    control_wifi_stm_delay = 500;
+    wifi_config_timer_count = 0;
+    /* **** Screen ********************************************************* */
+    control_screen_stm = SCREEN_INIT;
+    control_screen_stm_delay = 0;
+    control_screen_number = 0;
+    control_screen_saver_count = ((g_wifi_config.u.config.screen_saver_time)?g_wifi_config.u.config.screen_saver_time*100:6000);
+    update_screen_timer_count = 0;
+
 }
 
 void ControlTimer( void )
@@ -198,6 +206,14 @@ void ControlTask(void)
             }
         }
         
+    }
+    
+    if(filename_to_download[0])
+    {
+        control_screen_number = 0;
+        strcpy(control_screen_filename, HOME_SCREEN_CSV);
+        DownloadFile(filename_to_download, SCREEN_SHOW_PAGE);
+        filename_to_download[0] = 0;
     }
 }
 
@@ -389,6 +405,10 @@ void ProcessGeneralConfig(char* in)
         {
             LogMessage("[CTRLConfSys] Error de formato para TIME");
         }
+    }
+    if(HTTPGetFormData(in, "download", s))
+    {
+        strcpy(filename_to_download, s);
     }
 }
 
@@ -621,12 +641,9 @@ void Control_Screen_Task( void )
         case SCREEN_OFFLINE_LOOP:
             if(HttpOnLine())
             {
-                if(control_screen_saver_count == 0)
+                if(control_screen_saver_count == 0 && g_wifi_config.u.config.screen_saver_time > 0)
                 {
-                    if(g_wifi_config.u.config.screen_saver_time > 0)
-                    {
-                        control_screen_stm = SCREEN_SAVER;
-                    }
+                    control_screen_stm = SCREEN_SAVER;
                 }
                 else
                 {

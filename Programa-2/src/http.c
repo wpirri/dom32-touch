@@ -296,10 +296,49 @@ int HttpDownload(const char* filename)
 {
     char url[256];
     char rqst[256];
+    char* file;
 
     if( !HttpOnLine()) return (-1);
 
-    sprintf(url, "%s/%s", g_wifi_config.u.config.download_path, filename);
+    /* obtengo el nombre sin path */
+    file = (char*)filename;
+    while(strchr(file, '/'))
+    {
+        file = strchr(file, '/') + 1;
+    }
+    /* Armo la solicitud del archivo */
+    /* veo si cada parte empieza y/o termina en / para concatenar */
+    strcpy(url, g_wifi_config.u.config.download_path);
+    if(*filename == '/')
+    {
+        /* El archivo comienza con / */
+        if(url[strlen(url)-1] == '/')
+        {
+            /* el path termina con / */
+            url[strlen(url)-1] = 0;
+            strcat(url, filename);
+        }
+        else
+        {
+            /* el path no termina con / */
+            strcat(url, filename);
+        }           
+    }
+    else
+    {
+        /* El archivo no comienza con / */
+        if(url[strlen(url)-1] == '/')
+        {
+            /* el path termina con / */
+            strcat(url, filename);
+        }
+        else
+        {
+            /* el path no termina con / */
+            strcat(url, "/");
+            strcat(url, filename);
+        }           
+    }
     url_encode(url, url);
     /*
      * GET
@@ -307,7 +346,7 @@ int HttpDownload(const char* filename)
      * 2.- %s: Host
      */
     snprintf(rqst, 250, http_c_http_get, url, HttpCurrentHost());
-    return WiFiQueryHostToFile(HttpCurrentHost(), HttpCurrentPort(), rqst, filename);
+    return WiFiQueryHostToFile(HttpCurrentHost(), HttpCurrentPort(), rqst, file);
 }
 
 int HttpDecodeFormData(char* out, const char* in, unsigned int max_out)
