@@ -220,10 +220,11 @@ void ControlTask(void)
 void ControlHostKeepAlive(void)
 {
     char url[256];
-    char data[256];
+    char data[1024];
     int rc;
     char resp_err_code[16];
     char resp_err_msg[256];
+    int i;
     
     sprintf(url, "%s/infoio.cgi", g_wifi_config.u.config.rqst_path);
     sprintf(data, "ID=%s&TYP=TOUCH", WiFiMAC());
@@ -231,6 +232,17 @@ void ControlHostKeepAlive(void)
     if(rc == 200)
     {
         LogMessage("[ControlHostKeepAlive] HTTP Req Ok");
+
+        /* Si la respuesta vino entre [""] le hago limpieza */
+        if(data[0] == '[' && data[1] == '\"')
+        {
+            for(i = 2; data[i]; i++)
+            {
+                data[i-2] = data[i];
+            }
+            data[i-4] = 0;
+        }
+
         if(HTTPGetFormData(data, "error", resp_err_code))
         {
             if(HTTPGetFormData(data, "message", resp_err_msg))
@@ -264,6 +276,8 @@ void ProcessGeneralConfig(char* in)
     char s[256];
     struct tm tm_time;
     char *p;
+    
+    LogMessage("[ProcessGeneralConfig] [%s]", in);
     
     if(HTTPGetFormData(in, "ap1", g_wifi_config.u.config.wifi_ap1))
     {
