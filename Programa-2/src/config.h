@@ -21,30 +21,6 @@
 #include <xc.h>
 #include <stdbool.h>
 
-/* Incrementa mensaje de logueo del modulo wifi */
-//#define DEBUG_WIFI
-/* Vuelca el log a tarjeta SD */
-//#define DEBUG_TOUCH
-
-#define SLEEP_TIMER 30
-
-// Clock frequency values
-#define _XTAL_FREQ  24000000UL             // Hz
-#define GetSystemClock()		(_XTAL_FREQ)
-#define GetInstructionClock()	(GetSystemClock()/*/4*/)
-#define GetPeripheralClock()	(GetSystemClock()/*/4*/)
-
-#define CLRWDT()  (WDTCONbits.WDTCLRKEY = 0x5743)
-
-// 0x1D4C0 = 10ms
-// 0x124F80 = 100ms
-#define CORE_TIMER_COMPARE_VAL 0x1D4C0
-
-#define DOWNLOAD_PATH           "/download"
-#define FIRMWARE_FILENAME       "domtouch.hex"
-#define CONFIG_FILENAME         "d32touch.cfg"
-#define SCREEN_FILENAME         "screen.lst"
-
 typedef struct _config_in_file_ /*  */
 {
     char wifi_ap1[33];                  /* ap1 */

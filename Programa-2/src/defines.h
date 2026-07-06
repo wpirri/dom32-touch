@@ -20,9 +20,6 @@
 
 #include <xc.h>
 
-#define DEBUG_TO_SERIAL
-
-
 #define SLEEP_TIMER 30
 
 // Clock frequency values
@@ -37,8 +34,8 @@
 // 0x124F80 = 100ms
 #define CORE_TIMER_COMPARE_VAL 0x1D4C0
 
-#define TMP_FILENAME            "download.tmp"
 #define FIRMWARE_FILENAME       "domtouch.hex"
+#define TMP_FILENAME            "download.tmp"
 #define CONFIG_FILENAME         "d32touch.cfg"
 #define SCREEN_FILENAME         "screen.lst"
 

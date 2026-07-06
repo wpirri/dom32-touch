@@ -93,31 +93,13 @@ unsigned int reset_timer_count;
 unsigned int update_firmware_timer_count;
 unsigned int update_screen_timer_count;
 unsigned int save_config_timer_count;
+unsigned int control_file_flags;
 char filename_to_download[256];
 
+void DownloadFile(const char* filename, enum_control_screen_stm return_screen);
 void ControlHostKeepAlive(void);
-
-void DownloadFile(const char* filename, enum_control_screen_stm return_screen)
-{
-    DisplayOff();
-    Clear(0);
-    /* Imagen centrada */
-    DrawBitmap(DOWNLOAD_SCREEN_BMP, 
-            ((DISPLAY_X_SIZE/2)-(GetBitmapW(DOWNLOAD_SCREEN_BMP)/2)), 
-            ((DISPLAY_Y_SIZE/2)-(GetBitmapH(DOWNLOAD_SCREEN_BMP)/2)) );
-    DisplayBrillo(g_wifi_config.u.config.brillo_max);
-    DisplayOn();
-
-    HttpDownload(filename);
-    
-    if( !strcmp(filename, FIRMWARE_FILENAME))
-    {
-        reset_timer_count = 300;
-        save_config_timer_count = 150;
-    }
-
-    control_screen_stm = return_screen;
-}
+void ControlFileFlags( void );
+void ProcesarScreenConfig( void );
 
 void ControlInit( bool sd_ok )
 {
@@ -128,6 +110,7 @@ void ControlInit( bool sd_ok )
     update_firmware_timer_count = 0;
     save_config_timer_count = 0;
     assinc_timer_flag = false;
+    control_file_flags = 6000;
     
     /* **** WiFi *********************************************************** */
     control_wifi_stm = WIFI_INIT;
@@ -152,6 +135,7 @@ void ControlTimer( void )
     if(wifi_config_timer_count) wifi_config_timer_count--;
     if(WiFiConectado() && keep_alive_timer_count) keep_alive_timer_count--;
     if(control_screen_saver_count) control_screen_saver_count--;
+    if(control_file_flags) control_file_flags--;
     if(reset_timer_count)
     {
         reset_timer_count--;
@@ -169,6 +153,12 @@ void ControlTask(void)
         ControlHostKeepAlive();
     }
     
+    if(control_file_flags == 0)
+    {
+        control_file_flags = 6000;
+        ControlFileFlags();
+    }
+    
     /* Para las cosas que dependen del timer pero no pueden estar en una interrupcion */
     if(assinc_timer_flag)
     {
@@ -179,9 +169,9 @@ void ControlTask(void)
             update_screen_timer_count--;
             if(update_screen_timer_count == 0)
             {
-                /* TODO: Logica de carga de pantallas */
-
-
+                control_screen_number = 0;
+                strcpy(control_screen_filename, HOME_SCREEN_CSV);
+                DownloadFile("/cgi-bin/hwconfig.cgi", SCREEN_SHOW_PAGE);
             }
         }
 
@@ -202,7 +192,7 @@ void ControlTask(void)
             {
                 control_screen_number = 0;
                 strcpy(control_screen_filename, HOME_SCREEN_CSV);
-                DownloadFile(FIRMWARE_FILENAME, SCREEN_SHOW_PAGE);
+                DownloadFile("/download/"FIRMWARE_FILENAME, SCREEN_SHOW_PAGE);
             }
         }
         
@@ -215,6 +205,22 @@ void ControlTask(void)
         DownloadFile(filename_to_download, SCREEN_SHOW_PAGE);
         filename_to_download[0] = 0;
     }
+}
+
+void DownloadFile(const char* filename, enum_control_screen_stm return_screen)
+{
+    DisplayOff();
+    Clear(0);
+    /* Imagen centrada */
+    DrawBitmap(DOWNLOAD_SCREEN_BMP, 
+            ((DISPLAY_X_SIZE/2)-(GetBitmapW(DOWNLOAD_SCREEN_BMP)/2)), 
+            ((DISPLAY_Y_SIZE/2)-(GetBitmapH(DOWNLOAD_SCREEN_BMP)/2)) );
+    DisplayBrillo(g_wifi_config.u.config.brillo_max);
+    DisplayOn();
+
+    HttpDownload(filename);
+    
+    control_screen_stm = return_screen;
 }
 
 void ControlHostKeepAlive(void)
@@ -281,19 +287,19 @@ void ProcessGeneralConfig(char* in)
     
     if(HTTPGetFormData(in, "ap1", g_wifi_config.u.config.wifi_ap1))
     {
-        save_config_timer_count = 1000;
+        save_config_timer_count = 500;
     }
     if(HTTPGetFormData(in, "ap1p", g_wifi_config.u.config.wifi_ap1_pass))
     {
-        save_config_timer_count = 1000;
+        save_config_timer_count = 500;
     }
     if(HTTPGetFormData(in, "ap2", g_wifi_config.u.config.wifi_ap2))
     {
-        save_config_timer_count = 1000;
+        save_config_timer_count = 500;
     }
     if(HTTPGetFormData(in, "ap2p", g_wifi_config.u.config.wifi_ap2_pass))
     {
-        save_config_timer_count = 1000;
+        save_config_timer_count = 500;
     }
     if(HTTPGetFormData(in, "ce1", g_wifi_config.u.config.wifi_host1))
     {
@@ -305,7 +311,7 @@ void ProcessGeneralConfig(char* in)
             /* viene con el port */
             g_wifi_config.u.config.wifi_host1_port = atoi(p);
         }
-        save_config_timer_count = 1000;
+        save_config_timer_count = 500;
     }
     if(HTTPGetFormData(in, "ce2", g_wifi_config.u.config.wifi_host2))
     {
@@ -317,21 +323,21 @@ void ProcessGeneralConfig(char* in)
             /* viene con el port */
             g_wifi_config.u.config.wifi_host2_port = atoi(p);
         }
-        save_config_timer_count = 1000;
+        save_config_timer_count = 500;
     }
     if(HTTPGetFormData(in, "path", g_wifi_config.u.config.rqst_path))
     {
-        save_config_timer_count = 1000;
+        save_config_timer_count = 500;
     }
     if(HTTPGetFormData(in, "ce1p", s))
     {
         g_wifi_config.u.config.wifi_host1_port = atoi(s);
-        save_config_timer_count = 1000;
+        save_config_timer_count = 500;
     }
     if(HTTPGetFormData(in, "ce2p", s))
     {
         g_wifi_config.u.config.wifi_host2_port = atoi(s);
-        save_config_timer_count = 1000;
+        save_config_timer_count = 500;
     }
     if(HTTPGetFormData(in, "rep", s))
     {
@@ -340,18 +346,17 @@ void ProcessGeneralConfig(char* in)
         {
             g_wifi_config.u.config.report = 600;
         }
-        save_config_timer_count = 1000;
+        save_config_timer_count = 500;
     }
     if(HTTPGetFormData(in, "sct", s))
     {
         g_wifi_config.u.config.screen_saver_time = atoi(s);
-        save_config_timer_count = 1000;
+        save_config_timer_count = 500;
     }
 
     if(HTTPGetFormData(in, "reset", s))
     {
-        reset_timer_count = 300;
-        save_config_timer_count = 150;
+        reset_timer_count = 1000;
     }
     if(HTTPGetFormData(in, "update", s))
     {
@@ -359,7 +364,7 @@ void ProcessGeneralConfig(char* in)
         {
             update_firmware_timer_count = 300;
         }
-        else if( !strcmp(s, "screen"))
+        else if( !strcmp(s, "config"))
         {
             update_screen_timer_count = 300;
         }
@@ -367,27 +372,27 @@ void ProcessGeneralConfig(char* in)
     if(HTTPGetFormData(in, "brillo-max", s))
     {
         g_wifi_config.u.config.brillo_max = atoi(s);
-        save_config_timer_count = 1000;
+        save_config_timer_count = 500;
     }
     if(HTTPGetFormData(in, "brillo-med", s))
     {
         g_wifi_config.u.config.brillo_med = atoi(s);
-        save_config_timer_count = 1000;
+        save_config_timer_count = 500;
     }
     if(HTTPGetFormData(in, "brillo-min", s))
     {
         g_wifi_config.u.config.brillo_min = atoi(s);
-        save_config_timer_count = 1000;
+        save_config_timer_count = 500;
     }
     if(HTTPGetFormData(in, "debug", s))
     {
         g_wifi_config.u.config.debug = atoi(s);
-        save_config_timer_count = 1000;
+        save_config_timer_count = 500;
     }
     if(HTTPGetFormData(in, "display", s))
     {
         g_wifi_config.u.config.display_type = atoi(s);
-        save_config_timer_count = 1000;
+        save_config_timer_count = 500;
     }
     if(HTTPGetFormData(in, "time", s))
     {
@@ -424,6 +429,34 @@ void ProcessGeneralConfig(char* in)
     {
         strcpy(filename_to_download, s);
     }
+}
+
+void ControlFileFlags( void )
+{
+    FSFILE *f;
+    
+    f = FSfopen(FIRMWARE_FILENAME, FS_READ);
+    if(f)
+    {
+        FSfclose(f);
+        reset_timer_count = 300;
+        return;
+    }
+    
+    f = FSfopen(SCREEN_FILENAME, FS_READ);
+    if(f)
+    {
+        FSfclose(f);
+        ProcesarScreenConfig();
+        return;
+    }
+    
+    
+}
+
+void ProcesarScreenConfig( void )
+{
+    
 }
 
 /* **** WiFi *************************************************************** */
@@ -746,7 +779,7 @@ void BotonPressed(const char* cmd)
     }
     else if( !memcmp(cmd, "UPGRADE", 7))
     {
-        DownloadFile(FIRMWARE_FILENAME, SCREEN_CONFIG);
+        DownloadFile("/download/"FIRMWARE_FILENAME, SCREEN_CONFIG);
     }
     else if( !memcmp(cmd, "SWITCH:", 7))
     {
