@@ -706,15 +706,18 @@ int WiFiQueryHostToFile(const char* host, int port, const char* send_msg, const 
             /* Tomo datos de la cabecera HTTP */
             if(HTTPGetHeadData(cmd, "Content-Length", str_tmp))
             {
+                LogMessage("[WiFiQueryHostToFile] Content-Length [%s]", str_tmp);
                 content_length = atol(str_tmp);
             }
             else if(HTTPGetHeadData(cmd, "content-length", str_tmp))
             {
+                LogMessage("[WiFiQueryHostToFile] content-length [%s]", str_tmp);
                 content_length = atol(str_tmp);
             }
 
             if(HTTPGetHeadData(cmd, "Content-Disposition", str_tmp))
             {
+                LogMessage("[WiFiQueryHostToFile] Content-Disposition [%s]", str_tmp);
                 if( !memcmp(str_tmp, "attachment;", 11) && strstr(str_tmp, "filename=") )
                 {
                     p = (char*)(strstr(str_tmp, "filename=")+9);
@@ -729,6 +732,7 @@ int WiFiQueryHostToFile(const char* host, int port, const char* send_msg, const 
             }
             else if(HTTPGetHeadData(cmd, "content-disposition", str_tmp))
             {
+                LogMessage("[WiFiQueryHostToFile] content-disposition [%s]", str_tmp);
                 if( !memcmp(str_tmp, "attachment;", 11) && strstr(str_tmp, "filename=") )
                 {
                     p = (char*)(strstr(str_tmp, "filename=")+9);
