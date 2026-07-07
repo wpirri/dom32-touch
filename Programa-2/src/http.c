@@ -66,52 +66,24 @@ const char http_c_http_get[] = "GET %s HTTP/1.1\r\n"
                                "User-Agent: Dom32io/1.00 (Microchip;PIC32)\r\n"
                                "Accept: text/html,text/xml\r\n\r\n";
 
-int Convert2CharToHex(const char* h)
-{
-    int h1, h2;
-    
-    if( (*h) >= '0' && (*h) <= '9' )
-    {
-        h1 = ((*h)-'0');
-    }
-    else if( (*h) >= 'A' && (*h) <= 'F' )
-    {
-        h1 = ((*h)-'A'+10);
-    }
-    else if( (*h) >= 'a' && (*h) <= 'f' )
-    {
-        h1 = ((*h)-'a'+10);
-    }
-    else
-    {
-        h1 = 0;
-    }
-    h++;
-    if( (*h) >= '0' && (*h) <= '9' )
-    {
-        h2 = ((*h)-'0');
-    }
-    else if( (*h) >= 'A' && (*h) <= 'F' )
-    {
-        h2 = ((*h)-'A'+10);
-    }
-    else if( (*h) >= 'a' && (*h) <= 'f' )
-    {
-        h2 = ((*h)-'a'+10);
-    }
-    else
-    {
-        h2 = 0;
-    }
-
-    return ((h1*16)+h2);
-}
+int Convert2CharToHex(const char* h);
+int HttpReturnWiFiFormConfig(char *out, int max_len);
 
 void HttpInit(void)
 {
     g_http_c_host_conectado = 0;
     g_http_c_go_host_conectado = 0;
 
+}
+
+void HttpTask(void)
+{
+    
+}
+
+void HttpTimerInt(void)
+{
+    
 }
 
 int HttpOnLine( void )
@@ -160,162 +132,6 @@ void HttpSwitchHost( void )
 {
     if(g_http_c_go_host_conectado == 1) g_http_c_go_host_conectado = 2;
     else                              g_http_c_go_host_conectado = 1;
-}
-
-void HttpTask(void)
-{
-    
-}
-
-void HttpTimerInt(void)
-{
-    
-}
-
-int HttpQueryHost(const char* url, const char* msg_send, char* resp_header, char* resp_data)
-{
-    char* host;
-    int port;
-    char http_buffer[4096];
-    int recv_len;
-    char* head_end;
-    int head_len;
-    int http_rc = 0;
-
-    if(WiFiConectado() == 0)
-    {
-        LogMessage("[HTTP] HttpQueryHost: WiFi no conectado");
-        return (-1);
-    }
-    
-    /* Selección de host y port */
-    if(g_http_c_host_conectado == 0)
-    {
-        /* Si todavía no tuve una conexión Ok o tuve errores */
-        
-        if(g_wifi_config.u.config.wifi_host1[0] == 0 &&
-           g_wifi_config.u.config.wifi_host2[0] == 0  )
-        {
-            /* Si no hay host definido no puedo seguir */
-            return (-1);
-        }
-        
-        if(g_http_c_go_host_conectado == 0)
-        {
-            /* Decido dónde probar primero */
-            g_http_c_go_host_conectado = 1;
-        }
-        else
-        {
-            /* Invierto el host para probar */
-            g_http_c_go_host_conectado = (g_http_c_go_host_conectado == 1)?2:1;
-        }
-        
-        /* Si el que seleccioné no está configurado elijo el otro */
-        if(g_http_c_go_host_conectado == 1 && g_wifi_config.u.config.wifi_host1[0] == 0)
-        {
-            g_http_c_go_host_conectado = 2;
-        }
-        else if(g_http_c_go_host_conectado == 2 && g_wifi_config.u.config.wifi_host2[0] == 0)
-        {
-            g_http_c_go_host_conectado = 1;
-        }
-    }
-    else
-    {
-        /* Si ya estuve conectado voy por el mismo */
-        g_http_c_go_host_conectado = g_http_c_host_conectado;
-    }
-
-    /* Tomo host y port de lo que elegí al final */
-    if(g_http_c_go_host_conectado == 1)
-    {
-        host = &g_wifi_config.u.config.wifi_host1[0];
-        port = g_wifi_config.u.config.wifi_host1_port;
-    }
-    else
-    {
-        host = &g_wifi_config.u.config.wifi_host2[0];
-        port = g_wifi_config.u.config.wifi_host2_port;
-    }
-
-    /* Si el port está en cero elijo el default según protocolo */
-    if(port == 0)
-    {
-        if(g_wifi_config.u.config.enable_https) port = 443;
-        else port = 80;
-    }
-
-    /* POST
-     * 1.- %s: URI
-     * 2.- %s: Host
-     * 3.- %d: Content-Length
-     * 4.- %s: datos
-     */
-    sprintf(http_buffer, http_c_http_post, 
-            url, host, strlen(msg_send), msg_send);
-    recv_len = WiFiQueryHost(host, port, http_buffer, http_buffer);
-    if(recv_len < 0)
-    {
-        LogMessage("[HTTP] HttpQueryHost: Error en WiFiQueryHost");
-        return (-1);
-    }
-
-    head_end = strstr(http_buffer, "\r\n\r\n");
-    if(head_end)
-    {
-        /* Se reconoce una cabecera HTTP */
-        head_len = (int)(head_end - (&http_buffer[0]));
-        http_buffer[head_len] = 0;
-        http_rc = HTTPHeadResponse(http_buffer);
-        if(resp_header)
-        {
-            strcpy(resp_header, http_buffer);
-        }
-        if(resp_data)
-        {
-            strcpy(resp_data, &http_buffer[head_len+4]);
-        }
-    }
-    else
-    {
-        /* No se reconoce una cabecera HTTP */
-        if(resp_header)
-        {
-            *resp_header = 0;
-        }
-        if(resp_data)
-        {
-            strcpy(resp_data, http_buffer);
-        }
-    }
-    return http_rc;
-}
-
-int HttpDownload(const char* filename)
-{
-    char url[256];
-    char rqst[256];
-    char* file;
-
-    if( !HttpOnLine()) return (-1);
-
-    /* obtengo el nombre sin path */
-    file = (char*)filename;
-    while(strchr(file, '/'))
-    {
-        file = strchr(file, '/') + 1;
-    }
-    /* Armo la solicitud del archivo */
-    strcpy(url, filename);
-    url_encode(url, url);
-    /*
-     * GET
-     * 1.- %s: URI
-     * 2.- %s: Host
-     */
-    snprintf(rqst, 250, http_c_http_get, url, HttpCurrentHost());
-    return WiFiQueryHostToFile(HttpCurrentHost(), HttpCurrentPort(), rqst, file);
 }
 
 int HttpDecodeFormData(char* out, const char* in, unsigned int max_out)
@@ -478,6 +294,153 @@ int HTTPFormResponse(const char *http_data)
     return (-1);
 }
 
+int HttpQueryHost(const char* url, const char* msg_send, char* resp_header, char* resp_data)
+{
+    char* host;
+    int port;
+    char http_buffer[4096];
+    int recv_len;
+    char* head_end;
+    int head_len;
+    int http_rc = 0;
+
+    if(WiFiConectado() == 0)
+    {
+        LogMessage("[HTTP] HttpQueryHost: WiFi no conectado");
+        return (-1);
+    }
+    
+    /* Selección de host y port */
+    if(g_http_c_host_conectado == 0)
+    {
+        /* Si todavía no tuve una conexión Ok o tuve errores */
+        
+        if(g_wifi_config.u.config.wifi_host1[0] == 0 &&
+           g_wifi_config.u.config.wifi_host2[0] == 0  )
+        {
+            /* Si no hay host definido no puedo seguir */
+            return (-1);
+        }
+        
+        if(g_http_c_go_host_conectado == 0)
+        {
+            /* Decido dónde probar primero */
+            g_http_c_go_host_conectado = 1;
+        }
+        else
+        {
+            /* Invierto el host para probar */
+            g_http_c_go_host_conectado = (g_http_c_go_host_conectado == 1)?2:1;
+        }
+        
+        /* Si el que seleccioné no está configurado elijo el otro */
+        if(g_http_c_go_host_conectado == 1 && g_wifi_config.u.config.wifi_host1[0] == 0)
+        {
+            g_http_c_go_host_conectado = 2;
+        }
+        else if(g_http_c_go_host_conectado == 2 && g_wifi_config.u.config.wifi_host2[0] == 0)
+        {
+            g_http_c_go_host_conectado = 1;
+        }
+    }
+    else
+    {
+        /* Si ya estuve conectado voy por el mismo */
+        g_http_c_go_host_conectado = g_http_c_host_conectado;
+    }
+
+    /* Tomo host y port de lo que elegí al final */
+    if(g_http_c_go_host_conectado == 1)
+    {
+        host = &g_wifi_config.u.config.wifi_host1[0];
+        port = g_wifi_config.u.config.wifi_host1_port;
+    }
+    else
+    {
+        host = &g_wifi_config.u.config.wifi_host2[0];
+        port = g_wifi_config.u.config.wifi_host2_port;
+    }
+
+    /* Si el port está en cero elijo el default según protocolo */
+    if(port == 0)
+    {
+        if(g_wifi_config.u.config.enable_https) port = 443;
+        else port = 80;
+    }
+
+    /* POST
+     * 1.- %s: URI
+     * 2.- %s: Host
+     * 3.- %d: Content-Length
+     * 4.- %s: datos
+     */
+    sprintf(http_buffer, http_c_http_post, 
+            url, host, strlen(msg_send), msg_send);
+    recv_len = WiFiQueryHost(host, port, http_buffer, http_buffer);
+    if(recv_len < 0)
+    {
+        LogMessage("[HTTP] HttpQueryHost: Error en WiFiQueryHost");
+        return (-1);
+    }
+
+    head_end = strstr(http_buffer, "\r\n\r\n");
+    if(head_end)
+    {
+        /* Se reconoce una cabecera HTTP */
+        head_len = (int)(head_end - (&http_buffer[0]));
+        http_buffer[head_len] = 0;
+        http_rc = HTTPHeadResponse(http_buffer);
+        if(resp_header)
+        {
+            strcpy(resp_header, http_buffer);
+        }
+        if(resp_data)
+        {
+            strcpy(resp_data, &http_buffer[head_len+4]);
+        }
+    }
+    else
+    {
+        /* No se reconoce una cabecera HTTP */
+        if(resp_header)
+        {
+            *resp_header = 0;
+        }
+        if(resp_data)
+        {
+            strcpy(resp_data, http_buffer);
+        }
+    }
+    return http_rc;
+}
+
+int HttpDownload(const char* filename)
+{
+    char url[256];
+    char rqst[256];
+    char* file;
+
+    if( !HttpOnLine()) return (-1);
+
+    /* obtengo el nombre sin path */
+    file = (char*)filename;
+    while(strchr(file, '/'))
+    {
+        file = strchr(file, '/') + 1;
+    }
+    /* Armo la solicitud del archivo */
+    strcpy(url, filename);
+    url_encode(url, url);
+    /*
+     * GET
+     * 1.- %s: URI
+     * 2.- %s: Host
+     */
+    snprintf(rqst, 250, http_c_http_get, url, HttpCurrentHost());
+    return WiFiQueryHostToFile(HttpCurrentHost(), HttpCurrentPort(), rqst, file);
+}
+
+
 void HTTPCommandSwitch( const char *obj_name )
 {
     /*
@@ -518,6 +481,74 @@ void HTTPCommandPulse( const char *obj_name )
      */
     snprintf(rqst, 1000, http_c_http_get, url, HttpCurrentHost());
     WiFiQueryHost(HttpCurrentHost(), HttpCurrentPort(), rqst, NULL);
+}
+
+int HttpProcessRequest(const char* request, const char* uri, const char* host,
+                       unsigned int content_length, char* data_io, unsigned int max_io)
+{
+    LogMessage("[HttpProcessRequest] %s %s de %s data: %i bytes", request, uri, host, content_length);
+
+    if( !strcmp(request, "GET"))
+    {
+        if( !strcmp(uri, "/") || !strcmp(uri, "/index.htm") )
+        {
+            return HttpReturnWiFiFormConfig(data_io, max_io);
+        }
+    }
+    else if( !strcmp(request, "POST"))
+    {
+        HttpDecodeFormData(data_io, data_io, max_io);
+        LogMessage("[HttpProcessRequest] POST: %i bytes [%s]", content_length, data_io);
+        if( !strcmp(uri, "/") || !strcmp(uri, "/index.htm") )
+        {
+            /* Capturo datos del formulario */
+            ProcessGeneralConfig(data_io);
+            return HttpReturnWiFiFormConfig(data_io, 2048);
+        }
+    }
+    strcpy(data_io, http_c_http_404);
+    return (strlen(data_io));
+}
+
+int Convert2CharToHex(const char* h)
+{
+    int h1, h2;
+    
+    if( (*h) >= '0' && (*h) <= '9' )
+    {
+        h1 = ((*h)-'0');
+    }
+    else if( (*h) >= 'A' && (*h) <= 'F' )
+    {
+        h1 = ((*h)-'A'+10);
+    }
+    else if( (*h) >= 'a' && (*h) <= 'f' )
+    {
+        h1 = ((*h)-'a'+10);
+    }
+    else
+    {
+        h1 = 0;
+    }
+    h++;
+    if( (*h) >= '0' && (*h) <= '9' )
+    {
+        h2 = ((*h)-'0');
+    }
+    else if( (*h) >= 'A' && (*h) <= 'F' )
+    {
+        h2 = ((*h)-'A'+10);
+    }
+    else if( (*h) >= 'a' && (*h) <= 'f' )
+    {
+        h2 = ((*h)-'a'+10);
+    }
+    else
+    {
+        h2 = 0;
+    }
+
+    return ((h1*16)+h2);
 }
 
 /*<html>
@@ -626,31 +657,4 @@ int HttpReturnWiFiFormConfig(char *out, int max_len)
             g_wifi_config.u.config.report/10);
     
     return strlen(out);
-}
-
-int HttpProcessRequest(const char* request, const char* uri, const char* host,
-                       unsigned int content_length, char* data_io, unsigned int max_io)
-{
-    LogMessage("[HttpProcessRequest] %s %s de %s data: %i bytes", request, uri, host, content_length);
-
-    if( !strcmp(request, "GET"))
-    {
-        if( !strcmp(uri, "/") || !strcmp(uri, "/index.htm") )
-        {
-            return HttpReturnWiFiFormConfig(data_io, max_io);
-        }
-    }
-    else if( !strcmp(request, "POST"))
-    {
-        HttpDecodeFormData(data_io, data_io, max_io);
-        LogMessage("[HttpProcessRequest] POST: %i bytes [%s]", content_length, data_io);
-        if( !strcmp(uri, "/") || !strcmp(uri, "/index.htm") )
-        {
-            /* Capturo datos del formulario */
-            ProcessGeneralConfig(data_io);
-            return HttpReturnWiFiFormConfig(data_io, 2048);
-        }
-    }
-    strcpy(data_io, http_c_http_404);
-    return (strlen(data_io));
 }
