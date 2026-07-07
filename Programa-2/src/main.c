@@ -98,6 +98,8 @@ int main(void)
     }
     LogMessage("[MAIN] Compilacion " __DATE__ " " __TIME__ ".");
     LogMessage("[MAIN] Compilador " __VERSION__ ".");
+    
+    FSremove(FIRMWARE_FILENAME);
 
     LogMessage("[MAIN] Configuracion");
     ConfigInit();
