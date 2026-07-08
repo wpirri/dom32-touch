@@ -37,7 +37,7 @@
 #define FIRMWARE_FILENAME       "domtouch.hex"
 #define TMP_FILENAME            "download.tmp"
 #define CONFIG_FILENAME         "d32touch.cfg"
-#define SCREEN_FILENAME         "screen.lst"
+#define DOWNLOAD_LIST_FILENAME  "download.lst"
 
 #define TOUCH_DELAY 10
 #define RETURN_TO_HOME 600

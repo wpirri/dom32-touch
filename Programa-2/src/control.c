@@ -95,11 +95,12 @@ unsigned int update_screen_timer_count;
 unsigned int save_config_timer_count;
 unsigned int control_file_flags;
 char filename_to_download[256];
+unsigned int download_list_count;
 
 void DownloadFile(const char* filename, enum_control_screen_stm return_screen);
 void ControlHostKeepAlive(void);
 void ControlFileFlags( void );
-void ProcesarScreenConfig( void );
+void ProcesarDownloadList( void );
 
 void ControlInit( bool sd_ok )
 {
@@ -111,6 +112,7 @@ void ControlInit( bool sd_ok )
     save_config_timer_count = 0;
     assinc_timer_flag = false;
     control_file_flags = 6000;
+    download_list_count = 0;
     
     /* **** WiFi *********************************************************** */
     control_wifi_stm = WIFI_INIT;
@@ -156,7 +158,10 @@ void ControlTask(void)
     if(control_file_flags == 0)
     {
         control_file_flags = 6000;
-        ControlFileFlags();
+        if(HttpOnLine())
+        {
+            ControlFileFlags();
+        }
     }
     
     /* Para las cosas que dependen del timer pero no pueden estar en una interrupcion */
@@ -200,9 +205,12 @@ void ControlTask(void)
     
     if(filename_to_download[0])
     {
+        LogMessage("[ControlTask] Download: [%s]", filename_to_download);
+
         control_screen_number = 0;
         strcpy(control_screen_filename, HOME_SCREEN_CSV);
         DownloadFile(filename_to_download, SCREEN_SHOW_PAGE);
+
         filename_to_download[0] = 0;
     }
 }
@@ -443,20 +451,62 @@ void ControlFileFlags( void )
         return;
     }
     
-    f = FSfopen(SCREEN_FILENAME, FS_READ);
-    if(f)
+    if(filename_to_download[0] == 0)
     {
-        FSfclose(f);
-        ProcesarScreenConfig();
-        return;
-    }
-    
+        f = FSfopen(DOWNLOAD_LIST_FILENAME, FS_READ);
+        if(f)
+        {
+            FSfclose(f);
+            ProcesarDownloadList();
+            control_file_flags = 100;
+            return;
+        }
+    }    
     
 }
 
-void ProcesarScreenConfig( void )
+void ProcesarDownloadList( void )
 {
+    FSFILE *f;
+    int rc;
+    char line[256];
+    unsigned int line_len;
+    unsigned int line_count = 0;
     
+    f = FSfopen(DOWNLOAD_LIST_FILENAME, FS_READ);
+    if(f)
+    {
+        do {
+            /* Leo una linea */
+            line_len = 0;
+            do {
+                rc = FSfread(&line[line_len++], 1, 1, f);
+            } while(line[line_len-1] != 0x0d && line[line_len-1] != 0x0a && line_len < 256 && rc == 1);
+            line[--line_len] = 0;
+            if(line_len > 0 && line[0] != '#')
+            {
+                /* Analizo la linea */
+                if(line_count == download_list_count)
+                {
+                    if(strchr(line, '\r')) *(strchr(line, '\r')) = 0;
+                    if(strchr(line, '\n')) *(strchr(line, '\n')) = 0;
+                    
+                    strcpy(filename_to_download, line);
+                    
+                    download_list_count++;
+                    break;
+                }
+                line_count++;
+            }
+        } while(rc == 1);
+        FSfclose(f);
+        if(rc == 0)
+        {
+            /* Fin de archivo */
+            download_list_count = 0;
+            FSremove(DOWNLOAD_LIST_FILENAME);
+        }
+    }
 }
 
 /* **** WiFi *************************************************************** */
@@ -873,7 +923,7 @@ void ShowScreen(const char* filename)
     if(f)
     {
         do {
-            /* Leo una l�nea */
+            /* Leo una linea */
             line_len = 0;
             do {
                 rc = FSfread(&line[line_len++], 1, 1, f);
