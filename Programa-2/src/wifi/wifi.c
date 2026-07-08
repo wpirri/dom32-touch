@@ -709,40 +709,10 @@ int WiFiQueryHostToFile(const char* host, int port, const char* send_msg, const 
                 LogMessage("[WiFiQueryHostToFile] Content-Length [%s]", str_tmp);
                 content_length = atol(str_tmp);
             }
-            else if(HTTPGetHeadData(cmd, "content-length", str_tmp))
-            {
-                LogMessage("[WiFiQueryHostToFile] content-length [%s]", str_tmp);
-                content_length = atol(str_tmp);
-            }
 
             if(HTTPGetHeadData(cmd, "Content-Disposition", str_tmp))
             {
                 LogMessage("[WiFiQueryHostToFile] Content-Disposition [%s]", str_tmp);
-                if( !memcmp(str_tmp, "attachment;", 11) && strstr(str_tmp, "filename=") )
-                {
-                    p = (char*)(strstr(str_tmp, "filename=")+9);
-                    q = &real_filename[0];
-                    while(*p && ( (*p >= 0x30 && *p <= 0x39)||
-                                  (*p >= 0x41 && *p <= 0x5A)||
-                                  (*p >= 0x61 && *p <= 0x7A)||
-                                  *p == 0x22 || *p == 0x2E||
-                                  *p == 0x2D || *p == 0x5F||
-                                  *p == 0x7E) )
-                    {
-                        if(*p != 0x22)
-                        {
-                            *q = *p;
-                            q++;
-                        }
-                        p++;
-                    }
-                    *q = 0;
-                    LogMessage("[WiFiQueryHostToFile] Archivo [%s]", real_filename);
-                }
-            }
-            else if(HTTPGetHeadData(cmd, "content-disposition", str_tmp))
-            {
-                LogMessage("[WiFiQueryHostToFile] content-disposition [%s]", str_tmp);
                 if( !memcmp(str_tmp, "attachment;", 11) && strstr(str_tmp, "filename=") )
                 {
                     p = (char*)(strstr(str_tmp, "filename=")+9);
@@ -915,10 +885,6 @@ void WiFiReadUnsolIPD(const char* msg)
             /* La cabecera HTTP no va al archivo*/
             /* Tomo datos de la cabecera HTTP que necesito */
             if(HTTPGetHeadData(read_buffer, "Content-Length", str))
-            {
-                content_length = atol(str);
-            }
-            else if(HTTPGetHeadData(read_buffer, "content-length", str))
             {
                 content_length = atol(str);
             }

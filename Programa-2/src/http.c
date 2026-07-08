@@ -22,6 +22,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdbool.h>
+#include <ctype.h>
 
 #include "defines.h"
 #include "log.h"
@@ -68,6 +69,26 @@ const char http_c_http_get[] = "GET %s HTTP/1.1\r\n"
                                "Connection: close\r\n"
                                "User-Agent: Dom32io/1.00 (Microchip;PIC32)\r\n"
                                "Accept: text/html,text/xml\r\n\r\n";
+
+#ifndef strcasestr
+char *strcasestr(const char *haystack, const char *needle) {
+    if (!*needle) return (char *)haystack;
+
+    for (; *haystack; haystack++) {
+        const char *h = haystack;
+        const char *n = needle;
+
+        while (*h && *n && (tolower((unsigned char)*h) == tolower((unsigned char)*n))) {
+            h++;
+            n++;
+        }
+
+        if (!*n) return (char *)haystack;
+    }
+
+    return NULL;
+}
+#endif /* strcasestr */
 
 int Convert2CharToHex(const char* h);
 int HttpReturnWiFiFormConfig(char *out, int max_len);
@@ -217,7 +238,7 @@ int HTTPGetHeadData(const char *buffer, const char *label, char *value)
     const char *p;
     int len = 0;
     
-    p = strstr(buffer, label);
+    p = strcasestr(buffer, label);
     if(p)
     {
         p += strlen(label);
