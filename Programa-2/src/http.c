@@ -33,12 +33,15 @@
 int g_http_c_host_conectado;
 int g_http_c_go_host_conectado;
 
-const char http_c_xml_200[] = "HTTP/1.1 200 OK\r\nConnection: close\r\n"
+const char http_c_xml_200[] = "HTTP/1.1 200 OK\r\n"
+                              "Connection: close\r\n"
                               "Content-Type: text/xml\r\n\r\n";
+
 const char http_c_http_200[] = "HTTP/1.1 200 OK\r\n"
                                "Connection: close\r\n"
                                "Content-Type: text/html\r\n"
                                "Cache-Control: no-cache\r\n\r\n";
+
 const char http_c_http_404[] = "HTTP/1.1 404 Not found\r\n"
                                "Connection: close\r\n\r\n"
                                "404: File not found\r\n";
@@ -222,7 +225,7 @@ int HTTPGetHeadData(const char *buffer, const char *label, char *value)
         {
             p++;
             while(*p == ' ') p++;
-            while(*p && *p != ' ' && *p != '\r' && *p != '\n')
+            while(*p && /**p != ' ' &&*/ *p != '\r' && *p != '\n')
             {
                 *value = *p;
                 p++;

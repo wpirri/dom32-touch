@@ -463,13 +463,12 @@ int WiFiCommand(const char* cmd, const char* wait, int to)
 int WiFiQueryHost(const char* host, int port, const char* send_msg, char* recv_msg)
 {
     char cmd[WIFI_BUFFER_LEN+1];
-    char str_tmp[16];
+    char str_tmp[256];
     int data_len = 0;
     int recv_len = 0;
     int rc;
     char* p;
-    
-    
+
     LogMessage("[WIFI] WiFiQueryHost: Enviando %i bytes a %s:%i", strlen(send_msg), host, port);
     
     if(WiFiConectado() == 0)
@@ -704,6 +703,7 @@ int WiFiQueryHostToFile(const char* host, int port, const char* send_msg, const 
             recv_len += rc;
             /* La cabecera HTTP no va al archivo*/
             /* Tomo datos de la cabecera HTTP */
+            /* Parseo la cabacara http */
             if(HTTPGetHeadData(cmd, "Content-Length", str_tmp))
             {
                 LogMessage("[WiFiQueryHostToFile] Content-Length [%s]", str_tmp);
@@ -722,12 +722,22 @@ int WiFiQueryHostToFile(const char* host, int port, const char* send_msg, const 
                 {
                     p = (char*)(strstr(str_tmp, "filename=")+9);
                     q = &real_filename[0];
-                    while(*p && ( (*p > 0x30 && *p < 0x39)||(*p > 0x41 && *p < 0x5A)||*p == 0x2E) )
+                    while(*p && ( (*p >= 0x30 && *p <= 0x39)||
+                                  (*p >= 0x41 && *p <= 0x5A)||
+                                  (*p >= 0x61 && *p <= 0x7A)||
+                                  *p == 0x22 || *p == 0x2E||
+                                  *p == 0x2D || *p == 0x5F||
+                                  *p == 0x7E) )
                     {
-                        *q = *p;
-                        p++;q++;
+                        if(*p != 0x22)
+                        {
+                            *q = *p;
+                            q++;
+                        }
+                        p++;
                     }
                     *q = 0;
+                    LogMessage("[WiFiQueryHostToFile] Archivo [%s]", real_filename);
                 }
             }
             else if(HTTPGetHeadData(cmd, "content-disposition", str_tmp))
@@ -737,12 +747,22 @@ int WiFiQueryHostToFile(const char* host, int port, const char* send_msg, const 
                 {
                     p = (char*)(strstr(str_tmp, "filename=")+9);
                     q = &real_filename[0];
-                    while(*p && ( (*p > 0x30 && *p < 0x39)||(*p > 0x41 && *p < 0x5A)||*p == 0x2E) )
+                    while(*p && ( (*p >= 0x30 && *p <= 0x39)||
+                                  (*p >= 0x41 && *p <= 0x5A)||
+                                  (*p >= 0x61 && *p <= 0x7A)||
+                                  *p == 0x22 || *p == 0x2E||
+                                  *p == 0x2D || *p == 0x5F||
+                                  *p == 0x7E) )
                     {
-                        *q = *p;
-                        p++;q++;
+                        if(*p != 0x22)
+                        {
+                            *q = *p;
+                            q++;
+                        }
+                        p++;
                     }
                     *q = 0;
+                    LogMessage("[WiFiQueryHostToFile] Archivo [%s]", real_filename);
                 }
             }
         }
