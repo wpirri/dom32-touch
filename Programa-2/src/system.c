@@ -17,8 +17,6 @@
  ***************************************************************************/
 #include "system.h"
 
-#include "log.h"
-
 /* ************************************************************************* */
 // FDEVOPT
 #pragma config SOSCHP = OFF    //Secondary Oscillator High Power Enable bit->SOSC oprerates in normal power mode.
@@ -65,6 +63,7 @@
 #include <stdbool.h>
 
 #include "defines.h"
+#include "log.h"
 #include "display/display.h"
 #include "wifi/wifi.h"
 #include "control.h"

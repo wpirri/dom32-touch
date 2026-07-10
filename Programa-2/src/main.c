@@ -122,7 +122,6 @@ int main(void)
     LogMessage("[MAIN] Init Http");
     HttpInit();
     
-    
     LogMessage("[MAIN] Init STM");
     ControlInit(status_sd_ok);
     /* Reset POR y BOR 

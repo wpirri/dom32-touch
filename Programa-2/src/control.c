@@ -83,6 +83,7 @@ unsigned int control_screen_stm_delay;
 unsigned int control_screen_saver_count;
 char control_screen_filename[FILE_NAME_SIZE+1];
 unsigned int control_screen_number;
+unsigned int update_screen_timer_count;
 
 /* **** Control ************************************************************ */
 bool status_sd_ok;
@@ -91,7 +92,6 @@ unsigned int wifi_config_timer_count;
 unsigned int keep_alive_timer_count;
 unsigned int reset_timer_count;
 unsigned int update_firmware_timer_count;
-unsigned int update_screen_timer_count;
 unsigned int save_config_timer_count;
 unsigned int control_file_flags;
 char filename_to_download[256];
@@ -118,6 +118,7 @@ void ControlInit( bool sd_ok )
     control_wifi_stm = WIFI_INIT;
     control_wifi_stm_delay = 500;
     wifi_config_timer_count = 0;
+    
     /* **** Screen ********************************************************* */
     control_screen_stm = SCREEN_INIT;
     control_screen_stm_delay = 0;
@@ -125,6 +126,7 @@ void ControlInit( bool sd_ok )
     control_screen_saver_count = ((g_wifi_config.u.config.screen_saver_time)?g_wifi_config.u.config.screen_saver_time*100:6000);
     update_screen_timer_count = 0;
 
+    save_config_timer_count = 1;
 }
 
 void ControlTimer( void )
@@ -132,11 +134,9 @@ void ControlTimer( void )
     /* Para las cosas que necesitan el timer pero no pueden estar dentro de una int */
     assinc_timer_flag = true;
     
-    if(control_screen_stm_delay) control_screen_stm_delay--;
     if(control_wifi_stm_delay) control_wifi_stm_delay--;
     if(wifi_config_timer_count) wifi_config_timer_count--;
     if(WiFiConectado() && keep_alive_timer_count) keep_alive_timer_count--;
-    if(control_screen_saver_count) control_screen_saver_count--;
     if(control_file_flags) control_file_flags--;
     if(reset_timer_count)
     {
@@ -146,6 +146,9 @@ void ControlTimer( void )
             SystemReset();
         }
     }
+
+    if(control_screen_saver_count) control_screen_saver_count--;
+    if(control_screen_stm_delay) control_screen_stm_delay--;
 }
 
 void ControlTask(void)
@@ -265,9 +268,9 @@ void ControlHostKeepAlive(void)
                 {
                     LogMessage("[ControlHostKeepAlive] Respuesta del sistema Ok");
                     HttpConexionOk();
-                    keep_alive_timer_count = 6000;
                     /* Busco configuraciones, comandos, etc */
                     ProcessGeneralConfig(data);
+                    keep_alive_timer_count = g_wifi_config.u.config.report;
                     return;
                 }
                 else
@@ -282,7 +285,8 @@ void ControlHostKeepAlive(void)
         LogMessage("[ControlHostKeepAlive] HTTP Req No Ok [%i]", rc);
     }
     HttpConexionError();
-    keep_alive_timer_count = 500;
+    
+    keep_alive_timer_count = (g_wifi_config.u.config.report > 500)?500:g_wifi_config.u.config.report;
 }
 
 void ProcessGeneralConfig(char* in)
@@ -349,10 +353,10 @@ void ProcessGeneralConfig(char* in)
     }
     if(HTTPGetFormData(in, "rep", s))
     {
-        g_wifi_config.u.config.report = atoi(s) * 10;
+        g_wifi_config.u.config.report = atoi(s) * 100;
         if(g_wifi_config.u.config.report == 0)
         {
-            g_wifi_config.u.config.report = 600;
+            g_wifi_config.u.config.report = 500;
         }
         save_config_timer_count = 500;
     }

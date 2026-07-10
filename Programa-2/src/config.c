@@ -36,13 +36,10 @@ void ConfigLoadDefault( void)
     g_wifi_config.u.config.wifi_host1_port = 80;
     g_wifi_config.u.config.wifi_host2_port = 80;
     strcpy(g_wifi_config.u.config.rqst_path, "/cgi-bin");
-    g_wifi_config.u.config.report = 600;
+    g_wifi_config.u.config.report = 6000;
     g_wifi_config.u.config.enable_https = 0;
     g_wifi_config.u.config.io_config_default = 1;
     g_wifi_config.u.config.rtcc_clk_div_adj = 480000;
-    g_wifi_config.u.config.brillo_max = 100;
-    g_wifi_config.u.config.brillo_med = 30;
-    g_wifi_config.u.config.brillo_min = 0;
     g_wifi_config.u.config.screen_saver_time = 25;
     g_wifi_config.u.config.brillo_max = 80;
     g_wifi_config.u.config.brillo_med = 50;
