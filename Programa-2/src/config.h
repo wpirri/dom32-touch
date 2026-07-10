@@ -40,11 +40,6 @@ typedef struct _config_in_file_ /*  */
     unsigned char brillo_med;           /* brillo-med */
     unsigned char brillo_min;           /* brillo-min */
     unsigned char screen_saver_time;    /* screen-saver */
-    unsigned long start_config_mode;
-    unsigned char debug;
-    char wifi_sta_last_ip[16];
-    unsigned char display_type;         /* 0 = MCU 1 = SPI */
-    char download_path[33];                 /* /download */
 } config_in_file;
 
 typedef struct

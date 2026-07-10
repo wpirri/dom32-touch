@@ -36,7 +36,6 @@ void ConfigLoadDefault( void)
     g_wifi_config.u.config.wifi_host1_port = 80;
     g_wifi_config.u.config.wifi_host2_port = 80;
     strcpy(g_wifi_config.u.config.rqst_path, "/cgi-bin");
-    strcpy(g_wifi_config.u.config.download_path, "/download");
     g_wifi_config.u.config.report = 600;
     g_wifi_config.u.config.enable_https = 0;
     g_wifi_config.u.config.io_config_default = 1;
@@ -45,7 +44,6 @@ void ConfigLoadDefault( void)
     g_wifi_config.u.config.brillo_med = 30;
     g_wifi_config.u.config.brillo_min = 0;
     g_wifi_config.u.config.screen_saver_time = 25;
-    g_wifi_config.u.config.start_config_mode = true;
     g_wifi_config.u.config.brillo_max = 80;
     g_wifi_config.u.config.brillo_med = 50;
     g_wifi_config.u.config.brillo_min = 30;
@@ -79,10 +77,6 @@ void ConfigLoad( void )
                 LogMessage("[CONFIG] Ajustando registro de configuracion de %d a %d bytes.",
                         rc, sizeof(config_in_file));
                 memset(&g_wifi_config.u.dummy[rc], 0, (sizeof(config_in_file)-rc));
-            }
-            if(g_wifi_config.u.config.download_path[0] == 0)
-            {
-                strcpy(g_wifi_config.u.config.download_path, "/download");
             }
             return;
         }
@@ -139,5 +133,4 @@ void DumpConfig( void )
     LogMessage("[CONFIG] Brillo medio:     %d", g_wifi_config.u.config.brillo_med);
     LogMessage("[CONFIG] Brillo minimo:    %d", g_wifi_config.u.config.brillo_min);
     LogMessage("[CONFIG] Screen Saver:     %d", g_wifi_config.u.config.screen_saver_time);
-    LogMessage("[CONFIG] Display:          %d", g_wifi_config.u.config.display_type);
 }

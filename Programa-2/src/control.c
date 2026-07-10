@@ -392,16 +392,6 @@ void ProcessGeneralConfig(char* in)
         g_wifi_config.u.config.brillo_min = atoi(s);
         save_config_timer_count = 500;
     }
-    if(HTTPGetFormData(in, "debug", s))
-    {
-        g_wifi_config.u.config.debug = atoi(s);
-        save_config_timer_count = 500;
-    }
-    if(HTTPGetFormData(in, "display", s))
-    {
-        g_wifi_config.u.config.display_type = atoi(s);
-        save_config_timer_count = 500;
-    }
     if(HTTPGetFormData(in, "time", s))
     {
         LogMessage("TIME: %s", s);
