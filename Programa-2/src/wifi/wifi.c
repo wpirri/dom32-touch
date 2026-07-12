@@ -586,7 +586,7 @@ int WiFiQueryHost(const char* host, int port, const char* send_msg, char* recv_m
 
     LogMessage("[WIFI] WiFiQueryHost: Esperando Cierre de conexion");
     /* Espero el cierre de conexión */
-    while(WifiReadAt(cmd, 256, '\n', 150) >= 0)
+    while(WifiReadAt(cmd, 256, '\n', 10) >= 0)
     {
         if( !memcmp(cmd, "0,CLOSED", 8))
         {
@@ -816,7 +816,7 @@ int WiFiQueryHostToFile(const char* host, int port, const char* send_msg, const 
     
     LogMessage("[WiFiQueryHostToFile] Esperando Cierre de conexion");
     /* Espero el cierre de conexión */
-    while(WifiReadAt(cmd, 256, '\n', 100) >= 0)
+    while(WifiReadAt(cmd, 256, '\n', 10) >= 0)
     {
         if( !memcmp(cmd, "0,CLOSED", 8))
         {
