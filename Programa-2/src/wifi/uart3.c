@@ -44,9 +44,6 @@ void UART3_Init(void)
     TRISBbits.TRISB8 = 0;
     // Rx
     TRISBbits.TRISB9 = 1;
-    // Reset
-    TRISBbits.TRISB10 = 0;
-    ODCBbits.ODCB10 = 1;
     /* ********************************************************************* */
     /* Configuraci�n de interrupci�n */
     //    UTXI: UART 3 Error

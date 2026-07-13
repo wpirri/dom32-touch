@@ -65,6 +65,10 @@ void WiFiInit( void )
     g_wifi_c_go_mode = 0;
     g_wifi_c_sta_conectado = 0;
 
+    // Reset
+    TRISBbits.TRISB10 = 0;
+    ODCBbits.ODCB10 = 1;
+    
     UART_INIT();
 }
 
