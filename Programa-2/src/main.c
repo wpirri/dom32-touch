@@ -68,6 +68,7 @@
 
 #include "defines.h"
 #include "system.h"
+#include "misc/beep.h"
 #include "log.h"
 #include "sd/fsio.h"
 #include "config.h"
@@ -83,8 +84,8 @@ int main(void)
     bool status_sd_ok = false;
    
     SystemInit();
-    
-    LogInit(true, false);
+    InitBeep();
+    LogInit((g_wifi_config.u.config.debug>0)?true:false, false);
     
     if( FSInit() )
     {
@@ -99,7 +100,7 @@ int main(void)
     LogMessage("[MAIN] Compilacion " __DATE__ " " __TIME__ ".");
     LogMessage("[MAIN] Compilador " __VERSION__ ".");
     
-    FSremove(FIRMWARE_FILENAME);
+    if(status_sd_ok) FSremove(FIRMWARE_FILENAME);
 
     LogMessage("[MAIN] Configuracion");
     ConfigInit();
@@ -135,6 +136,7 @@ int main(void)
     RCONbits.BOR = 0;
 
     LogMessage("[MAIN] Init End");
+    Beeps(3);
     while(1)
     {
         CLRWDT();

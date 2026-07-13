@@ -40,6 +40,7 @@ typedef struct _config_in_file_ /*  */
     unsigned char brillo_med;           /* brillo-med */
     unsigned char brillo_min;           /* brillo-min */
     unsigned char screen_saver_time;    /* screen-saver */
+    unsigned char debug;
 } config_in_file;
 
 typedef struct

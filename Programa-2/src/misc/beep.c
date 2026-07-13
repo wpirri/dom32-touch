@@ -15,14 +15,17 @@
     License along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  ***************************************************************************/
+#include "beep.h"
+
 #include <xc.h>
 
-#define _ON_BEEP_C_
-#include "beep.h"
-#undef _ON_BEEP_C_
+#include <stdbool.h>
+
+#include "../config.h"
 
 volatile unsigned char g_beep_len;
 volatile unsigned char g_beep_count;
+volatile bool g_beep_flag;
 
 void InitBeep( void )
 {
@@ -59,6 +62,14 @@ void TimerBeep( void )
     else
     {
         g_beep_flag = 0;
+    }
+}
+
+void TaskBeep( void )
+{
+    if(g_beep_flag && g_wifi_config.u.config.debug == 0)
+    {
+        LATCINV = (1 << 9);
     }
 }
 

@@ -15,7 +15,6 @@
     License along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  ***************************************************************************/
-#include "system.h"
 
 /* ************************************************************************* */
 // FDEVOPT
@@ -54,6 +53,7 @@
 // FSEC
 #pragma config CP = OFF                 // Code Protection Enable bit (Code protection is disabled)
 /* ************************************************************************* */
+#include "system.h"
 
 #include <xc.h>
 
@@ -67,6 +67,7 @@
 #include "display/display.h"
 #include "wifi/wifi.h"
 #include "control.h"
+#include "misc/beep.h"
 
 /* * Manejo de excepciones ************************************************** */
 static enum {
@@ -131,7 +132,7 @@ void __attribute__ ((vector(_CORE_TIMER_VECTOR), interrupt(IPL1SOFT))) _CORE_TIM
     /* ********************************************************************* */
     WiFiTimer();
     ControlTimer();
-
+    TimerBeep();
 }
 
 void __attribute__ ( ( vector(_TIMER_1_VECTOR) , interrupt(IPL7SOFT) ) ) _TIMER1_IRS ( void )
@@ -139,6 +140,7 @@ void __attribute__ ( ( vector(_TIMER_1_VECTOR) , interrupt(IPL7SOFT) ) ) _TIMER1
     IFS0CLR = _IFS0_T1IF_MASK; //Clear T1IF
     /* ********************************************************************* */
     DisplayTaskBrillo();
+    TaskBeep();
 }
 
 void SystemInit( void )
