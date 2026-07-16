@@ -46,6 +46,7 @@ int g_wifi_c_ap_conectado;
 int g_wifi_c_go_ap_conectado;
 int g_wifi_c_sta_conectado;
 char g_wifi_c_hw_mac[13];
+unsigned char g_wifi_soporte_ssl;
 
 void WifiWrite( const char *buffer );
 void WifiWriteLine( const char *line );
@@ -64,6 +65,7 @@ void WiFiInit( void )
     g_wifi_c_mode = 0;
     g_wifi_c_go_mode = 0;
     g_wifi_c_sta_conectado = 0;
+    g_wifi_soporte_ssl = 0;
 
     // Reset
     TRISBbits.TRISB10 = 0;
@@ -101,7 +103,11 @@ int WiFiStart( void )
     /* Version */
     if(WiFiCommand("AT+GMR", "OK", 300) < 0) return (-1);
     /* Check soporte SSL */
-    if(WiFiCommand("AT+CIPSSLCCONF?", "OK", 150) < 0) return (-1);
+    g_wifi_soporte_ssl = 1;
+    if(WiFiCommand("AT+CIPSSLCCONF?", "OK", 150) < 0)
+    {
+        g_wifi_soporte_ssl = 0;
+    }
     /* Seteo el modo AP+ST para poder tomar las MAC */
     if(WiFiCommand("AT+CWMODE=3", "OK", 150) < 0) return (-1);
     /* Obtengo la MAC */
