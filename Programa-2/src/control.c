@@ -84,6 +84,7 @@ unsigned int control_screen_saver_count;
 char control_screen_filename[FILE_NAME_SIZE+1];
 unsigned int control_screen_number;
 unsigned int update_screen_timer_count;
+/* **** Screen ************************************************************* */
 
 /* **** Control ************************************************************ */
 bool status_sd_ok;
@@ -127,6 +128,7 @@ void ControlInit( bool sd_ok )
     control_screen_number = 0;
     control_screen_saver_count = ((g_wifi_config.u.config.screen_saver_time)?g_wifi_config.u.config.screen_saver_time*100:6000);
     update_screen_timer_count = 0;
+    /* **** Screen ********************************************************* */
 
     save_config_timer_count = 1;
 }
@@ -159,8 +161,11 @@ void ControlTimer( void )
         }
     }
 
+    /* **** Screen ********************************************************* */
     if(control_screen_saver_count) control_screen_saver_count--;
     if(control_screen_stm_delay) control_screen_stm_delay--;
+    /* **** Screen ********************************************************* */
+
 }
 
 void ControlTask(void)
@@ -184,6 +189,7 @@ void ControlTask(void)
     {
         assinc_timer_flag = false;
         
+    /* **** Screen ********************************************************* */
         if(update_screen_timer_count)
         {
             update_screen_timer_count--;
@@ -194,6 +200,7 @@ void ControlTask(void)
                 DownloadFile("/cgi-bin/hwconfig.cgi", SCREEN_SHOW_PAGE);
             }
         }
+    /* **** Screen ********************************************************* */
 
         if(save_config_timer_count)
         {
@@ -212,6 +219,7 @@ void ControlTask(void)
             {
                 control_screen_number = 0;
                 strcpy(control_screen_filename, HOME_SCREEN_CSV);
+                
                 DownloadFile("/download/"FIRMWARE_FILENAME, SCREEN_SHOW_PAGE);
             }
         }
@@ -224,8 +232,8 @@ void ControlTask(void)
 
         control_screen_number = 0;
         strcpy(control_screen_filename, HOME_SCREEN_CSV);
+        
         DownloadFile(filename_to_download, SCREEN_SHOW_PAGE);
-
         filename_to_download[0] = 0;
     }
 }
@@ -253,11 +261,12 @@ void ControlHostKeepAlive(void)
     int rc;
     char resp_err_code[16];
     char resp_err_msg[256];
+    char typ[]="TOUCH";
     int i;
     
     sprintf(url, "%s/infoio.cgi", g_wifi_config.u.config.rqst_path);
-    sprintf(data, "ID=%s&TYP=IO&VER=%s&COMP=%s", 
-            WiFiMAC(), fecha_compilacion, version_compilador);
+    sprintf(data, "ID=%s&TYP=%s&FW=%s&AT=%s&SDK=%s", 
+            WiFiMAC(), typ, ControlVersion(), WiFiAT(), WiFiSDK());
     
     rc = HttpQueryHost(url, data, NULL, data);
     if(rc == 200)
@@ -400,6 +409,7 @@ void ProcessGeneralConfig(char* in)
             update_screen_timer_count = 300;
         }
     }
+    /* **** Screen ********************************************************* */
     if(HTTPGetFormData(in, "brillo-max", s))
     {
         g_wifi_config.u.config.brillo_max = atoi(s);
@@ -415,6 +425,7 @@ void ProcessGeneralConfig(char* in)
         g_wifi_config.u.config.brillo_min = atoi(s);
         save_config_timer_count = 500;
     }
+    /* **** Screen ********************************************************* */
     if(HTTPGetFormData(in, "time", s))
     {
         LogMessage("TIME: %s", s);
