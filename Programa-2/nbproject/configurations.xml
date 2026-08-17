@@ -80,6 +80,7 @@
   <sourceRootList>
     <Elem>src</Elem>
     <Elem>../../pic32mmBoot/Programa</Elem>
+    <Elem>../../dom32-io-wifi/Programa-2/src</Elem>
   </sourceRootList>
   <projectmakefile>Makefile</projectmakefile>
   <confs>

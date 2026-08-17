@@ -39,6 +39,7 @@
 #include "http.h"
 #include "system.h"
 #include "rtcc.h"
+#define _DEBUG_MSG
 
 /* **** WiFi *************************************************************** */
 typedef enum
@@ -143,6 +144,9 @@ const char* ControlCompilador( void )
     return (const char*)&version_compilador[0];
 }
 
+/*
+    Se llama 100 veces por segundo
+ */
 void ControlTimer( void )
 {
     /* Para las cosas que necesitan el timer pero no pueden estar dentro de una int */
@@ -152,15 +156,7 @@ void ControlTimer( void )
     if(wifi_config_timer_count) wifi_config_timer_count--;
     if(WiFiConectado() && keep_alive_timer_count) keep_alive_timer_count--;
     if(control_file_flags) control_file_flags--;
-    if(reset_timer_count)
-    {
-        reset_timer_count--;
-        if(reset_timer_count == 0)
-        {
-            SystemReset();
-        }
-    }
-
+ 
     /* **** Screen ********************************************************* */
     if(control_screen_saver_count) control_screen_saver_count--;
     if(control_screen_stm_delay) control_screen_stm_delay--;
@@ -177,7 +173,7 @@ void ControlTask(void)
     
     if(control_file_flags == 0)
     {
-        control_file_flags = 6000;
+        control_file_flags = 1000;
         if(HttpOnLine())
         {
             ControlFileFlags();
@@ -219,11 +215,27 @@ void ControlTask(void)
             {
                 control_screen_number = 0;
                 strcpy(control_screen_filename, HOME_SCREEN_CSV);
-                
+
                 DownloadFile("/download/"FIRMWARE_FILENAME, SCREEN_SHOW_PAGE);
             }
         }
         
+        if(reset_timer_count)
+        {
+            reset_timer_count--;
+            if(reset_timer_count == 0)
+            {
+                if(save_config_timer_count)
+                {
+                    LogMessage("[ControlTask] Graban configuracion pendiente, se reprograma el RESET");
+                    ControlSystemReset(save_config_timer_count * 2);
+                }
+                else
+                {
+                    SystemReset();
+                }
+            }
+        }
     }
     
     if(filename_to_download[0])
@@ -232,10 +244,22 @@ void ControlTask(void)
 
         control_screen_number = 0;
         strcpy(control_screen_filename, HOME_SCREEN_CSV);
-        
+
         DownloadFile(filename_to_download, SCREEN_SHOW_PAGE);
         filename_to_download[0] = 0;
     }
+    
+}
+
+void ControlSaveConfig(int t)
+{
+    save_config_timer_count = t;
+}
+
+void ControlSystemReset(int t)
+{
+    reset_timer_count = t;
+    LogMessage("[ControlSystemReset] RESET en %i segundos", reset_timer_count/100);
 }
 
 void DownloadFile(const char* filename, enum_control_screen_stm return_screen)
@@ -271,8 +295,9 @@ void ControlHostKeepAlive(void)
     rc = HttpQueryHost(url, data, NULL, data);
     if(rc == 200)
     {
+#ifdef DEBUG_MSG
         LogMessage("[ControlHostKeepAlive] HTTP Req Ok");
-
+#endif
         /* Si la respuesta vino entre [""] le hago limpieza */
         if(data[0] == '[' && data[1] == '\"')
         {
@@ -289,7 +314,9 @@ void ControlHostKeepAlive(void)
             {
                 if(atoi(resp_err_code) == 0)
                 {
+#ifdef DEBUG_MSG
                     LogMessage("[ControlHostKeepAlive] Respuesta del sistema Ok");
+#endif
                     HttpConexionOk();
                     /* Busco configuraciones, comandos, etc */
                     ProcessGeneralConfig(data);
@@ -301,17 +328,21 @@ void ControlHostKeepAlive(void)
                     
                     return;
                 }
+#ifdef DEBUG_MSG
                 else
                 {
                     LogMessage("[ControlHostKeepAlive] Respuesta del sistema [error = %s message = %s]", resp_err_code, resp_err_msg );
                 }
+#endif
             }
         }
     }
+#ifdef DEBUG_MSG
     else
     {
         LogMessage("[ControlHostKeepAlive] HTTP Req No Ok [%i]", rc);
     }
+#endif
     HttpConexionError();
     
     keep_alive_timer_count = (g_wifi_config.u.config.report > 500)?500:g_wifi_config.u.config.report;
@@ -323,23 +354,25 @@ void ProcessGeneralConfig(char* in)
     struct tm tm_time;
     char *p;
     
+#ifdef DEBUG_MSG
     LogMessage("[ProcessGeneralConfig] [%s]", in);
+#endif
     
     if(HTTPGetFormData(in, "ap1", g_wifi_config.u.config.wifi_ap1))
     {
-        save_config_timer_count = 500;
+        save_config_timer_count = 100;
     }
     if(HTTPGetFormData(in, "ap1p", g_wifi_config.u.config.wifi_ap1_pass))
     {
-        save_config_timer_count = 500;
+        save_config_timer_count = 100;
     }
     if(HTTPGetFormData(in, "ap2", g_wifi_config.u.config.wifi_ap2))
     {
-        save_config_timer_count = 500;
+        save_config_timer_count = 100;
     }
     if(HTTPGetFormData(in, "ap2p", g_wifi_config.u.config.wifi_ap2_pass))
     {
-        save_config_timer_count = 500;
+        save_config_timer_count = 100;
     }
     if(HTTPGetFormData(in, "ce1", g_wifi_config.u.config.wifi_host1))
     {
@@ -351,7 +384,7 @@ void ProcessGeneralConfig(char* in)
             /* viene con el port */
             g_wifi_config.u.config.wifi_host1_port = atoi(p);
         }
-        save_config_timer_count = 500;
+        save_config_timer_count = 100;
     }
     if(HTTPGetFormData(in, "ce2", g_wifi_config.u.config.wifi_host2))
     {
@@ -363,21 +396,21 @@ void ProcessGeneralConfig(char* in)
             /* viene con el port */
             g_wifi_config.u.config.wifi_host2_port = atoi(p);
         }
-        save_config_timer_count = 500;
+        save_config_timer_count = 100;
     }
     if(HTTPGetFormData(in, "path", g_wifi_config.u.config.rqst_path))
     {
-        save_config_timer_count = 500;
+        save_config_timer_count = 100;
     }
     if(HTTPGetFormData(in, "ce1p", s))
     {
         g_wifi_config.u.config.wifi_host1_port = atoi(s);
-        save_config_timer_count = 500;
+        save_config_timer_count = 100;
     }
     if(HTTPGetFormData(in, "ce2p", s))
     {
         g_wifi_config.u.config.wifi_host2_port = atoi(s);
-        save_config_timer_count = 500;
+        save_config_timer_count = 100;
     }
     if(HTTPGetFormData(in, "rep", s))
     {
@@ -386,29 +419,31 @@ void ProcessGeneralConfig(char* in)
         {
             g_wifi_config.u.config.report = 500;
         }
-        save_config_timer_count = 500;
+        save_config_timer_count = 100;
     }
+
+    if(HTTPGetFormData(in, "reset", s))
+    {
+        ControlSystemReset(300);
+    }
+    if(HTTPGetFormData(in, "update", s))
+    {
+        if( !strcmp(s, "firmware"))
+        {
+            update_firmware_timer_count = 100;
+        }
+        else if( !strcmp(s, "config"))
+        {
+            update_screen_timer_count = 100;
+        }
+    }
+
     if(HTTPGetFormData(in, "sct", s))
     {
         g_wifi_config.u.config.screen_saver_time = atoi(s);
         save_config_timer_count = 500;
     }
 
-    if(HTTPGetFormData(in, "reset", s))
-    {
-        reset_timer_count = 1000;
-    }
-    if(HTTPGetFormData(in, "update", s))
-    {
-        if( !strcmp(s, "firmware"))
-        {
-            update_firmware_timer_count = 300;
-        }
-        else if( !strcmp(s, "config"))
-        {
-            update_screen_timer_count = 300;
-        }
-    }
     /* **** Screen ********************************************************* */
     if(HTTPGetFormData(in, "brillo-max", s))
     {
@@ -471,7 +506,8 @@ void ControlFileFlags( void )
     if(f)
     {
         FSfclose(f);
-        reset_timer_count = 300;
+        LogMessage("[ControlFileFlags] Se encontro un nuevo firmware");
+        ControlSystemReset(300);
         return;
     }
     
@@ -646,7 +682,6 @@ void Control_Screen_Task( void )
             break;
         case SCREEN_SHOW_PAGE:
             LogMessage("[SCREEN] Show Page [%s]", control_screen_filename);
-            control_screen_saver_count = ((g_wifi_config.u.config.screen_saver_time)?g_wifi_config.u.config.screen_saver_time*100:6000);
             DisplayBrillo(g_wifi_config.u.config.brillo_max);
             ShowScreen(control_screen_filename);
             control_screen_stm++;
@@ -667,6 +702,7 @@ void Control_Screen_Task( void )
                     }
                     else
                     {
+                        control_screen_saver_count = ((g_wifi_config.u.config.screen_saver_time)?g_wifi_config.u.config.screen_saver_time*100:6000);
                         control_screen_number = 0;
                         strcpy(control_screen_filename, HOME_SCREEN_CSV);
                         control_screen_stm = SCREEN_SHOW_PAGE;
@@ -680,6 +716,7 @@ void Control_Screen_Task( void )
             break;
         case SCREEN_CONFIG:
             LogMessage("[SCREEN] Config");
+            control_screen_saver_count = ((g_wifi_config.u.config.screen_saver_time)?g_wifi_config.u.config.screen_saver_time*100:6000);
             DisplayBrillo(g_wifi_config.u.config.brillo_max);
             ShowScreen(CONFIG_SCREEN_CSV);
             control_screen_stm++;
@@ -687,6 +724,7 @@ void Control_Screen_Task( void )
         case SCREEN_CONFIG_LOOP:
             if(control_screen_saver_count == 0)
             {
+                control_screen_saver_count = ((g_wifi_config.u.config.screen_saver_time)?g_wifi_config.u.config.screen_saver_time*100:6000);
                 control_screen_number = 0;
                 strcpy(control_screen_filename, HOME_SCREEN_CSV);
                 control_screen_stm = SCREEN_SHOW_PAGE;
@@ -768,6 +806,7 @@ void Control_Screen_Task( void )
                 }
                 else
                 {
+                    control_screen_saver_count = ((g_wifi_config.u.config.screen_saver_time)?g_wifi_config.u.config.screen_saver_time*100:6000);
                     strcpy(control_screen_filename, HOME_SCREEN_CSV);
                     control_screen_number = 0;
                     control_screen_stm = SCREEN_SHOW_PAGE;

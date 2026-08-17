@@ -31,6 +31,9 @@
 #include "wifi/wifi.h"
 #include "misc/strfunc.h"
 
+#define _DEBUG_HTTP
+#define DEBUG_QUERY_HOST
+
 int g_http_c_host_conectado;
 int g_http_c_go_host_conectado;
 
@@ -144,11 +147,19 @@ int HttpCurrentPort( void )
 
 void HttpConexionOk( void )
 {
+    if(g_http_c_host_conectado == 0)
+    {
+        LogMessage("**** ONLINE ****");
+    }
     g_http_c_host_conectado = g_http_c_go_host_conectado;
 }
 
 void HttpConexionError( void )
 {
+    if(g_http_c_host_conectado)
+    {
+        LogMessage("**** OFFLINE ****");
+    }
     g_http_c_host_conectado = 0;
 }
 
@@ -297,10 +308,14 @@ int HTTPFormResponse(const char *http_data)
         }
         else if( strchr(http_data, '=') )
         {
+#ifdef DEBUG_HTTP
             LogMessage("[HTTPFormResponse] Respuesta en formato de formulario");
+#endif
             if(HTTPGetFormData((char*)http_data, "error", str))
             {
+#ifdef DEBUG_HTTP
                 LogMessage("[HTTPFormResponse] Respuesta con error: %s", str);
+#endif
                 return atoi(str);
             }
             else
@@ -400,8 +415,9 @@ int HttpQueryHost(const char* url, const char* msg_send, char* resp_header, char
      */
     sprintf(http_buffer, http_c_http_post, 
             url, host, strlen(msg_send), msg_send);
-    
-    LogMessage("[HttpQueryHost] POST URL: [%s] Host: [%s] [%s]", url, host, msg_send);
+#ifdef DEBUG_QUERY_HOST
+    LogMessage("[HttpQueryHost] Query: [%s] Host: [%s] [%s]", url, host, msg_send);
+#endif
     
     recv_len = WiFiQueryHost(host, port, http_buffer, http_buffer);
     if(recv_len < 0)
@@ -425,6 +441,9 @@ int HttpQueryHost(const char* url, const char* msg_send, char* resp_header, char
         {
             strcpy(resp_data, &http_buffer[head_len+4]);
         }
+#ifdef DEBUG_QUERY_HOST
+        LogMessage("[HttpQueryHost] Resp: Head: [%s] Data: [%s]", http_buffer, &http_buffer[head_len+4]);
+#endif
     }
     else
     {
@@ -437,6 +456,9 @@ int HttpQueryHost(const char* url, const char* msg_send, char* resp_header, char
         {
             strcpy(resp_data, http_buffer);
         }
+#ifdef DEBUG_QUERY_HOST
+        LogMessage("[HttpQueryHost] Resp: [%s]", http_buffer);
+#endif
     }
     return http_rc;
 }
@@ -514,7 +536,9 @@ void HTTPCommandPulse( const char *obj_name )
 int HttpProcessRequest(const char* request, const char* uri, const char* host,
                        unsigned int content_length, char* data_io, unsigned int max_io)
 {
+#ifdef DEBUG_HTTP
     LogMessage("[HttpProcessRequest] %s %s de %s data: %i bytes", request, uri, host, content_length);
+#endif
 
     if( !strcmp(request, "GET"))
     {
@@ -526,7 +550,9 @@ int HttpProcessRequest(const char* request, const char* uri, const char* host,
     else if( !strcmp(request, "POST"))
     {
         HttpDecodeFormData(data_io, data_io, max_io);
+#ifdef DEBUG_HTTP
         LogMessage("[HttpProcessRequest] POST: %i bytes [%s]", content_length, data_io);
+#endif
         if( !strcmp(uri, "/") || !strcmp(uri, "/index.htm") )
         {
             /* Capturo datos del formulario */

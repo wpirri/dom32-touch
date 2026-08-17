@@ -122,9 +122,10 @@ int main(void)
 
     LogMessage("[MAIN] Init Http");
     HttpInit();
-    
+
     LogMessage("[MAIN] Init STM");
     ControlInit(status_sd_ok);
+    
     /* Reset POR y BOR 
        Se hace a lo último así las distintas inicializaciones pueden verificar
        si vengo de un Power On */

@@ -15,6 +15,7 @@
             <sourceRootList>
                 <sourceRootElem>src</sourceRootElem>
                 <sourceRootElem>../../pic32mmBoot/Programa</sourceRootElem>
+                <sourceRootElem>../../dom32-io-wifi/Programa-2/src</sourceRootElem>
             </sourceRootList>
             <confList>
                 <confElem>
