@@ -29,16 +29,18 @@
 #include "sd/fsio.h"
 #include "config.h"
 #include "rtcc.h"
-#include "display/display.h"
-#include "display/touch.h"
 #include "wifi/wifi.h"
-#include "misc/boton.h"
 #include "misc/strfunc.h"
-#include "misc/bitmap.h"
 #include "misc/beep.h"
 #include "http.h"
 #include "system.h"
 #include "rtcc.h"
+
+#include "display/display.h"
+#include "display/touch.h"
+#include "misc/bitmap.h"
+#include "misc/boton.h"
+
 #define _DEBUG_MSG
 
 /* **** WiFi *************************************************************** */
@@ -285,12 +287,16 @@ void ControlHostKeepAlive(void)
     int rc;
     char resp_err_code[16];
     char resp_err_msg[256];
-    char typ[]="TOUCH";
     int i;
     
     sprintf(url, "%s/infoio.cgi", g_wifi_config.u.config.rqst_path);
     sprintf(data, "ID=%s&TYP=%s&FW=%s&AT=%s&SDK=%s", 
-            WiFiMAC(), typ, ControlVersion(), WiFiAT(), WiFiSDK());
+            WiFiMAC(), WIFI_HW_Name, ControlVersion(), WiFiAT(), WiFiSDK());
+    /* Agrego mi estado */
+    if(HttpOnLine() == 0)
+    {
+        strcat(data, "&OFFLINE=1");
+    }
     
     rc = HttpQueryHost(url, data, NULL, data);
     if(rc == 200)
