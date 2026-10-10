@@ -168,6 +168,8 @@ void ControlTimer( void )
 
 void ControlTask(void)
 {
+    char url[256];
+    
     if(WiFiConectado() && keep_alive_timer_count == 0)
     {
         ControlHostKeepAlive();
@@ -195,7 +197,8 @@ void ControlTask(void)
             {
                 control_screen_number = 0;
                 strcpy(control_screen_filename, HOME_SCREEN_CSV);
-                DownloadFile("/cgi-bin/hwconfig.cgi", SCREEN_SHOW_PAGE);
+                sprintf(url, "%s/hwconfig", g_wifi_config.u.config.rqst_path);
+                DownloadFile(url, SCREEN_SHOW_PAGE);
             }
         }
     /* **** Screen ********************************************************* */
@@ -289,7 +292,7 @@ void ControlHostKeepAlive(void)
     char resp_err_msg[256];
     int i;
     
-    sprintf(url, "%s/infoio.cgi", g_wifi_config.u.config.rqst_path);
+    sprintf(url, "%s/infoio", g_wifi_config.u.config.rqst_path);
     sprintf(data, "ID=%s&TYP=%s&FW=%s&AT=%s&SDK=%s", 
             WiFiMAC(), WIFI_HW_Name, ControlVersion(), WiFiAT(), WiFiSDK());
     /* Agrego mi estado */

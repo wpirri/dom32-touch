@@ -534,6 +534,7 @@ int WiFiQueryHost(const char* host, int port, const char* send_msg, char* recv_m
     unsigned long content_length = 0;
     unsigned long total_escrito = 0;
     int wait_to_read;
+    int closed = 0;
 
 #ifdef __DEBUG_WIFI__
     LogMessage("[WiFiQueryHost] Enviando %i bytes a %s:%i", strlen(send_msg), host, port);
@@ -717,6 +718,10 @@ int WiFiQueryHost(const char* host, int port, const char* send_msg, char* recv_m
                     total_escrito += recv_len;
                 }                
             }
+            else if( !memcmp(cmd, "0,CLOSED", 8))
+            {
+                closed = 1;
+            }
             else if(content_length == total_escrito)
             {
                 break;
@@ -734,20 +739,11 @@ int WiFiQueryHost(const char* host, int port, const char* send_msg, char* recv_m
                 total_escrito, content_length);
 #endif
 
-#ifdef __DEBUG_WIFI__
-    LogMessage("[WiFiQueryHost] Esperando Cierre de conexion");
-#endif
-    /* Espero el cierre de conexión */
-    while(WifiReadAt(cmd, 256, '\n', 10) >= 0)
+    if(closed == 0)
     {
-        if( !memcmp(cmd, "0,CLOSED", 8))
-        {
-            break;
-        }
+        /* Me aseguro el Close */
+        WiFiCommand("AT+CIPCLOSE=0", "OK", 10);
     }
-    
-    /* Me aseguro el Close */
-    WiFiCommand("AT+CIPCLOSE=0", "OK", 100);
 
     return recv_len;
 }
