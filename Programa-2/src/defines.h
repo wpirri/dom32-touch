@@ -39,7 +39,7 @@
 #define CONFIG_FILENAME         "d32touch.cfg"
 #define DOWNLOAD_LIST_FILENAME  "download.lst"
 
-#define TOUCH_DELAY 10
+#define TOUCH_DELAY 6
 #define RETURN_TO_HOME 600
 #define BOTON_BORDE 6
 #define BOTON_REDONDO 15
