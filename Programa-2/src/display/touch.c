@@ -47,7 +47,7 @@
 #define TOUCH_MAX_Y     850
 
 #define MUESTREOS_ADC   5
-#define MIN_Z           300
+#define MIN_Z           100
 
 
 #define swap(a, b) { int t = a; a = b; b = t; }
