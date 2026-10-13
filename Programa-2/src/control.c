@@ -691,6 +691,7 @@ void Control_Screen_Task( void )
             break;
         case SCREEN_SHOW_PAGE:
             LogMessage("[SCREEN] Show Page [%s]", control_screen_filename);
+            control_screen_saver_count = ((g_wifi_config.u.config.screen_saver_time)?g_wifi_config.u.config.screen_saver_time*100:6000);
             DisplayBrillo(g_wifi_config.u.config.brillo_max);
             ShowScreen(control_screen_filename);
             control_screen_stm++;
