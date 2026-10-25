@@ -551,8 +551,12 @@ int WiFiQueryHost(const char* host, int port, const char* send_msg, char* recv_m
             (g_wifi_config.u.config.enable_https)?"SSL":"TCP", host, port);
     if(WiFiCommand(cmd, "OK", 1000) < 0)
     {
-        LogMessage("[WiFiQueryHost] Time-Out intentando conectar con %s:%i", host, port);
-        return (-1);
+        WiFiCommand("AT+CIPCLOSE=0", "OK", 50);
+        if(WiFiCommand(cmd, "OK", 1000) < 0)
+        {
+            LogMessage("[WiFiQueryHost] Time-Out intentando conectar con %s:%i", host, port);
+            return (-1);
+        }
     }
     /* Send */
     sprintf(cmd, "AT+CIPSEND=0,%d", strlen(send_msg));
@@ -593,8 +597,9 @@ int WiFiQueryHost(const char* host, int port, const char* send_msg, char* recv_m
 #ifdef __DEBUG_WIFI__    
     LogMessage("[WiFiQueryHost] Esperando respuesta");
 #endif
-    /* Recibo la cabecera IPD o el close */
-    while( (rc = WifiReadAt(cmd, WIFI_BUFFER_LEN, '\n', 50)) >= 0)
+    /* Recibo la cabecera IPD o el close (250 = 2500ms para tolerar retransmision TCP en WiFi) */
+    wait_to_read = 250;
+    while( (rc = WifiReadAt(cmd, WIFI_BUFFER_LEN, '\n', wait_to_read)) >= 0)
     {
         cmd[rc] = 0;
         #ifdef __DEBUG_WIFI__    
@@ -602,6 +607,7 @@ int WiFiQueryHost(const char* host, int port, const char* send_msg, char* recv_m
         #endif
         if( !memcmp(cmd, "+IPD", 4))
         {
+            wait_to_read = 100;
             #ifdef __DEBUG_WIFI__    
                 LogMessage("[WiFiQueryHost] Recibido +IPD");
             #endif
@@ -660,17 +666,24 @@ int WiFiQueryHost(const char* host, int port, const char* send_msg, char* recv_m
     LogMessage("[WiFiQueryHost] Fin cabecera. Recibiendo datos de %i bytes", content_length);
 #endif
 
+    if(data_len == 0)
+    {
+        LogMessage("[WiFiQueryHost] Time-Out esperando +IPD de %s:%i", host, port);
+        WiFiCommand("AT+CIPCLOSE=0", "OK", 10);
+        return (-1);
+    }
+
     do
     {
         /* Recibo los datos */
-        wait_to_read = 50;
+        wait_to_read = 150;
         while(recv_len < data_len)
         {
             rc = WifiReadCount(cmd, ((data_len-recv_len)<WIFI_BUFFER_LEN)?(data_len-recv_len):WIFI_BUFFER_LEN, wait_to_read);
-            wait_to_read = 5;
+            wait_to_read = 50;
             if(rc < 0)
             {
-                LogMessage("[WiFiQueryHost] Time-Out faltando %i bytes", (recv_len < data_len));
+                LogMessage("[WiFiQueryHost] Time-Out faltando %i bytes", (data_len - recv_len));
                 break;
             }
             cmd[rc] = 0;
@@ -687,6 +700,12 @@ int WiFiQueryHost(const char* host, int port, const char* send_msg, char* recv_m
 #endif
             /* Escribir cmd x rc bytes al archivo */
             total_escrito += rc;
+        }
+
+        /* Si ya se recibio todo el Content-Length anunciado, salir sin esperar timeout extra */
+        if(content_length > 0 && total_escrito >= content_length)
+        {
+            break;
         }
     
         rc = WifiReadCount(cmd, 16, wait_to_read);
@@ -825,7 +844,7 @@ int WiFiQueryHostToFile(const char* host, int port, const char* send_msg, const 
     LogMessage("[WiFiQueryHostToFile] Requerimiento enviado, esperando respuesta");
 #endif
     /* Recibo la cabecera IPD o el close */
-    while( (rc = WifiReadAt(cmd, WIFI_BUFFER_LEN, '\n', 50)) >= 0)
+    while( (rc = WifiReadAt(cmd, WIFI_BUFFER_LEN, '\n', 250)) >= 0)
     {
         cmd[rc] = 0;
         if( !memcmp(cmd, "+IPD", 4))
@@ -912,11 +931,11 @@ int WiFiQueryHostToFile(const char* host, int port, const char* send_msg, const 
     do
     {
         /* Recibo los datos */
-        wait_to_read = 50;
+        wait_to_read = 150;
         while(recv_len < data_len)
         {
             rc = WifiReadCount(cmd, ((data_len-recv_len)<WIFI_BUFFER_LEN)?(data_len-recv_len):WIFI_BUFFER_LEN, wait_to_read);
-            wait_to_read = 5;
+            wait_to_read = 50;
             if(rc < 0)
             {
                 LogMessage("[WiFiQueryHostToFile] Time-Out faltando %i bytes", (data_len - recv_len));
@@ -931,6 +950,10 @@ int WiFiQueryHostToFile(const char* host, int port, const char* send_msg, const 
             /* Escribir cmd x rc bytes al archivo */
             FSfwrite(cmd, rc, 1, f);
             total_escrito += rc;
+        }
+        if(content_length > 0 && total_escrito >= content_length)
+        {
+            break;
         }
         
         rc = WifiReadCount(cmd, 16, wait_to_read);
@@ -985,6 +1008,10 @@ int WiFiQueryHostToFile(const char* host, int port, const char* send_msg, const 
     {
         FSremove(real_filename);
         FSrename(real_filename, f);
+        FSfclose(f);
+    }
+    else
+    {
         FSfclose(f);
     }
 #ifdef __DEBUG_WIFI__
