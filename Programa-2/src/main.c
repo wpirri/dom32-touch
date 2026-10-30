@@ -85,28 +85,26 @@ int main(void)
    
     SystemInit();
     InitBeep();
-    LogInit((g_wifi_config.u.config.debug>0)?true:false, false);
     
     if( FSInit() )
     {
         status_sd_ok = true;
-        LogMessage("[MAIN] File System Ok");
     }
     else
     {
         status_sd_ok = false;
-        LogMessage("[MAIN] File System Error");
     }
-    LogMessage("[MAIN] Compilacion %s", ControlVersion());
-    LogMessage("[MAIN] Compilador %s", ControlCompilador());
     
     if(status_sd_ok) FSremove(FIRMWARE_FILENAME);
 
-    LogMessage("[MAIN] Configuracion");
     ConfigInit();
     if(status_sd_ok) ConfigLoad();
-    DumpConfig();
 
+    LogInit((g_wifi_config.u.config.debug>0)?true:false, false);
+    LogMessage("[MAIN] Compilacion %s", ControlVersion());
+    LogMessage("[MAIN] Compilador %s", ControlCompilador());
+    DumpConfig();
+    
     LogMessage("[MAIN] Init RTCC");
     RTCC_Initialize();
 

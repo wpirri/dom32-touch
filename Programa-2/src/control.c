@@ -922,6 +922,14 @@ void BotonPressed(const char* cmd)
             DisplayOn();
         }
     }
+    else if( !memcmp(cmd, "DEBUG:", 6))
+    {
+        g_wifi_config.u.config.debug = 1 - g_wifi_config.u.config.debug;
+        DisplayOff();
+        ConfigSave();
+        DisplayOn();
+        reset_timer_count = 100;
+    }
 }
 
 void TouchTask( void )
