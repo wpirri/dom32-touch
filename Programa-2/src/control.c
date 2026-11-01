@@ -293,8 +293,14 @@ void ControlHostKeepAlive(void)
     int i;
     
     sprintf(url, "%s/infoio", g_wifi_config.u.config.rqst_path);
-    sprintf(data, "ID=%s&TYP=%s&FW=%s&AT=%s&SDK=%s", 
-            WiFiMAC(), WIFI_HW_Name, ControlVersion(), WiFiAT(), WiFiSDK());
+    sprintf(data, "ID=%s&LVL=%i&TYP=%s&FW=%s&AT=%s&SDK=%s", 
+            WiFiMAC(),
+            WiFiSignalLevel(),
+            WIFI_HW_Name, 
+            ControlVersion(), 
+            WiFiAT(), 
+            WiFiSDK());
+
     /* Agrego mi estado */
     if(HttpOnLine() == 0)
     {
