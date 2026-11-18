@@ -44,15 +44,20 @@
 volatile unsigned int g_wifi_c_timer_count;
 int g_wifi_c_mode;
 int g_wifi_c_go_mode;
-int g_wifi_c_ap_conectado;
-int g_wifi_c_go_ap_conectado;
 int g_wifi_c_sta_conectado;
 char g_wifi_c_hw_mac[13];
-char g_wifi_c_ap_mac[18];
 unsigned char g_wifi_soporte_ssl;
 char g_at_version[256];
 char g_sdk[256];
+
+int g_wifi_ap_conectado;
 int g_wifi_signal_level;
+char g_wifi_best_ap_ssid[33];
+char g_wifi_best_ap_mac[18];
+char g_wifi_actual_ap_mac[18];
+int  g_wifi_best_signal_level;
+char g_wifi_actual_ap_ssid[33];
+
 
 void WifiWrite( const char *buffer );
 void WifiWriteLine( const char *line );
@@ -62,18 +67,22 @@ void WiFiWait(int t);
 int WiFiCheckUnsolMsg(char* msg);
 int WiFiCommand(const char* cmd, const char* wait, int to);
 void WiFiReadUnsolIPD(const char* msg);
+void WiFiScanAP(const char* ssid);
 
 /* ************************************************************************* */
 void WiFiInit( void )
 {
-    g_wifi_c_ap_conectado = 0;
-    g_wifi_c_go_ap_conectado = 0;
     g_wifi_c_mode = 0;
     g_wifi_c_go_mode = 0;
     g_wifi_c_sta_conectado = 0;
     g_wifi_soporte_ssl = 0;
     g_wifi_signal_level = 0;
-    g_wifi_c_ap_mac[0] = 0;
+    g_wifi_best_ap_ssid[0] = 0;
+    g_wifi_best_ap_mac[0] = 0;
+    g_wifi_actual_ap_mac[0] = 0;
+    g_wifi_best_signal_level = 0;
+    g_wifi_actual_ap_ssid[0] = 0;
+    g_wifi_ap_conectado = 0;
 
     // Reset
     TRISBbits.TRISB10 = 0;
@@ -97,7 +106,6 @@ void WiFiTask( void )
 int WiFiStart( void )
 {
     LogMessage("[WIFI] Start");
-    g_wifi_c_ap_conectado = 0;
     g_wifi_c_mode = 0;
     /* Reseteo el módulo. Bajo y subo el pin de reset */
     WIFI_RESET_SetLow();
@@ -128,7 +136,7 @@ int WiFiStart( void )
     /* Obtengo la MAC */
     if(WiFiCommand("AT+CIFSR", "OK", 150) < 0) return (-1);
     /* Me quedo en Modo 0 - Puede devolver error*/
-    WiFiCommand("AT+CWMODE=0", "OK", 150);
+    //WiFiCommand("AT+CWMODE=0", "OK", 150);
 
     return 0;
 }
@@ -138,9 +146,16 @@ int WiFiMode( void )
     return g_wifi_c_mode;
 }
 
-int WiFiConectado( void )
+const char* WiFiConectado( void )
 {
-    return g_wifi_c_ap_conectado;
+    if(g_wifi_ap_conectado)
+    {
+        return &g_wifi_actual_ap_ssid[0];
+    }
+    else
+    {
+        return NULL;
+    }
 }
 
 int WiFiStaConectado( void )
@@ -148,19 +163,13 @@ int WiFiStaConectado( void )
     return g_wifi_c_sta_conectado;
 }
 
-void WiFiSwitchRouter( void )
-{
-    if(g_wifi_c_go_ap_conectado == 1) g_wifi_c_go_ap_conectado = 2;
-    else                              g_wifi_c_go_ap_conectado = 1;
-}
-
 int WiFiSetMode(int mode)
 {
     char cmd[128];
+    char pass[33];
 
     if(mode != WIFI_MODE_AP && mode != WIFI_MODE_ST ) return (-1);
 
-    g_wifi_c_ap_conectado = 0;
     g_wifi_c_mode = 0;
     
     if(mode == WIFI_MODE_AP)
@@ -175,7 +184,7 @@ int WiFiSetMode(int mode)
     /* Apago cualquier LISTEN que pueda haber - Puede dar error */
     WiFiCommand("AT+CIPSERVER=0", "OK", 150);
     /* Si estaba en otro modo me muevo al 0 - Puede dar error*/
-    WiFiCommand("AT+CWMODE=0", "OK", 150);
+    //WiFiCommand("AT+CWMODE=0", "OK", 150);
     /* Seteo el modo */
     sprintf(cmd, "AT+CWMODE=%i", mode);
     if(WiFiCommand(cmd, "OK", 150) < 0) return (-1);
@@ -186,7 +195,11 @@ int WiFiSetMode(int mode)
     if(mode == WIFI_MODE_AP)
     {
         sprintf(cmd, "AT+CWSAP=\"WiFi-%s-%s\",\"\",1,0,4,0", WIFI_HW_Name, &g_wifi_c_hw_mac[6]);
-        if(WiFiCommand(cmd, "OK", 150) < 0) return (-1);
+        if(WiFiCommand(cmd, "OK", 150) < 0)
+        {
+            /* Pruebo de nuevo */
+            if(WiFiCommand(cmd, "OK", 150) < 0) return (-1);
+        }
         /* Max conexiones */
         if(WiFiCommand("AT+CIPSERVERMAXCONN=1", "OK", 150) < 0) return (-1);
         /* LISTEN en port 80 */
@@ -196,62 +209,42 @@ int WiFiSetMode(int mode)
     /* Solo para ST */
     if(mode == WIFI_MODE_ST)
     {
+        g_wifi_actual_ap_ssid[0] = 0;
+        
         /* Reconexión automática */
         if(WiFiCommand("AT+CWAUTOCONN=1", "OK", 150) < 0) return (-1);
-        /* Me conecto con el AP */
-        if(g_wifi_c_go_ap_conectado == 0) g_wifi_c_go_ap_conectado = 1;
+        /* Busco la mejor señal */
+        WiFiScan();
         /* Si no hay AP Definido no puedo seguir */
-        if(g_wifi_config.u.config.wifi_ap1[0] == 0 && g_wifi_config.u.config.wifi_ap2[0] == 0)
+        if(g_wifi_best_ap_ssid[0] == 0)
         {
             LogMessage("[WIFI] No hay AP definido");
             return (-1);
         }
-        /* Si el seleccionado no está configurado me paso al otro */
-        if(g_wifi_c_go_ap_conectado == 1 && g_wifi_config.u.config.wifi_ap1[0] == 0)
+        /* Busco la clave para el AP seleccionado */
+        if( !strcmp(g_wifi_config.u.config.wifi_ap1, g_wifi_best_ap_ssid))
         {
-            g_wifi_c_go_ap_conectado = 2;
-        }
-        else if(g_wifi_c_go_ap_conectado == 2 && g_wifi_config.u.config.wifi_ap2[0] == 0)
-        {
-            g_wifi_c_go_ap_conectado = 1;
-        }
-        
-        WiFiScan(g_wifi_c_go_ap_conectado);
-        
-        /*
-         *    AT+CWJAP=<ssid>,<pwd>[,<bssid>]
-         */
-        if(g_wifi_c_go_ap_conectado == 1)
-        {
-            /* Uso el AP1 */
-            LogMessage("[WifiTaskSTMode] Conectando con AP1 %s (%s).",
-                    g_wifi_config.u.config.wifi_ap1,
-                    g_wifi_config.u.config.wifi_ap1_pass);
-            sprintf(cmd, "AT+CWJAP=\"%s\",\"%s\"",
-                g_wifi_config.u.config.wifi_ap1,
-                g_wifi_config.u.config.wifi_ap1_pass);
+            strcpy(pass, g_wifi_config.u.config.wifi_ap1_pass);
         }
         else
         {
-            /* Uso el AP2 */
-            LogMessage("[WifiTaskSTMode] Conectando con AP2 %s (%s).",
-                    g_wifi_config.u.config.wifi_ap2,
-                    g_wifi_config.u.config.wifi_ap2_pass);
-            sprintf(cmd, "AT+CWJAP=\"%s\",\"%s\"",
-                g_wifi_config.u.config.wifi_ap2,
-                g_wifi_config.u.config.wifi_ap2_pass);
+            strcpy(pass, g_wifi_config.u.config.wifi_ap2_pass);
         }
-        /* Si tengo una MAC preferida la agrego */
-        if(g_wifi_c_ap_mac[0] != 0)
-        {
-            strcat(cmd, ",\"");
-            strcat(cmd, g_wifi_c_ap_mac);
-            strcat(cmd, "\"");
-        }
-        /* */
+        LogMessage("[WifiTaskSTMode] Conectando con SSID: %s PASS: %s MAC: %s.",
+                g_wifi_best_ap_ssid, pass, g_wifi_best_ap_mac);
+        /*
+         *  Conecto con una MAC espcifica ya que el ESP-02D no soporta Roaming
+         *    AT+CWJAP=<ssid>,<pwd>[,<bssid>]
+         */
+        sprintf(cmd, "AT+CWJAP=\"%s\",\"%s\",\"%s\"", 
+                g_wifi_best_ap_ssid, pass, g_wifi_best_ap_mac);
         if(WiFiCommand(cmd, "OK", 1000) < 0) return (-1);
-        /* IP y MAC cuando conecte va a devolver la IP */
+        /* IP y MAC local. Cuando conecte va a devolver la IP */
         if(WiFiCommand("AT+CIFSR", "OK", 300) < 0) return (-1);
+        /* Me copio los datos del AP donde me conecté */
+        strcpy(g_wifi_actual_ap_ssid, g_wifi_best_ap_ssid);
+        g_wifi_signal_level = g_wifi_best_signal_level;
+        strcpy(g_wifi_actual_ap_mac, g_wifi_best_ap_mac);
     }
     g_wifi_c_mode = mode;
     return 0;
@@ -412,25 +405,30 @@ int WiFiCheckUnsolMsg(char* msg)
     else if( !memcmp(msg, "WIFI CONNECTED", 14))
     {
         /* ST Conectada al Router */
+        LogMessage("[WiFi] %s", msg);
     }
     else if( !memcmp(msg, "WIFI GOT IP", 11))
     {
         /* IP obtenida del Router */
-        g_wifi_c_ap_conectado = g_wifi_c_go_ap_conectado;
+        LogMessage("[WiFi] %s", msg);
+        g_wifi_ap_conectado = 1;
     }
     else if( !memcmp(msg, "WIFI DISCONNECTED", 17))
     {
         /* Desconectado del Router */
-        g_wifi_c_ap_conectado = 0;
+        LogMessage("[WiFi] %s", msg);
+        g_wifi_ap_conectado = 0;
     }
     else if( !memcmp(msg, "+STA_CONNECTED", 8))
     {
         /* Cliente conectado al AP */
+        LogMessage("[WiFi] %s", msg);
         g_wifi_c_sta_conectado = 1;
     }
     else if( !memcmp(msg, "+STA_DISCONNECTED", 8))
     {
         /* Cliente desconectado del AP */
+        LogMessage("[WiFi] %s", msg);
         g_wifi_c_sta_conectado = 0;
     }
     else if( !memcmp(msg, "+CIFSR:", 7))
@@ -489,13 +487,29 @@ int WiFiCheckUnsolMsg(char* msg)
            +CWLAP:(4,"872e",-60,"78:98:e8:d6:69:3f",13,-7,0,5,3,7,0)
          */
         LogMessage("[WiFi] %s", msg);
-        /* Me guardo la MAC con mejor señal */
-        /* El primero que llega */
+        /* Me guardo el SSID y la MAC con mejor señal */
         if(str_section(msg, ',', 2, str_tmp))
         {
-            if(g_wifi_signal_level == 0 || atoi(str_tmp) > g_wifi_signal_level )
+            if(g_wifi_best_signal_level == 0 || atoi(str_tmp) > g_wifi_best_signal_level )
             {
-                g_wifi_signal_level = atoi(str_tmp);
+                g_wifi_best_signal_level = atoi(str_tmp);
+                /* copio el SSID */
+                if(str_section(msg, ',', 1, str_tmp))
+                {
+                    i = 0;
+                    j = 0;
+
+                    while(str_tmp[i])
+                    {
+                        if(str_tmp[i] != '\"')
+                        {
+                            g_wifi_best_ap_ssid[j] = str_tmp[i];
+                            j++;
+                        }
+                        i++;
+                    }
+                    g_wifi_best_ap_ssid[j] = 0;
+                }
                 /* Copio la MAC sin las comillas */
                 if(str_section(msg, ',', 3, str_tmp))
                 {
@@ -506,12 +520,12 @@ int WiFiCheckUnsolMsg(char* msg)
                     {
                         if(str_tmp[i] != '\"')
                         {
-                            g_wifi_c_ap_mac[j] = str_tmp[i];
+                            g_wifi_best_ap_mac[j] = str_tmp[i];
                             j++;
                         }
                         i++;
                     }
-                    g_wifi_c_ap_mac[j] = 0;
+                    g_wifi_best_ap_mac[j] = 0;
                 }                
             }
         }
@@ -592,13 +606,12 @@ int WiFiQueryHost(const char* host, int port, const char* send_msg, char* recv_m
     LogMessage("[WiFiQueryHost] Enviando %i bytes a %s:%i", strlen(send_msg), host, port);
 #endif
     
-    if(WiFiConectado() == 0)
+    if( !WiFiConectado() )
     {
         LogMessage("[WiFiQueryHost]WiFi no conectado");
         return (-1);
     }
     
-    WiFiGetSignalLevel();
     
     /* Conexión */
     sprintf(cmd, "AT+CIPSTART=0,\"%s\",\"%s\",%i",
@@ -847,7 +860,7 @@ int WiFiQueryHostToFile(const char* host, int port, const char* send_msg, const 
     LogMessage("[WiFiQueryHostToFile] Descargando archivo [%s]", filename);
 #endif
     
-    if(WiFiConectado() == 0)
+    if( !WiFiConectado() )
     {
         LogMessage("[WiFiQueryHostToFile] WiFi no conectado");
         return (-1);
@@ -1198,35 +1211,54 @@ void WiFiReadUnsolIPD(const char* msg)
     WiFiCommand("AT+CIPCLOSE=0", "OK", 100);
 }
 
-void WiFiScan(int ap)
+int WiFiScan( void )
+{
+    g_wifi_best_ap_ssid[0] = 0;
+    g_wifi_best_ap_mac[0] = 0;
+    g_wifi_best_signal_level = 0;
+    
+    /* Escaneo los AP definidos */
+    if(g_wifi_config.u.config.wifi_ap1[0] != 0)
+    {
+        WiFiScanAP(g_wifi_config.u.config.wifi_ap1);
+    }
+    if(g_wifi_config.u.config.wifi_ap2[0] != 0)
+    {
+        /* Si el primario y backup son el mismo no escaneo dos veces */
+        if( strcmp(g_wifi_config.u.config.wifi_ap1,
+                   g_wifi_config.u.config.wifi_ap2))
+        {
+            WiFiScanAP(g_wifi_config.u.config.wifi_ap2);
+        }
+    }
+    
+    if(g_wifi_ap_conectado)
+    {
+        /* Estoy conectado al de mejor señal? */
+        if( strcmp(g_wifi_actual_ap_mac, g_wifi_best_ap_mac) )
+        {
+            return 1;
+        }
+        else
+        {
+            /* Aprovecho y me guardo el nivel de señal */
+            g_wifi_signal_level = g_wifi_best_signal_level;
+        }
+    }
+    
+    return 0;
+}
+
+void WiFiScanAP(const char* ssid)
 {
     char cmd[128];
 
-    g_wifi_signal_level = 0;
-    g_wifi_c_ap_mac[0] = 0;
+    sprintf(cmd, "AT+CWLAP=\"%s\"", ssid);
     
-    if(ap == 1)
+    if(WiFiCommand(cmd, "OK", 1000) < 0)
     {
-        sprintf(cmd, "AT+CWLAP=\"%s\"", g_wifi_config.u.config.wifi_ap1);
+        LogMessage("[WiFiScan] Time-Out obteniendo señales de AP %s", ssid);
     }
-    else if(ap == 2)
-    {
-        sprintf(cmd, "AT+CWLAP=\"%s\"", g_wifi_config.u.config.wifi_ap2);
-    }
-    else
-    {
-        strcpy(cmd, "AT+CWLAP");
-    }
-    
-    if(WiFiCommand(cmd, "OK", 500) < 0)
-    {
-        g_wifi_c_ap_mac[0] = 0;
-    }
-    else if(ap != 0)
-    {
-        LogMessage("[WiFiScan] Mejor señal: [%s]", g_wifi_c_ap_mac);
-    }
-
 }
 
 void WiFiGetSignalLevel()

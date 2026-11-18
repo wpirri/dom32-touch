@@ -51,12 +51,7 @@ typedef enum
     WIFI_MODO_AP_OK,
     WIFI_MODO_ST,
     WIFI_MODO_ST_OK,
-    WIFI_CONECTAR_A_HOST,
-    WIFI_CONECTADO_A_HOST,
-    WIFI_DESCONECTADO_DE_HOST,
-    WIFI_ERROR,
-    WIFI_ERROR_FATAL,
-    WIFI_ERROR_FATAL_LOOP
+    WIFI_ERROR
 } enum_control_wifi_stm;
 
 enum_control_wifi_stm control_wifi_stm;
@@ -98,6 +93,7 @@ unsigned int reset_timer_count;
 unsigned int update_firmware_timer_count;
 unsigned int save_config_timer_count;
 unsigned int control_file_flags;
+unsigned int control_signal_level;
 char filename_to_download[256];
 unsigned int download_list_count;
 const char fecha_compilacion[] = __DATE__ " " __TIME__;
@@ -118,6 +114,7 @@ void ControlInit( bool sd_ok )
     save_config_timer_count = 0;
     assinc_timer_flag = false;
     control_file_flags = 6000;
+    control_signal_level = 6000;
     download_list_count = 0;
     
     /* **** WiFi *********************************************************** */
@@ -158,6 +155,7 @@ void ControlTimer( void )
     if(wifi_config_timer_count) wifi_config_timer_count--;
     if(WiFiConectado() && keep_alive_timer_count) keep_alive_timer_count--;
     if(control_file_flags) control_file_flags--;
+    if(control_signal_level) control_signal_level--;
  
     /* **** Screen ********************************************************* */
     if(control_screen_saver_count) control_screen_saver_count--;
@@ -170,19 +168,33 @@ void ControlTask(void)
 {
     char url[256];
     
-    if(WiFiConectado() && keep_alive_timer_count == 0)
+    if(WiFiConectado())
     {
-        ControlHostKeepAlive();
-    }
-    
-    if(control_file_flags == 0)
-    {
-        control_file_flags = 1000;
-        if(HttpOnLine())
+        if(keep_alive_timer_count == 0)
         {
-            ControlFileFlags();
+            keep_alive_timer_count = 10000;
+            ControlHostKeepAlive();
+        }
+
+        if(control_file_flags == 0)
+        {
+            control_file_flags = 1000;
+            if(HttpOnLine())
+            {
+                ControlFileFlags();
+                if(control_signal_level == 0)
+                {
+                    control_signal_level = 6000;
+                    if(WiFiScan() != 0)
+                    {
+                        /* No estoy en la mejor conexión */
+                        control_wifi_stm = WIFI_INIT;
+                    }
+                }
+            }
         }
     }
+    
     
     /* Para las cosas que dependen del timer pero no pueden estar en una interrupcion */
     if(assinc_timer_flag)
@@ -597,7 +609,16 @@ void Control_WiFi_Task(void)
             if(WiFiStart() == 0)
             {
                 /* Modo inicial del dispositivo */
-                //control_wifi_stm = WIFI_MODO_AP;
+                /*
+                if(start_in_ap_mode)
+                {
+                    control_wifi_stm = WIFI_MODO_AP;
+                }
+                else
+                {
+                    control_wifi_stm = WIFI_MODO_ST;
+                }
+                */
                 control_wifi_stm = WIFI_MODO_ST;
             }
             else
@@ -609,6 +630,7 @@ void Control_WiFi_Task(void)
             if(WiFiSetMode(WIFI_MODE_AP) == 0)
             {
                 control_wifi_stm++;
+                wifi_config_timer_count = 6000;
             }
             else
             {
@@ -616,6 +638,16 @@ void Control_WiFi_Task(void)
             }
             break;
         case WIFI_MODO_AP_OK:
+        	/*
+            if(wifi_config_timer_count == 0)
+            {
+                control_wifi_stm = WIFI_MODO_ST;
+            }
+            if(WiFiStaConectado())
+            {
+                wifi_config_timer_count = 250;
+            }
+            */
             break;
         case WIFI_MODO_ST:
             if(WiFiSetMode(WIFI_MODE_ST) == 0)
@@ -628,30 +660,16 @@ void Control_WiFi_Task(void)
             }
             break;
         case WIFI_MODO_ST_OK:
-            if(WiFiConectado() > 0)
+            if( !WiFiConectado())
             {
-                control_wifi_stm++;
-            }
-            else
-            {
-                WiFiSwitchRouter();
                 control_wifi_stm_delay = 500;
                 control_wifi_stm = WIFI_MODO_ST;
             }
             break;
-        case WIFI_CONECTAR_A_HOST:
-            break;
-        case WIFI_CONECTADO_A_HOST:
-            break;
-        case WIFI_DESCONECTADO_DE_HOST:
-            break;
         case WIFI_ERROR:
-            break;
-        case WIFI_ERROR_FATAL:
-            break;
-        case WIFI_ERROR_FATAL_LOOP:
-            break;
         default:
+            control_wifi_stm_delay = 500;
+            control_wifi_stm = WIFI_INIT;
             break;
     }    
 }
@@ -733,6 +751,7 @@ void Control_Screen_Task( void )
         case SCREEN_CONFIG:
             LogMessage("[SCREEN] Config");
             control_screen_saver_count = ((g_wifi_config.u.config.screen_saver_time)?g_wifi_config.u.config.screen_saver_time*100:6000);
+            keep_alive_timer_count = 10000;
             DisplayBrillo(g_wifi_config.u.config.brillo_max);
             ShowScreen(CONFIG_SCREEN_CSV);
             control_screen_stm++;
@@ -744,15 +763,18 @@ void Control_Screen_Task( void )
                 control_screen_number = 0;
                 strcpy(control_screen_filename, HOME_SCREEN_CSV);
                 control_screen_stm = SCREEN_SHOW_PAGE;
+                keep_alive_timer_count = 1;
             }
             else
             {
                 TouchTask();
+                keep_alive_timer_count = 10000;
             }
             break;
         case SCREEN_WIFI_CONFIG:
             LogMessage("[SCREEN] WiFi Config");
             wifi_config_timer_count = 6000;
+            keep_alive_timer_count = 10000;
             control_screen_stm++;
             break;
         case SCREEN_WIFI_CONFIG_LOOP:
@@ -762,10 +784,12 @@ void Control_Screen_Task( void )
                 if(WiFiStaConectado())
                 {
                     wifi_config_timer_count = 500; 
+                    keep_alive_timer_count = 10000;
                 }
                 else if(wifi_config_timer_count == 0)
                 {
                     control_wifi_stm = WIFI_MODO_ST;
+                    keep_alive_timer_count = 1;
                 }
                 else
                 {
@@ -777,11 +801,13 @@ void Control_Screen_Task( void )
                             ((DISPLAY_X_SIZE/2)-(GetBitmapW(control_screen_filename)/2)), 
                             ((DISPLAY_Y_SIZE/2)-(GetBitmapH(control_screen_filename)/2)) );
                     control_screen_stm_delay = 20;
+                    keep_alive_timer_count = 10000;
                 }
             }
             else
             {
                 control_screen_stm = SCREEN_OFFLINE;
+                keep_alive_timer_count = 1;
             }
             break;
         case SCREEN_SAVER:
