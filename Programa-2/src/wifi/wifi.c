@@ -548,9 +548,7 @@ int WiFiCommand(const char* cmd, const char* wait, int to)
 {
     char buffer[256];
 
-#ifdef __DEBUG_WIFI__
     LogMessage("[WiFiCommand] Cmd: [%s] Wait: [%s] To: %i cent", cmd, wait, to);
-#endif
     
     WifiWriteLine(cmd);
     do
@@ -1232,7 +1230,7 @@ int WiFiScan( void )
         }
     }
     
-    if(g_wifi_ap_conectado)
+    if(g_wifi_ap_conectado && g_wifi_best_ap_ssid[0] && g_wifi_best_ap_mac[0])
     {
         /* Estoy conectado al de mejor señal? */
         if( strcmp(g_wifi_actual_ap_mac, g_wifi_best_ap_mac) )

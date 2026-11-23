@@ -42,6 +42,7 @@
 #include "misc/boton.h"
 
 #define _DEBUG_MSG
+#define KEPP_ALIVE_TIMER 1000
 
 /* **** WiFi *************************************************************** */
 typedef enum
@@ -153,9 +154,13 @@ void ControlTimer( void )
     
     if(control_wifi_stm_delay) control_wifi_stm_delay--;
     if(wifi_config_timer_count) wifi_config_timer_count--;
-    if(WiFiConectado() && keep_alive_timer_count) keep_alive_timer_count--;
     if(control_file_flags) control_file_flags--;
-    if(control_signal_level) control_signal_level--;
+
+    if(WiFiMode() == WIFI_MODE_ST && WiFiConectado())
+    {
+        if(keep_alive_timer_count) keep_alive_timer_count--;
+        if(control_signal_level) control_signal_level--;
+    }
  
     /* **** Screen ********************************************************* */
     if(control_screen_saver_count) control_screen_saver_count--;
@@ -172,7 +177,7 @@ void ControlTask(void)
     {
         if(keep_alive_timer_count == 0)
         {
-            keep_alive_timer_count = 10000;
+            keep_alive_timer_count = KEPP_ALIVE_TIMER;
             ControlHostKeepAlive();
         }
 
@@ -188,6 +193,7 @@ void ControlTask(void)
                     if(WiFiScan() != 0)
                     {
                         /* No estoy en la mejor conexión */
+                        LogMessage("[ControlTask] Hay un AP Con menor señal");
                         control_wifi_stm = WIFI_INIT;
                     }
                 }
@@ -347,12 +353,6 @@ void ControlHostKeepAlive(void)
                     HttpConexionOk();
                     /* Busco configuraciones, comandos, etc */
                     ProcessGeneralConfig(data);
-                    keep_alive_timer_count = g_wifi_config.u.config.report;
-                    
-                    
-                    
-                    
-                    
                     return;
                 }
 #ifdef DEBUG_MSG
@@ -371,8 +371,6 @@ void ControlHostKeepAlive(void)
     }
 #endif
     HttpConexionError();
-    
-    keep_alive_timer_count = (g_wifi_config.u.config.report > 500)?500:g_wifi_config.u.config.report;
 }
 
 void ProcessGeneralConfig(char* in)
@@ -751,7 +749,6 @@ void Control_Screen_Task( void )
         case SCREEN_CONFIG:
             LogMessage("[SCREEN] Config");
             control_screen_saver_count = ((g_wifi_config.u.config.screen_saver_time)?g_wifi_config.u.config.screen_saver_time*100:6000);
-            keep_alive_timer_count = 10000;
             DisplayBrillo(g_wifi_config.u.config.brillo_max);
             ShowScreen(CONFIG_SCREEN_CSV);
             control_screen_stm++;
@@ -768,13 +765,11 @@ void Control_Screen_Task( void )
             else
             {
                 TouchTask();
-                keep_alive_timer_count = 10000;
             }
             break;
         case SCREEN_WIFI_CONFIG:
             LogMessage("[SCREEN] WiFi Config");
             wifi_config_timer_count = 6000;
-            keep_alive_timer_count = 10000;
             control_screen_stm++;
             break;
         case SCREEN_WIFI_CONFIG_LOOP:
@@ -784,7 +779,6 @@ void Control_Screen_Task( void )
                 if(WiFiStaConectado())
                 {
                     wifi_config_timer_count = 500; 
-                    keep_alive_timer_count = 10000;
                 }
                 else if(wifi_config_timer_count == 0)
                 {
@@ -801,7 +795,6 @@ void Control_Screen_Task( void )
                             ((DISPLAY_X_SIZE/2)-(GetBitmapW(control_screen_filename)/2)), 
                             ((DISPLAY_Y_SIZE/2)-(GetBitmapH(control_screen_filename)/2)) );
                     control_screen_stm_delay = 20;
-                    keep_alive_timer_count = 10000;
                 }
             }
             else
