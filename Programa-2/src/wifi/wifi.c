@@ -238,7 +238,7 @@ int WiFiSetMode(int mode)
          */
         sprintf(cmd, "AT+CWJAP=\"%s\",\"%s\",\"%s\"", 
                 g_wifi_best_ap_ssid, pass, g_wifi_best_ap_mac);
-        if(WiFiCommand(cmd, "OK", 1000) < 0) return (-1);
+        if(WiFiCommand(cmd, "OK", 2500) < 0) return (-1);
         /* IP y MAC local. Cuando conecte va a devolver la IP */
         if(WiFiCommand("AT+CIFSR", "OK", 300) < 0) return (-1);
         /* Me copio los datos del AP donde me conecté */
@@ -1253,7 +1253,7 @@ void WiFiScanAP(const char* ssid)
 
     sprintf(cmd, "AT+CWLAP=\"%s\"", ssid);
     
-    if(WiFiCommand(cmd, "OK", 1000) < 0)
+    if(WiFiCommand(cmd, "OK", 3000) < 0)
     {
         LogMessage("[WiFiScan] Time-Out obteniendo señales de AP %s", ssid);
     }

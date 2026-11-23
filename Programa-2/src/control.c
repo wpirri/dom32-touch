@@ -760,7 +760,6 @@ void Control_Screen_Task( void )
                 control_screen_number = 0;
                 strcpy(control_screen_filename, HOME_SCREEN_CSV);
                 control_screen_stm = SCREEN_SHOW_PAGE;
-                keep_alive_timer_count = 1;
             }
             else
             {
@@ -769,13 +768,14 @@ void Control_Screen_Task( void )
             break;
         case SCREEN_WIFI_CONFIG:
             LogMessage("[SCREEN] WiFi Config");
+            control_screen_saver_count = ((g_wifi_config.u.config.screen_saver_time)?g_wifi_config.u.config.screen_saver_time*100:6000);
             wifi_config_timer_count = 6000;
             control_screen_stm++;
             break;
         case SCREEN_WIFI_CONFIG_LOOP:
-            control_screen_stm_delay = 100;
             if(WiFiMode() == WIFI_MODE_AP_ST || WiFiMode() == WIFI_MODE_AP)
             {
+                control_screen_stm_delay = 100;
                 if(WiFiStaConectado())
                 {
                     wifi_config_timer_count = 500; 
@@ -783,7 +783,6 @@ void Control_Screen_Task( void )
                 else if(wifi_config_timer_count == 0)
                 {
                     control_wifi_stm = WIFI_MODO_ST;
-                    keep_alive_timer_count = 1;
                 }
                 else
                 {
@@ -799,8 +798,7 @@ void Control_Screen_Task( void )
             }
             else
             {
-                control_screen_stm = SCREEN_OFFLINE;
-                keep_alive_timer_count = 1;
+               control_screen_stm = SCREEN_OFFLINE;
             }
             break;
         case SCREEN_SAVER:
