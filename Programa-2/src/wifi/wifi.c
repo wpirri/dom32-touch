@@ -24,7 +24,7 @@
 #include <stdbool.h>
 
 #include "../defines.h"
-#include "uart3.h"
+#include "uart3.h"	/* dom32-touch */
 #include "../log.h"
 #include "../config.h"
 #include "../misc/strfunc.h"
@@ -33,6 +33,7 @@
 
 #define __NO__DEBUG_WIFI__
 
+/* dom32-touch */
 #define WIFI_RESET_SetHigh()    (LATBSET=(1<<10))
 #define WIFI_RESET_SetLow()     (LATBCLR=(1<<10))
 #define UART_INIT				UART3_Init
@@ -40,6 +41,7 @@
 #define UART_OVERFLOW           UART3_Overflow
 #define UART_ISRXREADY          UART3_IsRxReady
 #define UART_READ               UART3_Read
+/* dom32-touch */
 
 volatile unsigned int g_wifi_c_timer_count;
 int g_wifi_c_mode;
@@ -85,8 +87,10 @@ void WiFiInit( void )
     g_wifi_ap_conectado = 0;
 
     // Reset
+	/* dom32-touch */
     TRISBbits.TRISB10 = 0;
     ODCBbits.ODCB10 = 1;
+	/* dom32-touch */
 
     UART_INIT();
 }
@@ -825,7 +829,6 @@ int WiFiQueryHost(const char* host, int port, const char* send_msg, char* recv_m
     LogMessage("[WiFiQueryHost] Recibido %lu de %lu bytes de datos",
                 total_escrito, content_length);
 #endif
-
     if(closed == 0)
     {
         /* Me aseguro el Close */

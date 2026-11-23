@@ -36,13 +36,15 @@
 #include "system.h"
 #include "rtcc.h"
 
+/* Include de dom32-touch */
 #include "display/display.h"
 #include "display/touch.h"
 #include "misc/bitmap.h"
 #include "misc/boton.h"
+/* Include de dom32-touch */
 
 #define _DEBUG_MSG
-#define KEPP_ALIVE_TIMER 1000
+#define KEPP_ALIVE_TIMER 1000 /* dom32-touch */
 
 /* **** WiFi *************************************************************** */
 typedef enum
@@ -58,7 +60,7 @@ typedef enum
 enum_control_wifi_stm control_wifi_stm;
 unsigned int control_wifi_stm_delay;
 
-/* **** Screen ************************************************************* */
+/* dom32-touch */
 typedef enum
 {
     SCREEN_INIT = 0,
@@ -83,7 +85,7 @@ unsigned int control_screen_saver_count;
 char control_screen_filename[FILE_NAME_SIZE+1];
 unsigned int control_screen_number;
 unsigned int update_screen_timer_count;
-/* **** Screen ************************************************************* */
+/* dom32-touch */
 
 /* **** Control ************************************************************ */
 bool status_sd_ok;
@@ -100,7 +102,7 @@ unsigned int download_list_count;
 const char fecha_compilacion[] = __DATE__ " " __TIME__;
 const char version_compilador[] = __VERSION__;
 
-void DownloadFile(const char* filename, enum_control_screen_stm return_screen);
+void DownloadFile(const char* filename, enum_control_screen_stm return_screen);	/* dom32-touch */
 void ControlHostKeepAlive(void);
 void ControlFileFlags( void );
 void ProcesarDownloadList( void );
@@ -123,13 +125,13 @@ void ControlInit( bool sd_ok )
     control_wifi_stm_delay = 500;
     wifi_config_timer_count = 0;
     
-    /* **** Screen ********************************************************* */
+    /* dom32-touch */
     control_screen_stm = SCREEN_INIT;
     control_screen_stm_delay = 0;
     control_screen_number = 0;
     control_screen_saver_count = ((g_wifi_config.u.config.screen_saver_time)?g_wifi_config.u.config.screen_saver_time*100:6000);
     update_screen_timer_count = 0;
-    /* **** Screen ********************************************************* */
+    /* dom32-touch */
 
     save_config_timer_count = 1;
 }
@@ -162,16 +164,16 @@ void ControlTimer( void )
         if(control_signal_level) control_signal_level--;
     }
  
-    /* **** Screen ********************************************************* */
+    /* solo dom32-touch */
     if(control_screen_saver_count) control_screen_saver_count--;
     if(control_screen_stm_delay) control_screen_stm_delay--;
-    /* **** Screen ********************************************************* */
+    /* solo dom32-touch */
 
 }
 
 void ControlTask(void)
 {
-    char url[256];
+    char url[256];	/* solo dom32-touch */
     
     if(WiFiConectado())
     {
@@ -207,7 +209,7 @@ void ControlTask(void)
     {
         assinc_timer_flag = false;
         
-    /* **** Screen ********************************************************* */
+    	/* solo dom32-touch */
         if(update_screen_timer_count)
         {
             update_screen_timer_count--;
@@ -219,7 +221,7 @@ void ControlTask(void)
                 DownloadFile(url, SCREEN_SHOW_PAGE);
             }
         }
-    /* **** Screen ********************************************************* */
+    	/* solo dom32-touch */
 
         if(save_config_timer_count)
         {
@@ -236,10 +238,11 @@ void ControlTask(void)
             update_firmware_timer_count--;
             if(update_firmware_timer_count == 0)
             {
+            	/* dom32-touch */
                 control_screen_number = 0;
                 strcpy(control_screen_filename, HOME_SCREEN_CSV);
-
                 DownloadFile("/download/"FIRMWARE_FILENAME, SCREEN_SHOW_PAGE);
+                /* dom32-touch */
             }
         }
         
@@ -264,11 +267,12 @@ void ControlTask(void)
     if(filename_to_download[0])
     {
         LogMessage("[ControlTask] Download: [%s]", filename_to_download);
-
+		/* dom32-touch */
         control_screen_number = 0;
         strcpy(control_screen_filename, HOME_SCREEN_CSV);
-
         DownloadFile(filename_to_download, SCREEN_SHOW_PAGE);
+		/* dom32-touch */
+
         filename_to_download[0] = 0;
     }
     
@@ -285,6 +289,7 @@ void ControlSystemReset(int t)
     LogMessage("[ControlSystemReset] RESET en %i segundos", reset_timer_count/100);
 }
 
+/* dom32-touch */
 void DownloadFile(const char* filename, enum_control_screen_stm return_screen)
 {
     DisplayOff();
@@ -300,6 +305,7 @@ void DownloadFile(const char* filename, enum_control_screen_stm return_screen)
     
     control_screen_stm = return_screen;
 }
+/* dom32-touch */
 
 void ControlHostKeepAlive(void)
 {
@@ -457,19 +463,20 @@ void ProcessGeneralConfig(char* in)
         {
             update_firmware_timer_count = 100;
         }
+		/* solo dom32-touch */
         else if( !strcmp(s, "config"))
         {
             update_screen_timer_count = 100;
         }
+		/* solo dom32-touch */
     }
 
+	/* solo dom32-touch */
     if(HTTPGetFormData(in, "sct", s))
     {
         g_wifi_config.u.config.screen_saver_time = atoi(s);
         save_config_timer_count = 500;
     }
-
-    /* **** Screen ********************************************************* */
     if(HTTPGetFormData(in, "brillo-max", s))
     {
         g_wifi_config.u.config.brillo_max = atoi(s);
@@ -485,7 +492,8 @@ void ProcessGeneralConfig(char* in)
         g_wifi_config.u.config.brillo_min = atoi(s);
         save_config_timer_count = 500;
     }
-    /* **** Screen ********************************************************* */
+	/* solo dom32-touch */
+
     if(HTTPGetFormData(in, "time", s))
     {
         LogMessage("TIME: %s", s);
@@ -607,17 +615,9 @@ void Control_WiFi_Task(void)
             if(WiFiStart() == 0)
             {
                 /* Modo inicial del dispositivo */
-                /*
-                if(start_in_ap_mode)
-                {
-                    control_wifi_stm = WIFI_MODO_AP;
-                }
-                else
-                {
-                    control_wifi_stm = WIFI_MODO_ST;
-                }
-                */
+				/* dom32-touch */
                 control_wifi_stm = WIFI_MODO_ST;
+				/* dom32-touch */
             }
             else
             {
@@ -636,16 +636,7 @@ void Control_WiFi_Task(void)
             }
             break;
         case WIFI_MODO_AP_OK:
-        	/*
-            if(wifi_config_timer_count == 0)
-            {
-                control_wifi_stm = WIFI_MODO_ST;
-            }
-            if(WiFiStaConectado())
-            {
-                wifi_config_timer_count = 250;
-            }
-            */
+
             break;
         case WIFI_MODO_ST:
             if(WiFiSetMode(WIFI_MODE_ST) == 0)
@@ -672,7 +663,7 @@ void Control_WiFi_Task(void)
     }    
 }
 
-/* **** Screen ************************************************************* */
+/* dom32-touch */
 void BotonPressed(const char* cmd);
 void TouchTask( void );
 void ShowScreen(const char* filename);
@@ -875,7 +866,9 @@ void Control_Screen_Task( void )
             break;
     } /* switch */
 }
+/* dom32-touch */
 
+/* dom32-touch */
 void BotonPressed(const char* cmd)
 {
     LogMessage("[BotonPressed] CMD: %s", cmd);
@@ -954,7 +947,9 @@ void BotonPressed(const char* cmd)
         reset_timer_count = 100;
     }
 }
+/* dom32-touch */
 
+/* dom32-touch */
 void TouchTask( void )
 {
     static bool touch_pressed = false;
@@ -996,7 +991,9 @@ void TouchTask( void )
         }
     }
 }
+/* dom32-touch */
 
+/* dom32-touch */
 void ShowScreen(const char* filename)
 {
     FSFILE* f;
@@ -1110,3 +1107,5 @@ void ShowScreen(const char* filename)
 
     DisplayOn();
 }
+/* dom32-touch */
+
